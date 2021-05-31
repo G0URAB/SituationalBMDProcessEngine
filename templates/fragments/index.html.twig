@@ -1,0 +1,76 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Method Base {% endblock %}
+
+{% block body %}
+
+    <div class="mt-2 w-50 d-flex flex-row justify-content-around" style="margin:auto">
+        <a href="{{ path('create_process') }}" class="btn btn-sm btn-success"> Create a new Process</a>
+        <button type="button" class="btn btn-sm btn-warning"> Create a new Role</button>
+        <button type="button" class="btn btn-sm btn-info"> Create a new Artifact</button>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-success">
+            <b>Processes</b>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-success">
+                <thead class="text-center">
+                <tr>
+                    <th scope="col">Index</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Associated Generic Activity</th>
+                    <th scope="col">Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-header bg-warning">
+            <b>Roles</b>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-warning">
+                <thead class="text-center">
+                <tr>
+                    <th scope="col">Index</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Associated Processes</th>
+                    <th scope="col">Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-header bg-info">
+            <b>Artifacts</b>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-info">
+                <thead class="text-center">
+                <tr>
+                    <th scope="col">Index</th>
+                    <th scope="col">Name</th>
+                    <th scope="col">Associated Processes</th>
+                    <th scope="col">Delete</th>
+                </tr>
+                </thead>
+                <tbody>
+
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+{% endblock %}

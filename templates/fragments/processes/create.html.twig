@@ -1,0 +1,29 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Method Base {% endblock %}
+
+{% block body %}
+
+  {# Warning messages #}
+  <div class="mt-4">
+    {% for label, messages in app.flashes %}
+      {% for message in messages %}
+        <div class="alert alert-{{ label }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  {# Form box #}
+  <div class="card mt-4">
+    <div class="card-header bg-success">
+      <b>Create a New Process</b>
+    </div>
+    <div class="card-body">
+      {{ form(processForm) }}
+    </div>
+  </div>
+
+
+{% endblock %}

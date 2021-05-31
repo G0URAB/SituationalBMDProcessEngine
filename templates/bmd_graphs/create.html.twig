@@ -1,0 +1,73 @@
+{% extends 'method_base/base.html.twig' %}
+{% block title %}Create a Pattern{% endblock %}
+
+
+{% block body %}
+    <div class="card mt-4">
+        <div class="card-header">
+            Create a Pattern
+        </div>
+        <div class="card-body">
+            {{ form_start(bmdPatternForm) }}
+
+            {{ form_row(bmdPatternForm.name) }}
+            {{ form_row(bmdPatternForm.pdf) }}
+            {{ form_errors(bmdPatternForm) }}
+
+            {# Situational Factors #}
+            <div class="card">
+                <div class="card-header">Situational Factors</div>
+
+                <div id="situational-factors" class="card-body"
+                     data-prototype="{{ form_widget(bmdPatternForm.situationalFactors.vars.prototype)|e('html_attr') }}"
+                     data-widget-counter="{{ bmdPatternForm.situationalFactors|length }}">
+                    <button type="button" class="btn btn-warning add-situational-factor mb-4">Add Situational Factor
+                    </button>
+                    <div class="p-2 border rounded">
+                        {{ form_row(bmdPatternForm.situationalFactors) }}
+                    </div>
+                </div>
+            </div>
+            {{ form_end(bmdPatternForm) }}
+        </div>
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(document).ready(function () {
+
+            //Add a new marketing strategy for this customer
+            $(".add-situational-factor").on("click", function () {
+                let situationalFactorsContainer = $("#situational-factors");
+                let situationalFactorsCounter = situationalFactorsContainer.attr("data-widget-counter");
+                let protoType = situationalFactorsContainer.attr("data-prototype").replace(/__name__/g, situationalFactorsCounter);
+                situationalFactorsContainer.append(protoType);
+                situationalFactorsContainer.attr('data-widget-counter', parseInt(situationalFactorsCounter) + 1);
+
+                let removeSituationalFactorButtonTemplate = (counter) =>
+                    `<div class="d-flex flex-row justify-content-end">
+                       <button style="margin-bottom: 2%;"
+                        type="button" data-counter="${counter}"
+                        id="remove-situational-factor-${counter}"
+                        class="btn btn-danger" >Remove Situational Factor</button>
+                    </div>`;
+                let currentSituationalFactor = $("#pattern_situationalFactors_" + situationalFactorsCounter);
+                currentSituationalFactor.append(removeSituationalFactorButtonTemplate(situationalFactorsCounter));
+
+                currentSituationalFactor.css({
+                    'border': '1px solid rgb(140, 210, 110)',
+                    'border-radius': '4px',
+                    'padding': '2%',
+                    'margin-top': '2%'
+                });
+
+                $("#remove-situational-factor-"+situationalFactorsCounter).on("click",function () {
+                    $(this).parent().parent().remove();
+                });
+            });
+        });
+    </script>
+{% endblock %}
+

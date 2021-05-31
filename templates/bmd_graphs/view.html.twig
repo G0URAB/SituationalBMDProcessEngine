@@ -1,0 +1,52 @@
+{% extends 'method_base/base.html.twig' %}
+{% block title %}{{ bmdPattern.name }}{% endblock %}
+
+
+{% block body %}
+    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
+    <div class="card mt-4">
+        <div class="card-header">
+            {{ bmdPattern.name }}
+        </div>
+        <div class="card-body">
+
+            {# Pattern Image #}
+            <div class="card" id="activity-diagram">
+                <div class="card-header">Activitiy Diagram</div>
+                <div class="card-body">
+                        <a target="_blank" class="d-flex flex-row justify-content-center" href="{{ asset('images/bmdpattern/') }}{{ bmdPattern.pdf }}">
+                            <img src="{{ asset('images/bmdpattern/') }}{{ bmdPattern.pdf }}" style="width: 80%;">
+                        </a>
+                </div>
+            </div>
+
+            {# Situational Factors #}
+            <div class="card mt-3" id="situational-factors">
+                <div class="card-header">Associated Situational Factors</div>
+                {% for factor in bmdPattern.situationalFactors %}
+
+                    <div class="card-body">
+                        <div class="d-flex flex-column p-2 border rounded">
+                            <div>
+                                <span style="font-weight: bold">Name of Situational Factor:&nbsp</span>{{ factor.name }}
+                            </div>
+                            <div style="display: flex; flex-direction: column; margin: 2%;">
+                                <span style="font-weight: bold">Description</span>
+                                <textarea name="editor" disabled>
+                                    {{ factor.description }}
+                                </textarea>
+                                <script>
+                                    CKEDITOR.replace( 'editor' );
+                                </script>
+                            </div>
+                        </div>
+                    </div>
+                {% endfor %}
+            </div>
+
+        </div>
+    </div>
+{% endblock %}
+
+
+
