@@ -174,4 +174,9 @@ class Process
     {
         return $this->situationalFactors;
     }
+
+    public function __toString()
+    {
+        return $this->name;
+    }
 }

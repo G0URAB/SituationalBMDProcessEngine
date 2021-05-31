@@ -10,9 +10,12 @@ use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
+use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
+use Symfony\Component\Validator\Constraints\Length;
+use Symfony\Component\Validator\Constraints\NotBlank;
 
 class ProcessType extends AbstractType
 {
@@ -21,6 +24,10 @@ class ProcessType extends AbstractType
         $builder
             ->add('name',TextType::class,[
                 'label_attr'=>['class'=>"font-weight-bold"],
+                'constraints' => [
+                    new NotBlank(),
+                    new Length(['min' => 5]),
+                ],
             ])
             ->add('roles', EntityType::class, [
                 'label_attr'=>['class'=>"font-weight-bold"],
@@ -47,7 +54,7 @@ class ProcessType extends AbstractType
                 'placeholder' => 'Select a generic activity',
                 'required' => false
             ])
-        ;
+            ->add('Save',SubmitType::class);
     }
 
     public function configureOptions(OptionsResolver $resolver)

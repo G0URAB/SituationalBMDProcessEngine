@@ -1,39 +1,67 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-  <title>Method Base</title>
-</head>
-<body>
-<div class="container mt-3">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" style="pointer-events: none" href="#">Method Base</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
-            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarText">
-      <ul class="navbar-nav mr-auto"
-          style="width:100%; display: flex; flex-direction: row; justify-content: space-around;">
-        <li class="nav-item">
-          <a class="nav-link {% if 'patterns' in app.request.uri %}active{% endif %}" href="#">BMD Patterns </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'workUnit' in app.request.uri %}active{% endif %}" href="#">Process Fragments </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'workProduct' in app.request.uri %}active{% endif %}" href="#">Product Fragments </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'situationalFactors' in app.request.uri %}active{% endif %}" href="#">Situational Factors </a>
-        </li>
-      </ul>
+{% extends 'base.html.twig' %}
+
+{% block title %} Method Base {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
     </div>
-  </nav>
-</div>
-</body>
-</html>
+
+    {# Form box #}
+    <div class="card mt-4">
+
+        <div class="card-header bg-info">
+            <b>Create a Artifact</b>
+        </div>
+
+        <div class="card-body">
+            {{ form_start(artifactForm) }}
+
+
+            <div id="artifacts">
+                {{ form_row(artifactForm.name) }}
+            </div>
+
+            <div class="mb-3">
+                <button type="button" class="btn btn-dark" id="add-new-artifact">
+                    Add another artifact
+                </button>
+            </div>{#test#}
+
+            {{ form_row(artifactForm.Save) }}
+
+            {{ form_end(artifactForm) }}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let artifactTemplate =
+            `<div class="form-group">
+                <label class="font-weight-bold required" for="artifact_name">Name</label>
+                <div class="d-flex flex-row">
+                    <input type="text" name="artifact[name]" required="required" class="form-control">
+                    <button type="button" class="btn btn-danger remove-artifact">Remove</button>
+                 </div>
+             </div>`;
+
+        $("#add-new-artifact").on("click",function () {
+            $("#artifacts").append(artifactTemplate);
+            $(".remove-artifact").on("click",function () {
+                $(this).parent().parent().remove();
+            });
+        });
+
+    </script>
+{% endblock %}

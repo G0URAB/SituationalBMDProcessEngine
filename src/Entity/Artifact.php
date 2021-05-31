@@ -46,9 +46,9 @@ class Artifact
     }
 
     /**
-     * @return ArrayCollection
+     * @return mixed
      */
-    public function getProcesses(): ArrayCollection
+    public function getProcesses()
     {
         return $this->processes;
     }

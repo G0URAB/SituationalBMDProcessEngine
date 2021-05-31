@@ -7,7 +7,7 @@
     <div class="mt-2 w-50 d-flex flex-row justify-content-around" style="margin:auto">
         <a href="{{ path('create_process') }}" class="btn btn-sm btn-success"> Create a new Process</a>
         <button type="button" class="btn btn-sm btn-warning"> Create a new Role</button>
-        <button type="button" class="btn btn-sm btn-info"> Create a new Artifact</button>
+        <a href="{{ path('create_artifact') }}" class="btn btn-sm btn-info"> Create a new Artifact</a>
     </div>
 
     <div class="card mt-4">
@@ -24,8 +24,15 @@
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
-                <tbody>
-
+                <tbody class="text-center bg-transparent">
+                {% for process in processes %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ process.name }}</td>
+                        <td>{{ process.genericActivity }}</td>
+                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -46,7 +53,14 @@
                 </tr>
                 </thead>
                 <tbody>
-
+                {% for role in roles %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ role.name }}</td>
+                        <td>{{ role.processes }}</td>
+                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
@@ -67,7 +81,14 @@
                 </tr>
                 </thead>
                 <tbody>
-
+                {% for artifact in artifacts %}
+                    <tr>
+                        <td>{{ loop.index }}</td>
+                        <td>{{ artifact.name }}</td>
+                        <td>{{ artifact.processes }}</td>
+                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                    </tr>
+                {% endfor %}
                 </tbody>
             </table>
         </div>
