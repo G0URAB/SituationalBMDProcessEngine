@@ -1,0 +1,85 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Create Artifacts {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.artifacts.vars.prototype)|e('html_attr') }}" data-index="{{ form.artifacts| length }}">
+        <div class="card-header bg-warning">
+            <b>Create Artifacts</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-success" id="add-new-artifact">Add new artifact</button>
+            </div>
+
+
+            {{ form_row(form.artifacts) }}
+
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let card = $(".card");
+        let artifacts = $("#form_artifacts");
+        let removeArtifactButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Artifact</button>
+                                   </div>`;
+
+
+        $("#add-new-artifact").on("click",function () {
+            let artifactCounter = card.data("index");
+            let artifactPrototype = card.data("prototype");
+            let newArtifact = artifactPrototype.replace(/__name__/g, artifactCounter);
+            artifacts.append(newArtifact);
+            $("#form_artifacts_"+artifactCounter).append(removeArtifactButton);
+            card.data('index', artifactCounter+1);
+
+            formatArtifactSections();
+            $(".btn-danger").on("click",function () {
+                $(this).parent().parent().remove();
+            });
+        });
+
+        if(card.data("index")!==0)
+        {
+            formatArtifactSections();
+            $("div[id^=form_artifacts_]").append(removeArtifactButton);
+            $(".btn-danger").on("click",function () {
+                $(this).parent().parent().remove();
+            });
+        }
+
+        function formatArtifactSections() {
+            $("div[id^=form_artifacts_]").css({
+                "padding": "2%",
+                "border": "1px solid #cacaca",
+                "border-radius": "1%",
+                "margin-top":"2%",
+                "margin-bottom":"2%"
+            });
+        }
+
+    </script>
+{% endblock %}

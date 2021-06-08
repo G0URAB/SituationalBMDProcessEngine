@@ -2,25 +2,25 @@
 
 namespace App\Repository;
 
-use App\Entity\GenericActivity;
+use App\Entity\ProcessKind;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method GenericActivity|null find($id, $lockMode = null, $lockVersion = null)
- * @method GenericActivity|null findOneBy(array $criteria, array $orderBy = null)
- * @method GenericActivity[]    findAll()
- * @method GenericActivity[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method ProcessKind|null find($id, $lockMode = null, $lockVersion = null)
+ * @method ProcessKind|null findOneBy(array $criteria, array $orderBy = null)
+ * @method ProcessKind[]    findAll()
+ * @method ProcessKind[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class GenericActivityRepository extends ServiceEntityRepository
+class ProcessKindRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, GenericActivity::class);
+        parent::__construct($registry, ProcessKind::class);
     }
 
     // /**
-    //  * @return GenericActivity[] Returns an array of GenericActivity objects
+    //  * @return ProcessKind[] Returns an array of ProcessKind objects
     //  */
     /*
     public function findByExampleField($value)
@@ -37,7 +37,7 @@ class GenericActivityRepository extends ServiceEntityRepository
     */
 
     /*
-    public function findOneBySomeField($value): ?GenericActivity
+    public function findOneBySomeField($value): ?ProcessKind
     {
         return $this->createQueryBuilder('g')
             ->andWhere('g.exampleField = :val')

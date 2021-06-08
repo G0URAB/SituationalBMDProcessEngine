@@ -24,23 +24,23 @@ class BmdGraph
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\BmdGraph", inversedBy="situationalFactors")
+     * @ORM\ManyToMany(targetEntity="App\Entity\SituationalFactor")
      */
     private $situationalFactors;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\GenericActivity", inversedBy="childBMDGraphs")
+     * @ORM\ManyToOne(targetEntity="ProcessKind", inversedBy="childBMDGraphs")
      */
-    private $parentGenericActivity;
+    private $parentProcessKind;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\GenericActivity")
+     * @ORM\ManyToMany(targetEntity="ProcessKind")
      */
-    private $childGenericActivities;
+    private $childProcessKinds;
 
     public function __construct()
     {
-        $this->childGenericActivities = new ArrayCollection();
+        $this->childProcessKinds = new ArrayCollection();
         $this->situationalFactors = new ArrayCollection();
     }
 
@@ -64,30 +64,30 @@ class BmdGraph
     /**
      * @return ArrayCollection
      */
-    public function getChildGenericActivities(): ArrayCollection
+    public function getChildProcessKinds(): ArrayCollection
     {
-        return $this->childGenericActivities;
+        return $this->childProcessKinds;
     }
 
     /**
-     * @param GenericActivity $childGenericActivity
+     * @param ProcessKind $processType
      */
-    public function addChildGenericActivity(GenericActivity $childGenericActivity)
+    public function addChildProcessKind(ProcessKind $processType)
     {
-        if(!$this->childGenericActivities->contains($childGenericActivity))
+        if(!$this->childProcessKinds->contains($processType))
         {
-            $this->childGenericActivities[]= $childGenericActivity;
+            $this->childProcessKinds[]= $processType;
         }
     }
 
     /**
-     * @param GenericActivity $childGenericActivity
+     * @param ProcessKind $processType
      */
-    public function removeChildGenericActivity(GenericActivity $childGenericActivity)
+    public function removeChildProcessKind(ProcessKind $processType)
     {
-        if(!$this->childGenericActivities->contains($childGenericActivity))
+        if(!$this->childProcessKinds->contains($processType))
         {
-            $this->childGenericActivities->removeElement($childGenericActivity);
+            $this->childProcessKinds->removeElement($processType);
         }
     }
 
@@ -124,17 +124,17 @@ class BmdGraph
     /**
      * @return mixed
      */
-    public function getParentGenericActivity()
+    public function getParentProcessKind()
     {
-        return $this->parentGenericActivity;
+        return $this->parentProcessKind;
     }
 
 
     /**
-     * @param mixed $parentGenericActivity
+     * @param mixed $parentProcessType
      */
-    public function setParentGenericActivity($parentGenericActivity)
+    public function setParentProcessKind($parentProcessType)
     {
-        $this->parentGenericActivity = $parentGenericActivity;
+        $this->parentProcessKind = $parentProcessType;
     }
 }

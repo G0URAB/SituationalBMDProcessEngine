@@ -2,16 +2,15 @@
 
 namespace App\Entity;
 
-use App\Repository\ArtifactRepository;
-use Doctrine\Common\Collections\ArrayCollection;
+use App\Repository\ToolRepository;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ORM\Entity(repositoryClass=ArtifactRepository::class)
+ * @ORM\Entity(repositoryClass=ToolRepository::class)
  * @UniqueEntity("name")
  */
-class Artifact
+class Tool
 {
     /**
      * @ORM\Id
@@ -25,6 +24,10 @@ class Artifact
      */
     private $name;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $type;
 
     public function getId(): ?int
     {
@@ -43,4 +46,15 @@ class Artifact
         return $this;
     }
 
+    public function getType(): ?string
+    {
+        return $this->type;
+    }
+
+    public function setType(?string $type): self
+    {
+        $this->type = $type;
+
+        return $this;
+    }
 }

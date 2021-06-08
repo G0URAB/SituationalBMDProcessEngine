@@ -25,8 +25,6 @@ class ArtifactType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
-
-            ->add('Save',SubmitType::class)
         ;
     }
 

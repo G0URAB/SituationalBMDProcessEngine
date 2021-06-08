@@ -2,14 +2,16 @@
 
 namespace App\Entity;
 
-use App\Repository\GenericActivityRepository;
+use App\Repository\ProcessKindRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
- * @ORM\Entity(repositoryClass=GenericActivityRepository::class)
+ * @ORM\Entity(repositoryClass=ProcessKindRepository::class)
+ * @UniqueEntity("name")
  */
-class GenericActivity
+class ProcessKind
 {
     /**
      * @ORM\Id
@@ -24,12 +26,12 @@ class GenericActivity
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="genericActivity", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="processType", cascade={"persist", "remove"})
      */
     private $processes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentGenericActivity", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentProcessType", cascade={"persist", "remove"})
      */
     private $childBMDGraphs;
 
@@ -65,7 +67,7 @@ class GenericActivity
     {
         if (!$this->processes->contains($process)) {
             $this->processes[] = $process;
-            $process->setGenericActivity($this);
+            $process->setProcessKind($this);
         }
     }
 
@@ -77,7 +79,7 @@ class GenericActivity
     public function removeProcess(Process $process)
     {
         if ($this->processes->contains($process)) {
-            $process->setGenericActivity(null);
+            $process->setProcessKind(null);
             $this->processes->removeElement($process);
         }
     }
@@ -89,7 +91,7 @@ class GenericActivity
     {
         if (!$this->childBMDGraphs->contains($childBmdGraph)) {
             $this->childBMDGraphs[] = $childBmdGraph;
-            $childBmdGraph->setParentGenericActivity($this);
+            $childBmdGraph->setParentProcessKind($this);
         }
     }
 
@@ -101,7 +103,7 @@ class GenericActivity
     public function removeChildBmdGraph(BmdGraph $childBmdGraph)
     {
         if ($this->childBMDGraphs->contains($childBmdGraph)) {
-            $childBmdGraph->setParentGenericActivity(null);
+            $childBmdGraph->setParentProcessKind(null);
             $this->childBMDGraphs->removeElement($childBmdGraph);
         }
     }

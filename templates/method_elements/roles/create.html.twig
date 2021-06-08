@@ -1,0 +1,88 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Create Roles {% endblock %}
+
+{% block body %}
+
+  {# Warning messages #}
+  <div class="mt-4">
+    {% for label, messages in app.flashes %}
+      {% for message in messages %}
+        <div class="alert alert-{{ label }}">
+          {{ message }}
+        </div>
+      {% endfor %}
+    {% endfor %}
+  </div>
+
+  {# Form box #}
+  <div class="card mt-4" data-prototype="{{ form_widget(form.roles.vars.prototype)|e('html_attr') }}" data-index="{{ form.roles| length }}">
+    <div class="card-header bg-warning">
+      <b>Create Roles</b>
+    </div>
+    <div class="card-body">
+      {{ form_errors(form) }}
+
+      {{ form_start(form) }}
+      <div class="d-flex flex-row justify-content-center">
+        <button type="button" class="btn btn-success" id="add-new-role">Add new role</button>
+      </div>
+
+
+      {{ form_row(form.roles) }}
+
+
+      {{ form_end(form) }}
+
+    </div>
+  </div>
+
+{% endblock %}
+
+{% block javascripts %}
+  {{ parent() }}
+  <script>
+    let card = $(".card");
+    let roles = $("#form_roles");
+    let removeRoleButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Role</button>
+                                   </div>`;
+
+
+
+    $("#add-new-role").on("click",function () {
+      let roleCounter = card.data("index");
+      let rolePrototype = card.data("prototype");
+      let newRole = rolePrototype.replace(/__name__/g, roleCounter);
+      roles.append(newRole);
+      $("#form_roles_"+roleCounter).append(removeRoleButton);
+      card.data('index', roleCounter+1);
+
+      formatRoleSections();
+
+      $(".btn-danger").on("click",function () {
+        $(this).parent().parent().remove();
+      });
+    });
+
+    if(card.data("index")!==0)
+    {
+      formatRoleSections();
+      $("div[id^=form_roles_]").append(removeRoleButton);
+      $(".btn-danger").on("click",function () {
+        $(this).parent().parent().remove();
+      });
+    }
+
+    function formatRoleSections() {
+      $("div[id^=form_roles_]").css({
+        "padding": "2%",
+        "border": "1px solid #cacaca",
+        "border-radius": "1%",
+        "margin-top":"2%",
+        "margin-bottom":"2%"
+      });
+    }
+
+  </script>
+{% endblock %}

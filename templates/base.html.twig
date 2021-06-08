@@ -5,6 +5,7 @@
     <title>{% block title %}Welcome!{% endblock %}</title>
     {% block stylesheets %}
         <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
     {% endblock %}
 </head>
 <body>
@@ -28,13 +29,14 @@
                        href="#">Generic Activities </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'fragments' in app.request.uri %}active{% endif %}" href="{{ path('fragments') }}">
-                        Fragments
+                    <a class="nav-link {% if 'method_elements' in app.request.uri %}active{% endif %}" href="{{ path('methodElements') }}">
+                        Method Elements
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'situationalFactors' in app.request.uri %}active{% endif %}" href="#">Situational
-                        Factors </a>
+                    <a class="nav-link {% if 'situationalFactors' in app.request.uri %}active{% endif %}" href="#">
+                        Method Building Blocks
+                    </a>
                 </li>
             </ul>
         </div>

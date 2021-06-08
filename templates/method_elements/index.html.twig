@@ -6,7 +6,7 @@
 
     <div class="mt-2 w-50 d-flex flex-row justify-content-around" style="margin:auto">
         <a href="{{ path('create_process') }}" class="btn btn-sm btn-success"> Create a new Process</a>
-        <button type="button" class="btn btn-sm btn-warning"> Create a new Role</button>
+        <a href="{{ path('create_role') }}" class="btn btn-sm btn-warning"> Create a new Role</a>
         <a href="{{ path('create_artifact') }}" class="btn btn-sm btn-info"> Create a new Artifact</a>
     </div>
 
@@ -20,7 +20,7 @@
                 <tr>
                     <th scope="col">Index</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Associated Generic Activity</th>
+                    <th scope="col">Process Type</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
@@ -29,8 +29,8 @@
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ process.name }}</td>
-                        <td>{{ process.genericActivity }}</td>
-                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                        <td>{{ process.processKind }}</td>
+                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -48,17 +48,15 @@
                 <tr>
                     <th scope="col">Index</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Associated Processes</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-center">
                 {% for role in roles %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ role.name }}</td>
-                        <td>{{ role.processes }}</td>
-                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -76,17 +74,15 @@
                 <tr>
                     <th scope="col">Index</th>
                     <th scope="col">Name</th>
-                    <th scope="col">Associated Processes</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
-                <tbody>
+                <tbody class="text-center">
                 {% for artifact in artifacts %}
                     <tr>
                         <td>{{ loop.index }}</td>
                         <td>{{ artifact.name }}</td>
-                        <td>{{ artifact.processes }}</td>
-                        <td><a class="btn btn-sm btn-outline-dark rounded-circle" href="#">X</a></td>
+                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

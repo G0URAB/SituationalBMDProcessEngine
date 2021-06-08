@@ -1,0 +1,86 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Create Processes {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.processes.vars.prototype)|e('html_attr') }}" data-index="{{ form.processes| length }}">
+        <div class="card-header bg-warning">
+            <b>Create Processes</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-success" id="add-new-process">Add new process</button>
+            </div>
+
+
+            {{ form_row(form.processes) }}
+
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let card = $(".card");
+        let processes = $("#form_processes");
+        let removeProcessButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Process</button>
+                                   </div>`;
+
+
+
+        $("#add-new-process").on("click",function () {
+            let processCounter = card.data("index");
+            let processPrototype = card.data("prototype");
+            var newProcess = processPrototype.replace(/__name__/g, processCounter);
+            processes.append(newProcess);
+            $("#form_processes_"+processCounter).append(removeProcessButton);
+            card.data('index', processCounter+1);
+
+            formatProcessSections();
+            $(".btn-danger").on("click",function () {
+                $(this).parent().parent().remove();
+            });
+        });
+
+        if(card.data("index")!==0)
+        {
+            formatProcessSections();
+            $("div[id^=form_processes_]").append(removeProcessButton);
+            $(".btn-danger").on("click",function () {
+                $(this).parent().parent().remove();
+            });
+        }
+
+        function formatProcessSections() {
+            $("div[id^=form_processes_]").css({
+                "padding": "2%",
+                "border": "1px solid #cacaca",
+                "border-radius": "1%",
+                "margin-top":"2%",
+                "margin-bottom":"2%"
+            });
+        }
+
+    </script>
+{% endblock %}

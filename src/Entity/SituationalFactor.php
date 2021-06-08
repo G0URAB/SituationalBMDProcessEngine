@@ -24,19 +24,15 @@ class SituationalFactor
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Process", mappedBy="situationalFactors", cascade={"persist","remove"})
+     * @ORM\Column(type="array")
      */
-    private $processes;
+    private $values;
 
-    /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\BmdGraph", mappedBy="situationalFactors", cascade={"persist","remove"})
-     */
-    private $bmdGraphs;
+
 
     public function __construct()
     {
-        $this->processes = new ArrayCollection();
-        $this->bmdGraphs = new ArrayCollection();
+        $this->values = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -57,50 +53,28 @@ class SituationalFactor
     }
 
 
-    public function addProcess(Process $process)
+    public function addValue(string $value)
     {
-        if(!$this->processes->contains($process))
+        if(!$this->values->contains($value))
         {
-            $this->processes[] = $process;
-            $process->addSituationalFactor($this);
+            $this->values[] = $value;
         }
     }
 
-    public function removeProcess(Process $process)
+    public function removeValue(string $value)
     {
-        if($this->processes->contains($process))
+        if($this->values->contains($value))
         {
-            $this->processes->removeElement($process);
-            $process->removeSituationalFactor($this);
+            $this->values->removeElement($value);
         }
     }
-
-
-    public function addBmdGraph(BmdGraph $bmdGraph)
-    {
-        if($this->bmdGraphs->contains($bmdGraph))
-        {
-            $this->bmdGraphs->removeElement($bmdGraph);
-            $bmdGraph->removeSituationalFactor($this);
-        }
-    }
-
-    public function removeBmdGraph(BmdGraph $bmdGraph)
-    {
-        if($this->bmdGraphs->contains($bmdGraph))
-        {
-            $this->bmdGraphs->removeElement($bmdGraph);
-            $bmdGraph->removeSituationalFactor($this);
-        }
-    }
-
 
     /**
-     * @return ArrayCollection
+     * @return array
      */
-    public function getProcesses(): ArrayCollection
+    public function getValues(): array
     {
-        return $this->processes;
+        return $this->values->toArray();
     }
 
 }
