@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} Create Artifacts {% endblock %}
+{% block title %} Create Tools {% endblock %}
 
 {% block body %}
 
@@ -16,19 +16,20 @@
     </div>
 
     {# Form box #}
-    <div class="card mt-4" data-prototype="{{ form_widget(form.artifacts.vars.prototype)|e('html_attr') }}" data-index="{{ form.artifacts| length }}">
-        <div class="card-header bg-warning">
-            <b>Create Artifacts</b>
+    <div class="card mt-4" data-prototype="{{ form_widget(form.tools.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.tools| length }}">
+        <div class="card-header bg-dark text-white">
+            <b>Create Tools</b>
         </div>
         <div class="card-body">
             {{ form_errors(form) }}
             {{ form_start(form) }}
             <div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-success" id="add-new-artifact">Add new artifact</button>
+                <button type="button" class="btn btn-success" id="add-new-tool">Add New Tool Type</button>
             </div>
 
 
-            {{ form_row(form.artifacts) }}
+            {{ form_row(form.tools) }}
 
 
             {{ form_end(form) }}
@@ -42,42 +43,62 @@
     {{ parent() }}
     <script>
         let card = $(".card");
-        let artifacts = $("#form_artifacts");
-        let removeArtifactButton = `<div class="d-flex flex-row justify-content-center m-1">
-                                       <button type="button" class="btn btn-danger">Remove Artifact</button>
+        let tools = $("#form_tools");
+        let removeToolTypeButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Tool Type</button>
                                    </div>`;
 
 
-        $("#add-new-artifact").on("click",function () {
-            let artifactCounter = card.data("index");
-            let artifactPrototype = card.data("prototype");
-            let newArtifact = artifactPrototype.replace(/__name__/g, artifactCounter);
-            artifacts.append(newArtifact);
-            $("#form_artifacts_"+artifactCounter).append(removeArtifactButton);
-            card.data('index', artifactCounter+1);
+        $("#add-new-tool").on("click", function () {
+            let toolCounter = card.data("index");
+            let toolPrototype = card.data("prototype");
+            let newTool = toolPrototype.replace(/__name__/g, toolCounter);
+            tools.append(newTool);
+            $("#form_tools_" + toolCounter).append(removeToolTypeButton);
+            card.data('index', toolCounter + 1);
 
-            formatArtifactSections();
-            $(".btn-danger").on("click",function () {
-                $(this).parent().parent().remove();
-            });
+            formatToolSections(toolCounter);
+            listenForRemoval();
+            variantsAddAndRemove(toolCounter);
         });
 
-        if(card.data("index")!==0)
-        {
-            formatArtifactSections();
-            $("div[id^=form_artifacts_]").append(removeArtifactButton);
-            $(".btn-danger").on("click",function () {
+        if (card.data("index") !== 0) {
+            for (let i = 0; i < card.data("index"); i++) {
+                formatToolSections(i);
+                $("#form_tools_" + i).append(removeToolTypeButton);
+                listenForRemoval();
+                variantsAddAndRemove(i);
+            }
+        }
+
+        function formatToolSections(counter) {
+            $("#form_tools_" + counter).css({
+                "padding": "2%",
+                "border": "1px solid #cacaca",
+                "border-radius": "1%",
+                "margin-top": "2%",
+                "margin-bottom": "2%"
+            });
+        }
+
+        function listenForRemoval() {
+            $(".btn-danger").on("click", function () {
                 $(this).parent().parent().remove();
             });
         }
 
-        function formatArtifactSections() {
-            $("div[id^=form_artifacts_]").css({
-                "padding": "2%",
-                "border": "1px solid #cacaca",
-                "border-radius": "1%",
-                "margin-top":"2%",
-                "margin-bottom":"2%"
+        function variantsAddAndRemove(toolCounter) {
+            let variantsContainer = $("#form_tools_" + toolCounter + "_variants");
+            let variantPrototype = (factorCount, variantCount) => `
+                    <div class="form-group d-flex flex-row">
+                      <input type="text" id="form_situationalFactors_0_variants_0" name="form[tools][${factorCount}][variants][${variantCount}]" required="required" class="form-control" />
+                      <div><button type="button" class="btn btn-danger">Remove</button></div>
+                    </div>`;
+            let addVariantButton = $("#form_tools_" + toolCounter + "_add_variant");
+            addVariantButton.on("click", function () {
+                let totalVariants = variantsContainer.children().length;
+                variantsContainer.append(variantPrototype(toolCounter, totalVariants));
+                listenForRemoval();
             });
         }
 

@@ -18,7 +18,7 @@ class RoleType extends AbstractType
             ->add('name',TextType::class,[
                 'constraints' => [
                     new NotBlank(),
-                    new Length(['min' => 3]),
+                    new Length(['min' => 5]),
                 ],
             ])
         ;

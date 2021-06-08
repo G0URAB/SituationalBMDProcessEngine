@@ -1,39 +1,104 @@
-<!doctype html>
-<html lang="en">
-<head>
-  <meta charset="UTF-8">
-  <meta name="viewport"
-        content="width=device-width, user-scalable=no, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0">
-  <meta http-equiv="X-UA-Compatible" content="ie=edge">
-  <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-  <title>Method Base</title>
-</head>
-<body>
-<div class="container mt-3">
-  <nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <a class="navbar-brand" style="pointer-events: none" href="#">Method Base</a>
-    <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
-            aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon"></span>
-    </button>
-    <div class="collapse navbar-collapse" id="navbarText">
-      <ul class="navbar-nav mr-auto"
-          style="width:100%; display: flex; flex-direction: row; justify-content: space-around;">
-        <li class="nav-item">
-          <a class="nav-link {% if 'patterns' in app.request.uri %}active{% endif %}" href="#">BMD Patterns </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'workUnit' in app.request.uri %}active{% endif %}" href="#">Process Fragments </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'workProduct' in app.request.uri %}active{% endif %}" href="#">Product Fragments </a>
-        </li>
-        <li class="nav-item">
-          <a class="nav-link {% if 'situationalFactors' in app.request.uri %}active{% endif %}" href="#">Situational Factors </a>
-        </li>
-      </ul>
+{% extends 'base.html.twig' %}
+
+{% block title %} Create Situational Factors {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
     </div>
-  </nav>
-</div>
-</body>
-</html>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.situationalFactors.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.situationalFactors| length }}">
+        <div class="card-header bg-secondary">
+            <b>Create Situational Factors</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-success" id="add-new-situationalFactor">Add new Situational
+                    Factor
+                </button>
+            </div>
+
+
+            {{ form_row(form.situationalFactors) }}
+
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let card = $(".card");
+        let situationalFactors = $("#form_situationalFactors");
+        let removeSituationalFactorButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Situational Factor</button>
+                                   </div>`;
+
+
+        $("#add-new-situationalFactor").on("click", function () {
+            let situationalFactorCounter = card.data("index");
+            let artifactPrototype = card.data("prototype");
+            let newArtifact = artifactPrototype.replace(/__name__/g, situationalFactorCounter);
+            situationalFactors.append(newArtifact);
+            $("#form_situationalFactors_" + situationalFactorCounter).append(removeSituationalFactorButton);
+            card.data('index', situationalFactorCounter + 1);
+
+            formatSituationalFactorSections(situationalFactorCounter);
+            listenForRemoval();
+
+            let variantsContainer = $("#form_situationalFactors_" + situationalFactorCounter + "_variants");
+            let variantPrototype = (factorCount, variantCount) => `
+                    <div class="form-group d-flex flex-row">
+                      <input type="text" id="form_situationalFactors_0_variants_0" name="form[situationalFactors][${factorCount}][variants][${variantCount}]" required="required" class="form-control" />
+                      <div><button type="button" class="btn btn-danger">Remove</button></div>
+                    </div>`;
+            let addVariantButton = $("#form_situationalFactors_" + situationalFactorCounter + "_add_variant");
+            addVariantButton.on("click", function () {
+                let totalVariants = variantsContainer.children().length;
+                variantsContainer.append(variantPrototype(situationalFactorCounter, totalVariants));
+                listenForRemoval();
+            });
+        });
+
+        if (card.data("index") !== 0) {
+            for (let i = 0; i < card.data("index"); i++) {
+                formatSituationalFactorSections(i);
+                $("#form_situationalFactors_" + i).append(removeSituationalFactorButton);
+                listenForRemoval();
+            }
+        }
+
+        function formatSituationalFactorSections(counter) {
+            $("#form_situationalFactors_" + counter).css({
+                "padding": "2%",
+                "border": "1px solid #cacaca",
+                "border-radius": "1%",
+                "margin-top": "2%",
+                "margin-bottom": "2%"
+            });
+        }
+        function listenForRemoval()
+        {
+            $(".btn-danger").on("click", function () {
+                $(this).parent().parent().remove();
+            });
+        }
+
+    </script>
+{% endblock %}

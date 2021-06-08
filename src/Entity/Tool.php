@@ -3,12 +3,13 @@
 namespace App\Entity;
 
 use App\Repository\ToolRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=ToolRepository::class)
- * @UniqueEntity("name")
+ * @UniqueEntity("type")
  */
 class Tool
 {
@@ -22,28 +23,22 @@ class Tool
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $name;
+    private $type;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="array", nullable=true)
      */
-    private $type;
+    private $variants;
+
+
+    public function __construct()
+    {
+        $this->variants = new ArrayCollection();
+    }
 
     public function getId(): ?int
     {
         return $this->id;
-    }
-
-    public function getName(): ?string
-    {
-        return $this->name;
-    }
-
-    public function setName(string $name): self
-    {
-        $this->name = $name;
-
-        return $this;
     }
 
     public function getType(): ?string
@@ -56,5 +51,27 @@ class Tool
         $this->type = $type;
 
         return $this;
+    }
+
+    public function addVariant(string $variant)
+    {
+        if(!$this->variants->contains($variant))
+        {
+            $this->variants[] = $variant;
+        }
+    }
+
+    public function removeVariant(string $variant)
+    {
+        if($this->variants->contains($variant))
+        {
+            $this->variants->removeElement($variant);
+        }
+    }
+
+    public function getVariants()
+    {
+        $variantsArray = $this->variants->toArray();
+        return implode(", ",$variantsArray);
     }
 }

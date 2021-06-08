@@ -16,29 +16,23 @@
   </div>
 
   {# Form box #}
-  <div class="card mt-4">
-
-    <div class="card-header bg-info">
+  <div class="card mt-4" data-prototype="{{ form_widget(form.processKinds.vars.prototype)|e('html_attr') }}" data-index="{{ form.processKinds| length }}">
+    <div class="card-header bg-primary text-white">
       <b>Create Process Types</b>
     </div>
-
     <div class="card-body">
+      {{ form_errors(form) }}
       {{ form_start(form) }}
-
-
-      <div id="processTypes">
-        {{ form_row(form.name) }}
+      <div class="d-flex flex-row justify-content-center">
+        <button type="button" class="btn btn-success" id="add-new-processKind">Add new process type</button>
       </div>
 
-      <div class="mb-3">
-        <button type="button" class="btn btn-dark" id="add-new-type">
-          Add another type
-        </button>
-      </div>{#test#}
 
-      {{ form_row(form.Save) }}
+      {{ form_row(form.processKinds) }}
+
 
       {{ form_end(form) }}
+
     </div>
   </div>
 
@@ -47,21 +41,45 @@
 {% block javascripts %}
   {{ parent() }}
   <script>
-    let artifactTemplate =
-            `<div class="form-group">
-                <label class="font-weight-bold required" for="artifact_name">Name</label>
-                <div class="d-flex flex-row">
-                    <input type="text" name="process_kind[name]" required="required" class="form-control">
-                    <button type="button" class="btn btn-danger remove-processType">Remove</button>
-                 </div>
-             </div>`;
+    let card = $(".card");
+    let processKinds = $("#form_processKinds");
+    let removeProcessKindButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Process Type</button>
+                                   </div>`;
 
-    $("#add-new-type").on("click",function () {
-      $("#processTypes").append(artifactTemplate);
-      $(".remove-processType").on("click",function () {
+
+    $("#add-new-processKind").on("click",function () {
+      let processKindCounter = card.data("index");
+      let processKindPrototype = card.data("prototype");
+      let newProcessKind = processKindPrototype.replace(/__name__/g, processKindCounter);
+      processKinds.append(newProcessKind);
+      $("#form_processKinds_"+processKindCounter).append(removeProcessKindButton);
+      card.data('index', processKindCounter+1);
+
+      formatProcessKindSections();
+      $(".btn-danger").on("click",function () {
         $(this).parent().parent().remove();
       });
     });
+
+    if(card.data("index")!==0)
+    {
+      formatProcessKindSections();
+      $("div[id^=form_processKinds_]").append(removeProcessKindButton);
+      $(".btn-danger").on("click",function () {
+        $(this).parent().parent().remove();
+      });
+    }
+
+    function formatProcessKindSections() {
+      $("div[id^=form_processKinds_]").css({
+        "padding": "2%",
+        "border": "1px solid #cacaca",
+        "border-radius": "1%",
+        "margin-top":"2%",
+        "margin-bottom":"2%"
+      });
+    }
 
   </script>
 {% endblock %}

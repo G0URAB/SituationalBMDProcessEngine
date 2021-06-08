@@ -69,7 +69,8 @@ class SituationalFactor
 
     public function getVariants()
     {
-        return $this->variants;
+        $variantsArray = $this->variants->toArray();
+        return implode(", ",$variantsArray);
     }
 
 }

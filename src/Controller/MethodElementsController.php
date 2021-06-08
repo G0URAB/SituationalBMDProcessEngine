@@ -55,7 +55,10 @@ class MethodElementsController extends AbstractController
         return $this->render('method_elements/index.html.twig', [
             'artifacts' => $this->artifacts,
             'processes' => $this->processes,
-            'roles' => $this->roles
+            'processTypes' => $this->processKinds,
+            'roles' => $this->roles,
+            'situationalFactors' => $this->situationalFactors,
+            'tools' => $this->tools
         ]);
     }
 
@@ -66,18 +69,15 @@ class MethodElementsController extends AbstractController
      */
     public function createProcess(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('processes',ProcessType::class);
+        $form = $this->createMultiEntityForm('processes', ProcessType::class);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            foreach($form->getData()['processes'] as $process)
-            {
-                foreach ($this->processes as $existingProcess)
-                {
-                    if(strcasecmp($existingProcess->getName(), $process->getName())===0)
-                    {
-                        $form->addError(new FormError($process->getName().' already exists'));
+            foreach ($form->getData()['processes'] as $process) {
+                foreach ($this->processes as $existingProcess) {
+                    if (strcasecmp($existingProcess->getName(), $process->getName()) === 0) {
+                        $form->addError(new FormError($process->getName() . ' already exists'));
                         return $this->render('method_elements/processes/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -107,18 +107,14 @@ class MethodElementsController extends AbstractController
      */
     public function createRole(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('roles',RoleType::class);
+        $form = $this->createMultiEntityForm('roles', RoleType::class);
 
         $form->handleRequest($request);
-        if($form->isSubmitted() && $form->isValid())
-        {
-            foreach ($form->getData()['roles'] as $role)
-            {
-                foreach ($this->roles as $existingRole)
-                {
-                    if(strcasecmp($existingRole->getName(), $role->getName())===0)
-                    {
-                        $form->addError(new FormError($role->getName().' already exists'));
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['roles'] as $role) {
+                foreach ($this->roles as $existingRole) {
+                    if (strcasecmp($existingRole->getName(), $role->getName()) === 0) {
+                        $form->addError(new FormError($role->getName() . ' already exists'));
                         return $this->render('method_elements/roles/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -144,18 +140,14 @@ class MethodElementsController extends AbstractController
      */
     public function createArtifact(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('artifacts',ArtifactType::class);
+        $form = $this->createMultiEntityForm('artifacts', ArtifactType::class);
 
         $form->handleRequest($request);
-        if($form->isSubmitted() && $form->isValid())
-        {
-            foreach ($form->getData()['artifacts'] as $artifact)
-            {
-                foreach ($this->artifacts as $existingArtifact)
-                {
-                    if(strcasecmp($existingArtifact->getName(), $artifact->getName())===0)
-                    {
-                        $form->addError(new FormError($artifact->getName().' already exists'));
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['artifacts'] as $artifact) {
+                foreach ($this->artifacts as $existingArtifact) {
+                    if (strcasecmp($existingArtifact->getName(), $artifact->getName()) === 0) {
+                        $form->addError(new FormError($artifact->getName() . ' already exists'));
                         return $this->render('method_elements/artifacts/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -179,17 +171,13 @@ class MethodElementsController extends AbstractController
      */
     public function createProcessKind(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('processKinds',ProcessKindType::class);
+        $form = $this->createMultiEntityForm('processKinds', ProcessKindType::class);
         $form->handleRequest($request);
-        if($form->isSubmitted() && $form->isValid())
-        {
-            foreach ($form->getData()['processKinds'] as $processKind)
-            {
-                foreach ($this->processKinds as $existingProcessKind)
-                {
-                    if(strcasecmp($existingProcessKind->getName(), $processKind->getName())===0)
-                    {
-                        $form->addError(new FormError($processKind->getName().' already exists'));
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['processKinds'] as $processKind) {
+                foreach ($this->processKinds as $existingProcessKind) {
+                    if (strcasecmp($existingProcessKind->getName(), $processKind->getName()) === 0) {
+                        $form->addError(new FormError($processKind->getName() . ' already exists'));
                         return $this->render('method_elements/process_types/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -213,17 +201,13 @@ class MethodElementsController extends AbstractController
      */
     public function createSituationalFactor(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('situationalFactors',SituationalFactorType::class);
+        $form = $this->createMultiEntityForm('situationalFactors', SituationalFactorType::class);
         $form->handleRequest($request);
-        if($form->isSubmitted() && $form->isValid())
-        {
-            foreach ($form->getData()['situationalFactors'] as $situationalFactor)
-            {
-                foreach ($this->situationalFactors as $existingSituationalFactor)
-                {
-                    if(strcasecmp($existingSituationalFactor->getName(), $situationalFactor->getName())===0)
-                    {
-                        $form->addError(new FormError($situationalFactor->getName().' already exists'));
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['situationalFactors'] as $situationalFactor) {
+                foreach ($this->situationalFactors as $existingSituationalFactor) {
+                    if (strcasecmp($existingSituationalFactor->getName(), $situationalFactor->getName()) === 0) {
+                        $form->addError(new FormError($situationalFactor->getName() . ' already exists'));
                         return $this->render('method_elements/situational_factors/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -247,17 +231,13 @@ class MethodElementsController extends AbstractController
      */
     public function createTool(Request $request): Response
     {
-        $form = $this->createMultiEntityForm('tools',ToolType::class);
+        $form = $this->createMultiEntityForm('tools', ToolType::class);
         $form->handleRequest($request);
-        if($form->isSubmitted() && $form->isValid())
-        {
-            foreach ($form->getData()['tools'] as $tool)
-            {
-                foreach ($this->tools as $existingTool)
-                {
-                    if(strcasecmp($existingTool->getName(), $tool->getName())===0)
-                    {
-                        $form->addError(new FormError($tool->getName().' already exists'));
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['tools'] as $tool) {
+                foreach ($this->tools as $existingTool) {
+                    if (strcasecmp($existingTool->getType(), $tool->getType()) === 0) {
+                        $form->addError(new FormError($tool->getType() . ' already exists. Please add new tools inside this tool type.'));
                         return $this->render('method_elements/tools/create.html.twig', [
                             'form' => $form->createView()
                         ]);
@@ -277,18 +257,19 @@ class MethodElementsController extends AbstractController
     public function createMultiEntityForm(string $multiEntityFormat, $formType)
     {
         return $this->createFormBuilder()
-            ->add($multiEntityFormat,CollectionType::class,[
-                'label'=>false,
+            ->add($multiEntityFormat, CollectionType::class, [
+                'label' => false,
                 'entry_type' => $formType,
-                'entry_options'=>[
-                  'label'=>false
+                'entry_options' => [
+                    'label' => false
                 ],
                 'allow_add' => true,
-                'allow_delete'=>true,
+                'allow_delete' => true,
                 'prototype' => true,
-                'error_bubbling'=>false
+                'error_bubbling' => false,
+                'allow_extra_fields' => true
             ])
-            ->add('Submit',SubmitType::class)
+            ->add('Submit', SubmitType::class)
             ->getForm();
     }
 
