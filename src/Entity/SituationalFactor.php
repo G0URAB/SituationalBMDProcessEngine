@@ -24,15 +24,14 @@ class SituationalFactor
     private $name;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="array", nullable=true)
      */
-    private $values;
-
+    private $variants;
 
 
     public function __construct()
     {
-        $this->values = new ArrayCollection();
+        $this->variants = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -52,29 +51,25 @@ class SituationalFactor
         return $this;
     }
 
-
-    public function addValue(string $value)
+    public function addVariant(string $variant)
     {
-        if(!$this->values->contains($value))
+        if(!$this->variants->contains($variant))
         {
-            $this->values[] = $value;
+            $this->variants[] = $variant;
         }
     }
 
-    public function removeValue(string $value)
+    public function removeVariant(string $variant)
     {
-        if($this->values->contains($value))
+        if($this->variants->contains($variant))
         {
-            $this->values->removeElement($value);
+            $this->variants->removeElement($variant);
         }
     }
 
-    /**
-     * @return array
-     */
-    public function getValues(): array
+    public function getVariants()
     {
-        return $this->values->toArray();
+        return $this->variants;
     }
 
 }

@@ -7,10 +7,13 @@ use App\Entity\ProcessKind;
 use App\Entity\Process;
 use App\Entity\Role;
 use App\Entity\SituationalFactor;
+use App\Entity\Tool;
 use App\Form\ArtifactType;
 use App\Form\ProcessKindType;
 use App\Form\ProcessType;
 use App\Form\RoleType;
+use App\Form\SituationalFactorType;
+use App\Form\ToolType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -28,6 +31,8 @@ class MethodElementsController extends AbstractController
     private $processKinds;
     private $roles;
     private $artifacts;
+    private $tools;
+    private $situationalFactors;
     private $entityManager;
 
     public function __construct(EntityManagerInterface $entityManager)
@@ -37,6 +42,8 @@ class MethodElementsController extends AbstractController
         $this->artifacts = $entityManager->getRepository(Artifact::class)->findAll();
         $this->processes = $entityManager->getRepository(Process::class)->findAll();
         $this->processKinds = $entityManager->getRepository(ProcessKind::class)->findAll();
+        $this->tools = $entityManager->getRepository(Tool::class)->findAll();
+        $this->situationalFactors = $entityManager->getRepository(SituationalFactor::class)->findAll();
     }
 
 
@@ -53,7 +60,7 @@ class MethodElementsController extends AbstractController
     }
 
     /**
-     * @Route("/process/create", name="create_process")
+     * @Route("/method_elements/process/create", name="create_process")
      * @param Request $request
      * @return Response
      */
@@ -94,7 +101,7 @@ class MethodElementsController extends AbstractController
     }
 
     /**
-     * @Route("/role/create", name="create_role")
+     * @Route("/method_elements/role/create", name="create_role")
      * @param Request $request
      * @return Response
      */
@@ -131,7 +138,7 @@ class MethodElementsController extends AbstractController
 
 
     /**
-     * @Route("/artifact/create", name="create_artifact")
+     * @Route("/method_elements/artifact/create", name="create_artifact")
      * @param Request $request
      * @return Response
      */
@@ -166,7 +173,7 @@ class MethodElementsController extends AbstractController
     }
 
     /**
-     * @Route("/process_type/create", name="create_process_type")
+     * @Route("/method_elements/process_type/create", name="create_process_type")
      * @param Request $request
      * @return Response
      */
@@ -178,6 +185,16 @@ class MethodElementsController extends AbstractController
         {
             foreach ($form->getData()['processKinds'] as $processKind)
             {
+                foreach ($this->processKinds as $existingProcessKind)
+                {
+                    if(strcasecmp($existingProcessKind->getName(), $processKind->getName())===0)
+                    {
+                        $form->addError(new FormError($processKind->getName().' already exists'));
+                        return $this->render('method_elements/process_types/create.html.twig', [
+                            'form' => $form->createView()
+                        ]);
+                    }
+                }
                 $this->entityManager->persist($processKind);
                 $this->entityManager->flush();
             }
@@ -185,6 +202,74 @@ class MethodElementsController extends AbstractController
         }
 
         return $this->render('method_elements/process_types/create.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/situational_factor/create", name="create_situational_factor")
+     * @param Request $request
+     * @return Response
+     */
+    public function createSituationalFactor(Request $request): Response
+    {
+        $form = $this->createMultiEntityForm('situationalFactors',SituationalFactorType::class);
+        $form->handleRequest($request);
+        if($form->isSubmitted() && $form->isValid())
+        {
+            foreach ($form->getData()['situationalFactors'] as $situationalFactor)
+            {
+                foreach ($this->situationalFactors as $existingSituationalFactor)
+                {
+                    if(strcasecmp($existingSituationalFactor->getName(), $situationalFactor->getName())===0)
+                    {
+                        $form->addError(new FormError($situationalFactor->getName().' already exists'));
+                        return $this->render('method_elements/situational_factors/create.html.twig', [
+                            'form' => $form->createView()
+                        ]);
+                    }
+                }
+                $this->entityManager->persist($situationalFactor);
+                $this->entityManager->flush();
+            }
+            return $this->redirectToRoute("methodElements");
+        }
+
+        return $this->render('method_elements/situational_factors/create.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/tool/create", name="create_tool")
+     * @param Request $request
+     * @return Response
+     */
+    public function createTool(Request $request): Response
+    {
+        $form = $this->createMultiEntityForm('tools',ToolType::class);
+        $form->handleRequest($request);
+        if($form->isSubmitted() && $form->isValid())
+        {
+            foreach ($form->getData()['tools'] as $tool)
+            {
+                foreach ($this->tools as $existingTool)
+                {
+                    if(strcasecmp($existingTool->getName(), $tool->getName())===0)
+                    {
+                        $form->addError(new FormError($tool->getName().' already exists'));
+                        return $this->render('method_elements/tools/create.html.twig', [
+                            'form' => $form->createView()
+                        ]);
+                    }
+                }
+                $this->entityManager->persist($tool);
+                $this->entityManager->flush();
+            }
+            return $this->redirectToRoute("methodElements");
+        }
+
+        return $this->render('method_elements/tools/create.html.twig', [
             'form' => $form->createView()
         ]);
     }
