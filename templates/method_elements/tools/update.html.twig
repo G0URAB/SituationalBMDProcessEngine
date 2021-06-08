@@ -1,0 +1,79 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Update Tool {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.variants.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.variants| length }}">
+        <div class="card-header bg-dark text-white">
+            <b>Update Tool</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+
+            {#Name#}
+            {{ form_row(form.type) }}
+
+            {# Values #}
+            <h5>Tools</h5>
+            <ul id="variantList">
+                {% for value in form.variants %}
+                    <li class="d-flex flex-row">
+                        {{ form_widget(value) }}
+                        <div class="d-flex flex-row justify-content-center m-1">
+                            <button type="button" class="btn btn-danger">Remove</button>
+                        </div>
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ form_row(form.add_variant) }}
+
+            <button type="submit" class="btn btn-primary mt-3">Save</button>
+            {{ form_end(form) }}
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $("legend").remove();
+        let container = $("#variantList");
+        let card = $(".card");
+        let prototype = card.data("prototype");
+        let variants = card.data("index");
+
+        let removeButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove</button>
+                                   </div>`;
+
+        $("#tool_add_variant").on("click", function () {
+            let newLi = $('<li class="d-flex flex-row"></li>').append(prototype.replace(/__name__/g, variants));
+            newLi.append(removeButton);
+            container.append(newLi);
+            listenForRemoval();
+        });
+        listenForRemoval();
+
+        function listenForRemoval() {
+            $(".btn-danger").on("click", function () {
+                $(this).parent().parent().remove();
+            });
+        }
+    </script>
+{% endblock %}

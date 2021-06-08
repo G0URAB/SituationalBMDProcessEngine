@@ -27,9 +27,14 @@ class Process
     private $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="ProcessKind", inversedBy="processes")
+     * @ORM\ManyToMany(targetEntity="ProcessKind", inversedBy="processes")
      */
-    private $processKind;
+    private $processKinds;
+
+    public function __construct()
+    {
+        $this->processKinds = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -50,19 +55,39 @@ class Process
     }
 
     /**
-     * @return ProcessKind
+     * @return string
      */
-    public function getProcessKind()
+    public function getImplodedProcessKinds()
     {
-        return $this->processKind;
+        $processKindsArray =  $this->processKinds->toArray();
+        return implode(", ",$processKindsArray);
+    }
+
+
+    public function getProcessKinds()
+    {
+        return $this->processKinds;
+    }
+
+
+    /**
+     * @param ProcessKind $processKind
+     */
+    public function addProcessKind(ProcessKind $processKind)
+    {
+        if (!$this->processKinds->contains($processKind)) {
+            $this->processKinds[] = $processKind;
+        }
     }
 
     /**
-     * @param $processKind
+     * @param ProcessKind $processKind
      */
-    public function setProcessKind($processKind)
+    public function removeProcessKind(ProcessKind $processKind)
     {
-        $this->processKind = $processKind;
+        if ($this->processKinds->contains($processKind)) {
+            $this->processKinds->removeElement($processKind);
+        }
     }
 
 }

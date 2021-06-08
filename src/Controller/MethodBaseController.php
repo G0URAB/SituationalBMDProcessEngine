@@ -10,13 +10,13 @@ class MethodBaseController extends AbstractController
 {
 
     /**
-     * @Route("/methodbase", name="method_base")
+     * @Route("/", name="method_base")
      */
     public function methodBase(): Response
     {
 
-        return $this->render('listMethodParts.html.twig', [
-            'patterns' => "hmm"
+        return $this->render('method_base.html.twig', [
+
         ]);
     }
 

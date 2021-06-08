@@ -7,7 +7,6 @@ use App\Entity\Process;
 use App\Entity\ProcessKind;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -27,12 +26,11 @@ class ProcessType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
-            ->add('processKind',EntityType::class,[
-                'label_attr'=>['class'=>"font-weight-bold"],
+            ->add('processKinds',EntityType::class,[
+                'label'=> "Process Types",
                 'class' => ProcessKind::class,
-                'choice_label' => 'name',
-                'placeholder' => 'Select a process type',
-                'required' => false
+                'multiple' => true,
+                'expanded' => true,
             ]);
     }
 

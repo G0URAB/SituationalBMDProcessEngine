@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} Method Base {% endblock %}
+{% block title %} Method Elements {% endblock %}
 
 {% block body %}
 
@@ -30,9 +30,9 @@
                 <tbody class="text-center bg-transparent">
                 {% for process in processes %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_process',{'id':process.id}) }}">{{ loop.index }}</a></td>
                         <td>{{ process.name }}</td>
-                        <td>{{ process.processKind }}</td>
+                        <td>{{ process.implodedProcessKinds }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
@@ -57,7 +57,7 @@
                 <tbody class="text-center">
                 {% for role in roles %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_role',{'id':role.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ role.name }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
@@ -83,7 +83,7 @@
                 <tbody class="text-center">
                 {% for artifact in artifacts %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_artifact',{'id':artifact.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ artifact.name }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
@@ -103,7 +103,7 @@
                 <thead class="text-center">
                 <tr>
                     <th scope="col">Index</th>
-                    <th scope="col">Type</th>
+                    <th scope="col">Tool Type</th>
                     <th scope="col">Tools</th>
                     <th scope="col">Delete</th>
                 </tr>
@@ -111,9 +111,9 @@
                 <tbody class="text-center">
                 {% for tool in tools %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_tool',{'id':tool.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ tool.type }}</td>
-                        <td>{{ tool.getVariants() }}</td>
+                        <td>{{ tool.implodedVariants }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
@@ -139,7 +139,7 @@
                 <tbody class="text-center">
                 {% for type in processTypes %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_process_type',{'id':type.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ type.name }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
@@ -167,9 +167,9 @@
                 <tbody class="text-center">
                 {% for factor in situationalFactors %}
                     <tr>
-                        <td>{{ loop.index }}</td>
+                        <td><a href="{{ path('edit_situational_factor',{'id':factor.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ factor.name }}</td>
-                        <td>{{ factor.getVariants() }}</td>
+                        <td>{{ factor.implodedVariants }}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}

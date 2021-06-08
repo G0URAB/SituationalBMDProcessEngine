@@ -67,10 +67,20 @@ class SituationalFactor
         }
     }
 
-    public function getVariants()
+    public function getImplodedVariants()
     {
         $variantsArray = $this->variants->toArray();
         return implode(", ",$variantsArray);
     }
 
+
+    public function getVariants()
+    {
+        return $this->variants;
+    }
+
+    public function setVariants(array $variants)
+    {
+        $this->variants = new ArrayCollection($variants);
+    }
 }

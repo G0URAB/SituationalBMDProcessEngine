@@ -57,7 +57,7 @@
             $("#form_processes_"+processCounter).append(removeProcessButton);
             card.data('index', processCounter+1);
 
-            formatProcessSections();
+            formatProcessSections(processCounter);
             $(".btn-danger").on("click",function () {
                 $(this).parent().parent().remove();
             });
@@ -65,15 +65,17 @@
 
         if(card.data("index")!==0)
         {
-            formatProcessSections();
-            $("div[id^=form_processes_]").append(removeProcessButton);
-            $(".btn-danger").on("click",function () {
-                $(this).parent().parent().remove();
-            });
+            for (let i = 0; i < card.data("index"); i++) {
+                formatProcessSections(i);
+                $("#form_processes_" + i).append(removeProcessButton);
+                $(".btn-danger").on("click",function () {
+                    $(this).parent().parent().remove();
+                });
+            }
         }
 
-        function formatProcessSections() {
-            $("div[id^=form_processes_]").css({
+        function formatProcessSections(counter) {
+            $("#form_processes_" + counter).css({
                 "padding": "2%",
                 "border": "1px solid #cacaca",
                 "border-radius": "1%",

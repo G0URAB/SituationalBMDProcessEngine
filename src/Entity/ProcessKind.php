@@ -26,7 +26,7 @@ class ProcessKind
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="processType", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="processKinds", cascade={"persist", "remove"})
      */
     private $processes;
 
@@ -67,7 +67,7 @@ class ProcessKind
     {
         if (!$this->processes->contains($process)) {
             $this->processes[] = $process;
-            $process->setProcessKind($this);
+            $process->addProcessKind($this);
         }
     }
 
@@ -79,7 +79,7 @@ class ProcessKind
     public function removeProcess(Process $process)
     {
         if ($this->processes->contains($process)) {
-            $process->setProcessKind(null);
+            $process->removeProcessKind($this);
             $this->processes->removeElement($process);
         }
     }
@@ -123,5 +123,10 @@ class ProcessKind
     public function getChildBMDGraphs(): ArrayCollection
     {
         return $this->childBMDGraphs;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }
