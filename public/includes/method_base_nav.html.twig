@@ -1,0 +1,31 @@
+<nav class="d-flex flex-row justify-content-around">
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios1" value="option1"
+               {% if 'method_elements' in app.request.uri %}checked{% endif %}>
+        <label class="form-check-label" for="exampleRadios1">
+            Method Elements
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios2" value="option2"
+               {% if 'building/blocks' in app.request.uri %}checked{% endif %}>
+        <label class="form-check-label" for="exampleRadios2">
+            Method Building Blocks
+        </label>
+    </div>
+    <div class="form-check">
+        <input class="form-check-input" type="radio" name="exampleRadios" id="exampleRadios3" value="option2">
+        <label class="form-check-label" for="exampleRadios2">
+            BMD Graphs
+        </label>
+    </div>
+</nav>
+
+<script>
+    $("#exampleRadios1").on("click", function () {
+        window.location.href="{{ path('method_elements') }}";
+    });
+    $("#exampleRadios2").on("click", function () {
+        window.location.href="{{ path('method_building_blocks') }}";
+    });
+</script>

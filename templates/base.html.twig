@@ -4,15 +4,19 @@
     <meta charset="UTF-8">
     <title>{% block title %}Welcome!{% endblock %}</title>
     {% block stylesheets %}
+        <script src="{{ asset('js/jquery.min.js') }}"></script>
         <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
-        <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+        <script src="{{ asset('js/bootstrap.min.js') }}"></script>
+        <link rel="stylesheet"
+              href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+
     {% endblock %}
 </head>
 <body>
 <div class="container mt-3 mb-5">
 
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark rounded">
-        <a class="navbar-brand text-info" href="{{ path('method_base') }}">Method Base</a>
+        <a class="navbar-brand text-info" href="{{ path('method_base') }}">Situation Specific BMD</a>
         <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarText"
                 aria-controls="navbarText" aria-expanded="false" aria-label="Toggle navigation">
             <span class="navbar-toggler-icon"></span>
@@ -21,21 +25,17 @@
             <ul class="navbar-nav mr-auto"
                 style="width:100%; display: flex; flex-direction: row; justify-content: space-around;">
                 <li class="nav-item">
-                    <a class="nav-link {% if 'bmdGraphs' in app.request.uri %}active{% endif %}"
-                       href="#">BMD Graphs </a>
+                    <a class="nav-link {% if 'method_construction' in app.request.uri %}active{% endif %}"
+                       href="#">Method Construction </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'bmdGraphs' in app.request.uri %}active{% endif %}"
-                       href="#">Generic Activities </a>
+                    <a class="nav-link {% if 'method_enactment' in app.request.uri %}active{% endif %}"
+                       href="#">Method Enactment </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'method_elements' in app.request.uri %}active{% endif %}" href="{{ path('methodElements') }}">
-                        Method Elements
-                    </a>
-                </li>
-                <li class="nav-item">
-                    <a class="nav-link {% if 'situationalFactors' in app.request.uri %}active{% endif %}" href="#">
-                        Method Building Blocks
+                    <a class="nav-link {% if 'method_elements' in app.request.uri or 'building/blocks' in app.request.uri %}active{% endif %}"
+                    href="{{ path('method_elements') }}">
+                        Method Base
                     </a>
                 </li>
             </ul>
@@ -48,9 +48,9 @@
     {% endblock %}
 
     {% block javascripts %}
-        <script src="{{ asset('js/jquery.min.js') }}"></script>
+
         <script>
-            $(document).ready(function () {
+            /*$(document).ready(function () {
                 $(".navbar-toggler").on("click", function () {
                     let navBar = $("#navbarText");
                     if (!navBar.is(':visible'))
@@ -58,7 +58,8 @@
                     else
                         navBar.css({"display": "none"});
                 });
-            });
+                $(".dropdown-toggle").dropdown();
+            });*/
         </script>
     {% endblock %}
 </div>

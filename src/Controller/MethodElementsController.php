@@ -47,7 +47,7 @@ class MethodElementsController extends AbstractController
 
 
     /**
-     * @Route("/method_elements", name="methodElements")
+     * @Route("/method_elements", name="method_elements")
      */
     public function index(): Response
     {
@@ -85,7 +85,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($process);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         //Notify when there are no processTypes
@@ -115,7 +115,7 @@ class MethodElementsController extends AbstractController
         if($form->isSubmitted() && $form->isValid())
         {
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/processes/update.html.twig',[
@@ -147,7 +147,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($role);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/roles/create.html.twig', [
@@ -171,7 +171,7 @@ class MethodElementsController extends AbstractController
         if($form->isSubmitted() && $form->isValid())
         {
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/roles/update.html.twig',[
@@ -203,7 +203,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($artifact);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/artifacts/create.html.twig', [
@@ -228,7 +228,7 @@ class MethodElementsController extends AbstractController
         if($form->isSubmitted() && $form->isValid())
         {
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/artifacts/update.html.twig',[
@@ -259,7 +259,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($processKind);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/process_types/create.html.twig', [
@@ -283,7 +283,7 @@ class MethodElementsController extends AbstractController
         if($form->isSubmitted() && $form->isValid())
         {
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/process_types/update.html.twig',[
@@ -313,7 +313,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($situationalFactor);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/situational_factors/create.html.twig', [
@@ -338,7 +338,7 @@ class MethodElementsController extends AbstractController
         {
             $situationalFactor->setVariants($situationalFactor->getVariants()->toArray());
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/situational_factors/update.html.twig',[
@@ -368,7 +368,7 @@ class MethodElementsController extends AbstractController
                 $this->entityManager->persist($tool);
                 $this->entityManager->flush();
             }
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/tools/create.html.twig', [
@@ -393,7 +393,7 @@ class MethodElementsController extends AbstractController
         {
             $tool->setVariants($tool->getVariants()->toArray());
             $this->entityManager->flush();
-            return $this->redirectToRoute("methodElements");
+            return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/tools/update.html.twig',[
