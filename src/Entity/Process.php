@@ -69,7 +69,6 @@ class Process
         return $this->processKinds;
     }
 
-
     /**
      * @param ProcessKind $processKind
      */
@@ -90,4 +89,8 @@ class Process
         }
     }
 
+    public function __toString()
+    {
+        return $this->name;
+    }
 }

@@ -8,143 +8,79 @@
     </div>
 
     <div class="mt-4 w-100 d-flex flex-row justify-content-center">
-        <a href="#" class="btn btn-dark">Create method building block</a>
+        <a href="{{ path('create_method_building_block') }}" class="btn btn-dark">Create method building block</a>
     </div>
 
+    <div><span>Total Method Building Blocks: <b>{{ buildingBlocks|length }}</b></span></div>
     <div class="mt-4 d-flex flex-row flex-wrap">
 
-        <div class="card" style="width: 31rem; margin:2%">
-            <div class="card-header d-flex flex-row">
-                <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
-                <b style="display: block; width: 88%;margin-left: 2%;">Process</b>
+        {% for block in buildingBlocks %}
+            <div class="card" style="width: 31rem; margin:2%; background: #88b2d7;">
+                <div class="card-header d-flex flex-row">
+                    <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
+                    <span><b>Process:</b> <i style="font-size: large">{{ block.process }}</i></span>
+                </div>
+                <ul class="list-group list-group-flush">
+                    <li class="list-group-item d-flex flex-column" style="height:75px;max-height: 80px; overflow: auto">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa fa-magic" style="font-size:24px; width: 10%;"></i>
+                            <span><b>Process Types:</b> {{ block.process.implodedProcessKinds }}</span>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex flex-column" style="height:70px;max-height: 80px; overflow: auto">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
+                            <span><b>Input Artifacts:</b> {{ block.implodedInputArtifacts }}</span>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex flex-column" style="height:75px;max-height: 80px; overflow: auto">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
+                            <span><b>Output Artifacts:</b> {{ block.implodedOutputArtifacts }}</span>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex flex-column">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
+                            <b>Situational Factors:</b>
+                        </div>
+                        <ul style="height:100px;max-height: 100px; overflow: auto">
+                            {% for factor in block.situationalFactors %}
+                                <li>
+                                    {{ factor }}
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="list-group-item d-flex flex-column" style="height:75px;max-height: 80px; overflow: auto">
+                        <div>
+                            <i class="fa fa-gavel" style="font-size:24px; width: 10%;"></i>
+                            <span><b>Tools:</b> {% if block.implodedTools is empty %} No Tools Required {% else %}{{ block.implodedTools }} {% endif %}</span>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex flex-column" style="height:70px;max-height: 80px; overflow: auto">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
+                            <span><b>Roles:</b> {{ block.implodedRoles }}</span>
+                        </div>
+                    </li>
+                    <li class="list-group-item d-flex flex-row justify-content-around">
+                        <button type="button" class="btn btn-danger rounded w-25">Remove</button>
+                        <a href="{{ path('edit_method_building_block',{'id':block.id}) }}"
+                           class="btn btn-info rounded w-25">Edit</a>
+                    </li>
+                </ul>
             </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Input Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Output Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Situational Factors:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-gavel" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Tools:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Roles:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-magic" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Process Types:</b>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card" style="width: 31rem; margin:2%">
-            <div class="card-header d-flex flex-row">
-                <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
-                <b style="display: block; width: 88%;margin-left: 2%;">Process</b>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Input Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Output Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Situational Factors:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-gavel" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Tools:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Roles:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-magic" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Process Types:</b>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card" style="width: 31rem; margin:2%">
-            <div class="card-header d-flex flex-row">
-                <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
-                <b style="display: block; width: 88%;margin-left: 2%;">Process</b>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Input Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Output Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Situational Factors:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-gavel" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Tools:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Roles:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-magic" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Process Types:</b>
-                </li>
-            </ul>
-        </div>
-
-        <div class="card" style="width: 31rem; margin:2%">
-            <div class="card-header d-flex flex-row">
-                <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
-                <b style="display: block; width: 88%;margin-left: 2%;">Process</b>
-            </div>
-            <ul class="list-group list-group-flush">
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Input Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Output Artifacts:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Situational Factors:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-gavel" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Tools:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Roles:</b>
-                </li>
-                <li class="list-group-item d-flex flex-row">
-                    <i class="fa fa-magic" style="font-size:24px; width: 10%;"></i>
-                    <b style="display: block; width: 88%;margin-left: 2%;">Process Types:</b>
-                </li>
-            </ul>
-        </div>
+        {% endfor %}
 
     </div>
 
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+
+
+    </script>
 {% endblock %}

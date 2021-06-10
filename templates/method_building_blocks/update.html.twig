@@ -1,0 +1,80 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Edit Method Building Blocks {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+    {% for label, messages in app.flashes %}
+        {% for message in messages %}
+            <div class="alert alert-{{ label }}">
+                {{ message }}
+            </div>
+        {% endfor %}
+    {% endfor %}
+    </div>
+
+    <div class="mt-5">
+        {{ include('@includes/method_base_nav.html.twig') }}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4">
+        <div class="card-header bg-warning">
+            <b>Edit Method Building Block</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+
+            {{ form_row(form.process) }}
+
+            <div class="form-group">
+                <label class="required" for="method_building_block_processTypes">Process Types</label>
+                <div id="method_building_block_processTypes" class="form-control" style="height: 60px;">
+                    <span> {{ processTypes }}</span>
+                </div>
+            </div>
+
+            {{ form_rest(form) }}
+            <button class="btn btn-primary">Save</button>
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $("legend").remove();
+        $("select[id^=method_building_block_]").not("#method_building_block_process").css("height", "250px");
+
+        $("#method_building_block_process").on("change", function () {
+            let id = $(this).val();
+            let processTypesContainer = $("#method_building_block_processTypes");
+            let processTypesPrototype = (texts) => `<span>${texts}</span>`;
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('create_method_building_block') }}',
+                data: {
+                    id: id,
+                },
+                success: function (response) {
+                    var obj = JSON.parse(JSON.stringify(response));
+                    let texts = obj.processTypes;
+                    if (texts) {
+                        processTypesContainer.find('span').remove();
+                        processTypesContainer.append(processTypesPrototype(texts));
+                    } else {
+                        processTypesContainer.find('span').remove();
+                        processTypesContainer.append(processTypesPrototype("Please select a valid process to see process types"));
+                    }
+                }
+            });
+        });
+    </script>
+{% endblock %}

@@ -86,4 +86,9 @@ class Tool
     {
         $this->variants = new ArrayCollection($variants);
     }
+
+    public function __toString()
+    {
+        return $this->type;
+    }
 }

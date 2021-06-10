@@ -26,12 +26,12 @@ class ProcessKind
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="processKinds", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\Process", mappedBy="processKinds", cascade={"persist", "remove"})
      */
     private $processes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentProcessType", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentProcessKind", cascade={"persist", "remove"})
      */
     private $childBMDGraphs;
 
