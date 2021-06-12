@@ -228,21 +228,16 @@
             let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
             let nodeId = parsedObject.nodes[0];
             let node = getNodeObject(nodeId);
+            if(node===null)
+            {
+                closeNodePopup();
+                return;
+            }
+
+            console.log(node);
             nodePopup.css("display", "block");
             nodePopup.attr("data-node", nodeId);
             level.html(node.level);
-
-            $("#increase-level").on("click", function () {
-                node.level++;
-                level.html(node.level);
-                initializeGraph();
-            });
-
-            $("#decrease-level").on("click", function () {
-                node.level--;
-                level.html(node.level);
-                initializeGraph();
-            });
 
             $(".close").on("click", function () {
                 closeNodePopup();
@@ -257,6 +252,7 @@
                             $(this).remove();
                         }
                     });
+
                     $('#from-process-type option').each(function() {
                         if ( $(this).val() === node.tableId.toString() ) {
                             $(this).remove();
@@ -266,6 +262,24 @@
             });
         });
     }
+
+    $("#increase-level").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-node"));
+        let node = getNodeObject(nodeId);
+        node.level++;
+        level.html(node.level);
+        initializeGraph();
+        checkEvents();
+    });
+
+    $("#decrease-level").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-node"));
+        let node = getNodeObject(nodeId);
+        node.level--;
+        level.html(node.level);
+        initializeGraph();
+        checkEvents();
+    });
 
 
     $("#set-graph-name-and-root-node").on("click", function () {
@@ -400,6 +414,7 @@
         };
         edges.push(newEdge);
         initializeGraph();
+        checkEvents();
     });
 
     $("#remove-prerequisite").on("click", function () {
@@ -433,6 +448,7 @@
         }
         initializeGraph();
         messageBox.html("<span class='text-success'> Edge from " + nameOfFrom + " to " + nameOfTo + " deleted from the graph :/</span>");
+        checkEvents();
     });
 
 
