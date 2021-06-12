@@ -35,12 +35,21 @@ class ProcessKind
      */
     private $childBMDGraphs;
 
+    /**
+     * @ORM\ManyToOne(targetEntity="App\Entity\ProcessKind", inversedBy="childProcessKinds")
+     */
+    private $parentProcessKind;
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\ProcessKind", mappedBy="parentProcessKind", cascade={"persist", "remove"})
+     */
+    private $childProcessKinds;
 
     public function __construct()
     {
         $this->processes = new ArrayCollection();
         $this->childBMDGraphs = new ArrayCollection();
+        $this->childProcessKinds = new ArrayCollection();
     }
 
     public function getId(): ?int
@@ -128,5 +137,47 @@ class ProcessKind
     public function __toString()
     {
         return $this->name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getParentProcessKind()
+    {
+        return $this->parentProcessKind;
+    }
+
+    /**
+     * @param mixed $parentProcessKind
+     */
+    public function setParentProcessKind($parentProcessKind)
+    {
+        $this->parentProcessKind = $parentProcessKind;
+    }
+
+    public function addChildProcessKind(ProcessKind $childProcessKind)
+    {
+        if(!$this->childProcessKinds->contains($childProcessKind))
+        {
+            $this->childProcessKinds[]= $childProcessKind;
+            $childProcessKind->setParentProcessKind($this);
+        }
+    }
+
+    public function removeChildProcessKind(ProcessKind $childProcessKind)
+    {
+        if($this->childProcessKinds->contains($childProcessKind))
+        {
+            $this->childProcessKinds->removeElement($childProcessKind);
+            $childProcessKind->setParentProcessKind(null);
+        }
+    }
+
+    /**
+     * @return ArrayCollection
+     */
+    public function getChildProcessKinds(): ArrayCollection
+    {
+        return $this->childProcessKinds;
     }
 }
