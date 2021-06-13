@@ -30,6 +30,7 @@
 </head>
 <body>
 
+{{ form_start(form) }}
 <div class="d-flex flex-row w-100 h-75">
 
     <div id="mynetwork"></div>
@@ -38,15 +39,12 @@
 
         {# Set Name of the graph #}
         <div class="border border-dark rounded mt-2">
-            <div class="form-group">
-                <label for="name-of-graph">Name of the graph</label>
-                <input type="text" class="form-control" id="name-of-graph" placeholder="Apple Handset Business Graph">
-            </div>
+            {{ form_row(form.name) }}
             <div class="form-group">
                 <label for="name-of-root-node">Name of the root node</label>
-                <input type="text" class="form-control" id="name-of-root-node" placeholder="Apple Handset Business">
+                <input type="text" class="form-control" id="name-of-root-node" placeholder="Apple Handset Business"
+                       autocomplete="off">
             </div>
-            <button type="button" class="btn btn-dark btn-sm" id="set-graph-name-and-root-node">Set</button>
         </div>
 
         {# Add Process Types #}
@@ -93,21 +91,34 @@
                 </div>
             </div>
         </div>
+
+
+        {# Situational factors and parent-process-type #}
+        <div class="border border-dark rounded mt-2">
+            {{ form_errors(form) }}
+            <input type="hidden" name="token" value="{{ csrf_token('bmd-graph') }}"/>
+            {{ form_row(form.situationalFactors) }}
+            {{ form_row(form.parentProcessKind) }}
+        </div>
+        <div class="d-flex flex-row justify-content-center">
+            {{ form_row(form.saveGraph) }}
+            <div class="form-group">
+                <a href="{{ path('bmd_graphs') }}" class="btn btn-danger">Cancel</a>
+            </div>
+        </div>
     </div>
 </div>
+{{ form_end(form) }}
 
 
 {# Buttons #}
 <div class="d-flex flex-row">
-    <div class="ml-3  d-flex flex-row" style="width: 50%;">
+    <div class="ml-3  d-flex flex-row" style="width: 76%;">
         <span><b>Log:</b></span> &nbsp
         <span id="message-box"></span>
     </div>
-    <div class="d-flex flex-row justify-content-end pr-1" style="width: 26%;">
-        <button class="btn btn-success" type="button">Save Graph</button>
-        <a href="{{ path('bmd_graphs') }}" class="btn btn-warning ml-2">Cancel</a>
-    </div>
 </div>
+
 
 {# Instruction #}
 <div class="mt-1 bg-dark d-flex flex-column p-2" style="width: 77%">
@@ -176,11 +187,15 @@
     let body = $("body");
     let processTypeInModal = $("#modal-process-type");
     let stepsAreHidden = false;
+    let nameOfRootNode = $("#name-of-root-node");
+    let bmdGraphSaveButton = $("#bmd_graph_saveGraph");
 
-    $("input").val(""); //On page reload clear input fields
+    //$("input").val(""); //On page reload clear input fields
     processType.val(""); //Reset on reload
     fromStep.val(""); //Reset on reload
     toStep.val(""); //Reset on reload
+    bmdGraphSaveButton.prop("disabled", true); //Disable form submit until root node's name is invalid
+    messageBox.html("To submit the form, we need a valid name for the root node");
 
     initializeGraph();
 
@@ -224,7 +239,6 @@
         network = new vis.Network(container, data, options);
     }
 
-
     function checkEvents() {
         network.on("doubleClick", function (params) {
             body.not(nodePopup).css({
@@ -240,7 +254,7 @@
 
             if (node === null || node.shape !== 'box') {
                 closeNodePopup();
-                if(nodes.length>1 && !stepsAreHidden)
+                if (nodes.length > 1 && !stepsAreHidden)
                     hideAllSteps(nodeId);
                 else
                     showAllSteps(nodeId);
@@ -328,30 +342,27 @@
         checkEvents();
     });
 
-    $("#set-graph-name-and-root-node").on("click", function () {
-        let graphName = $("#name-of-graph").val();
-        let rootNodeName = $("#name-of-root-node").val();
-
-        if (graphName.length < 5) {
-            document.getElementById("message-box").innerHTML = "Please give a valid name for the graph!!";
-            return false;
-        }
-        if (rootNodeName.length < 5) {
-            document.getElementById("message-box").innerHTML = "Please give a valid name for the root node of the graph!!";
-            return false;
-        }
-
-        isSetGraphAndRootNode = true;
-
-        for (let i = 0; i < nodes.length; i++) {
-            let node = nodes[i];
-            if (node.level === '0') {
-                node.label = rootNodeName;
-                document.getElementById("message-box").innerHTML = "Root node's name was set!!";
-                initializeGraph();
+    nameOfRootNode.on("keyup", function () {
+        setTimeout(function () {
+            let rootNodeName = nameOfRootNode.val();
+            if (rootNodeName.length < 5) {
+                document.getElementById("message-box").innerHTML = "Please give a valid name for the root node of the graph. Otherwise you can not click on 'Save Graph'";
+                bmdGraphSaveButton.prop("disabled", true);
+                return false;
             }
-        }
 
+            isSetGraphAndRootNode = true;
+            bmdGraphSaveButton.prop("disabled", false);
+
+            for (let i = 0; i < nodes.length; i++) {
+                let node = nodes[i];
+                if (node.level === '0') {
+                    node.label = rootNodeName;
+                    document.getElementById("message-box").innerHTML = "Root node's name was set!!";
+                    initializeGraph();
+                }
+            }
+        }, 1000);
     });
 
     $("#add-processType").on("click", function () {
@@ -369,19 +380,17 @@
             return false;
         }
 
-        let processTypeExist = false;
-
-        nodes.forEach(function (item, index) {
-            if (item.label === nameOfProcessType) {
-                messageBox.html("<span class='text-danger'>The label " + nameOfProcessType + " is already there in the graph :/</span>");
-                processTypeExist = true;
-            }
-        });
-
-        if (processTypeExist)
-            return;
-
+        let immediateLastStepHasSameProcessType = false;
         let idOfLastNode = parseInt((nodes[nodes.length - 1]).id);
+
+
+        if (getNodeObject(idOfLastNode).label === "<<"+nameOfProcessType+">>") {
+                messageBox.html("<span class='text-danger'>Two immediate steps can not have the same process type :/</span>");
+            immediateLastStepHasSameProcessType = true;
+        }
+
+        if (immediateLastStepHasSameProcessType)
+            return;
 
         let newNode = {
             id: idOfLastNode + 1,
@@ -495,6 +504,24 @@
         initializeGraph();
         messageBox.html("<span class='text-success'> Edge from " + nameOfFrom + " to " + nameOfTo + " deleted from the graph :/</span>");
         checkEvents();
+    });
+
+    bmdGraphSaveButton.hover(function () {
+        setTimeout(function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('set_graph_nodes_in_session') }}',
+                data: {
+                    nodes: nodes,
+                    edges: edges
+                },
+                success: function (response) {
+                    let obj = JSON.parse(JSON.stringify(response));
+                    console.log(obj);
+                }
+            });
+
+        }, 200);
     });
 
 
@@ -637,26 +664,26 @@
         body.children().not(nodePopup).css("opacity", "1");
     }
 
-    function hideAllSteps(rootNode)
-    {
-        nodes[0].title="All steps are hidden";
-        nodes[0].color="brown";
+    function hideAllSteps(rootNode) {
+        nodes[0].title = "All steps are hidden";
+        nodes[0].color = "brown";
 
-        edges.forEach(function (edge,index) {
-            if(edge.from===rootNode && edge.color==="red")
-                getNodeObject(edge.to).hidden=true;
+        edges.forEach(function (edge, index) {
+            if (edge.from === rootNode && edge.color === "red")
+                getNodeObject(edge.to).hidden = true;
         });
         initializeGraph();
         stepsAreHidden = true;
         checkEvents();
     }
+
     function showAllSteps(rootNode) {
         delete nodes[0].title;
-        nodes[0].color="#bababa";
+        nodes[0].color = "#bababa";
 
-        edges.forEach(function (edge,index) {
-            if(edge.from===rootNode && edge.color==="red")
-                getNodeObject(edge.to).hidden=false;
+        edges.forEach(function (edge, index) {
+            if (edge.from === rootNode && edge.color === "red")
+                getNodeObject(edge.to).hidden = false;
         });
         initializeGraph();
         stepsAreHidden = false;
@@ -690,7 +717,8 @@
                 messageBox.html("<span class='text-danger'>An edge from the step:" + nameOfFrom + " to step:" + nameOfTo + " does not exist!</span>");
                 actionIsValid = false;
             }
-        } else if (indexOfToObject < indexOfFromObject) {
+        }
+        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
             messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
             actionIsValid = false;
         }
