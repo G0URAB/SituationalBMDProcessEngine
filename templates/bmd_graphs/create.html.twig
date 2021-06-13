@@ -175,6 +175,7 @@
     let level = $("#level");
     let body = $("body");
     let processTypeInModal = $("#modal-process-type");
+    let stepsAreHidden = false;
 
     $("input").val(""); //On page reload clear input fields
     processType.val(""); //Reset on reload
@@ -223,9 +224,9 @@
         network = new vis.Network(container, data, options);
     }
 
+
     function checkEvents() {
         network.on("doubleClick", function (params) {
-
             body.not(nodePopup).css({
                 "pointer-events": "none",
             });
@@ -234,10 +235,15 @@
             params.event = "[original event]";
             let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
             let nodeId = parsedObject.nodes[0];
+
             let node = getNodeObject(nodeId);
-            if(node===null || node.id===1)
-            {
+
+            if (node === null || node.shape !== 'box') {
                 closeNodePopup();
+                if(nodes.length>1 && !stepsAreHidden)
+                    hideAllSteps(nodeId);
+                else
+                    showAllSteps(nodeId);
                 return;
             }
 
@@ -249,6 +255,13 @@
             $(".close").on("click", function () {
                 closeNodePopup();
             });
+        });
+
+        network.on("showPopup", function (params) {
+            console.log("hoverNode Event:", params);
+        });
+        network.on("hoverNode", function (params) {
+            console.log("hoverNode Event:", params);
         });
     }
 
@@ -277,36 +290,36 @@
         if (confirm("Are you sure to delete step with : " + node.label)) {
             removeStep(node);
             closeNodePopup();
-            $('#to-step option').each(function() {
-                if ( $(this).val() === node.tableId.toString() ) {
+            $('#to-step option').each(function () {
+                if ($(this).val() === node.tableId.toString()) {
                     $(this).remove();
                 }
             });
 
-            $('#from-step option').each(function() {
-                if ( $(this).val() === node.tableId.toString() ) {
+            $('#from-step option').each(function () {
+                if ($(this).val() === node.tableId.toString()) {
                     $(this).remove();
                 }
             });
         }
     });
 
-    processTypeInModal.on("change",function () {
+    processTypeInModal.on("change", function () {
         let nodeId = parseInt(nodePopup.attr("data-nodeId"));
         let newNodeName = $(this).find(":selected").text();
         let newTableId = $(this).val();
         let node = getNodeObject(nodeId);
         let oldTableId = node.tableId;
-        node.label = "<<"+newNodeName+">>";
+        node.label = "<<" + newNodeName + ">>";
         node.tableId = parseInt(newTableId);
 
-        $('#from-step option').each(function() {
-            if ( parseInt($(this).val()) === oldTableId) {
+        $('#from-step option').each(function () {
+            if (parseInt($(this).val()) === oldTableId) {
                 $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
             }
         });
-        $('#to-step option').each(function() {
-            if ( parseInt($(this).val()) === oldTableId) {
+        $('#to-step option').each(function () {
+            if (parseInt($(this).val()) === oldTableId) {
                 $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
             }
         });
@@ -490,7 +503,7 @@
     function removeStep(node) {
 
         let idOfProcessType = node.id;
-        let nameOfProcessType = node.label.replace("<<","").replace(">>","");
+        let nameOfProcessType = node.label.replace("<<", "").replace(">>", "");
 
         let nodeFoundAndRemoved = false;
 
@@ -624,6 +637,32 @@
         body.children().not(nodePopup).css("opacity", "1");
     }
 
+    function hideAllSteps(rootNode)
+    {
+        nodes[0].title="All steps are hidden";
+        nodes[0].color="brown";
+
+        edges.forEach(function (edge,index) {
+            if(edge.from===rootNode && edge.color==="red")
+                getNodeObject(edge.to).hidden=true;
+        });
+        initializeGraph();
+        stepsAreHidden = true;
+        checkEvents();
+    }
+    function showAllSteps(rootNode) {
+        delete nodes[0].title;
+        nodes[0].color="#bababa";
+
+        edges.forEach(function (edge,index) {
+            if(edge.from===rootNode && edge.color==="red")
+                getNodeObject(edge.to).hidden=false;
+        });
+        initializeGraph();
+        stepsAreHidden = false;
+        checkEvents();
+    }
+
     function prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, actionType) {
         let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
         let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
@@ -633,26 +672,26 @@
             messageBox.html("<span class='text-danger'>From and To process types can not be the same!!</span>");
             actionIsValid = false;
         } else if (indexOfToObject === null) {
-            messageBox.html("<span class='text-danger'>The 'To ProcessType' is empty!</span>");
+            messageBox.html("<span class='text-danger'>The 'To Step' is empty!</span>");
             actionIsValid = false;
         } else if (!nodeExistInGraph(id_of_FromNode)) {
-            messageBox.html("<span class='text-danger'>" + nameOfFrom + " does not exist in the graph!!</span>");
+            messageBox.html("<span class='text-danger'>Step: " + nameOfFrom + " does not exist in the graph!!</span>");
             actionIsValid = false;
         } else if (!nodeExistInGraph(id_of_ToNode)) {
-            messageBox.html("<span class='text-danger'>" + nameOfTo + " does not exist in the graph!!</span>");
+            messageBox.html("<span class='text-danger'>Step: " + nameOfTo + " does not exist in the graph!!</span>");
             actionIsValid = false;
         } else if (actionType === 'add') {
             if (edgeExistInGraph(id_of_FromNode, id_of_ToNode)) {
-                messageBox.html("<span class='text-danger'>An edge from " + nameOfFrom + " to " + nameOfTo + " already exists!!</span>");
+                messageBox.html("<span class='text-danger'>An edge from the step:" + nameOfFrom + " to step:" + nameOfTo + " already exists!!</span>");
                 actionIsValid = false;
             }
         } else if (actionType === 'remove') {
             if (!edgeExistInGraph(id_of_FromNode, id_of_ToNode)) {
-                messageBox.html("<span class='text-danger'>An edge from " + nameOfFrom + " to " + nameOfTo + " does not exist!</span>");
+                messageBox.html("<span class='text-danger'>An edge from the step:" + nameOfFrom + " to step:" + nameOfTo + " does not exist!</span>");
                 actionIsValid = false;
             }
         } else if (indexOfToObject < indexOfFromObject) {
-            messageBox.html("<span class='text-danger'>You can not go back!!</span>");
+            messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
             actionIsValid = false;
         }
         return actionIsValid;
