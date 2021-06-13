@@ -52,7 +52,7 @@
         {# Add Process Types #}
         <div class="border border-dark rounded mt-2">
             <div class="form-group">
-                <label for="process-type">Add/Remove a Process Type</label>
+                <label for="process-type"></label>
                 <select class="form-control" id="process-type">
                     <option value="">Select a process type</option>
                     {% for processType in processTypes %}
@@ -61,7 +61,7 @@
                 </select>
             </div>
             <div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-primary btn-sm" id="add-processType">Add</button>
+                <button type="button" class="btn btn-primary btn-sm" id="add-processType">Add Step</button>
             </div>
         </div>
 
@@ -72,18 +72,18 @@
                 {# From #}
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
-                        <label class="input-group-text" for="from-process-type">From Process Type</label>
+                        <label class="input-group-text" for="from-step">From Step</label>
                     </div>
-                    <select class="custom-select" id="from-process-type">
+                    <select class="custom-select" id="from-step">
 
                     </select>
                 </div>
                 {# To #}
                 <div class="input-group mb-3">
                     <div class="input-group-prepend">
-                        <label class="input-group-text" for="to-process-type">To Process Type</label>
+                        <label class="input-group-text" for="to-step">To Step</label>
                     </div>
-                    <select class="custom-select" id="to-process-type">
+                    <select class="custom-select" id="to-step">
 
                     </select>
                 </div>
@@ -125,19 +125,25 @@
     </div>
 </div>
 
-{# Modal #}
 
+{# Modal #}
 <div class="modal-dialog" role="document"
-     style="position: absolute; top:10%; left:10%; display: none;" id="node-popup" data-node="">
+     style="position: absolute; top:10%; left:10%; display: none;" id="node-popup" data-nodeId="">
     <div class="modal-content">
         <div class="modal-header">
-            <h5 class="modal-title"></h5>
+            <label for="modal-process-type">Change Process Type of the Step</label>
+            <select class="form-control" id="modal-process-type">
+                <option value="">Change process type</option>
+                {% for processType in processTypes %}
+                    <option value={{ processType.id }}>{{ processType.name }}</option>
+                {% endfor %}
+            </select>
             <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                 <span aria-hidden="true">&times;</span>
             </button>
         </div>
         <div class="modal-body d-flex flex-column">
-            <label>Level of the node</label>
+            <label>Height of the step</label>
             <div class="d-flex flex-row justify-content-between">
                 <button class="btn btn-sm btn-dark rounded-circle" id="decrease-level">-</button>
                 <span id="level"></span>
@@ -145,7 +151,7 @@
             </div>
         </div>
         <div class="modal-footer">
-            <button type="button" class="btn btn-danger" id="remove-processType">Remove Process Type</button>
+            <button type="button" class="btn btn-danger" id="remove-step">Remove Step</button>
         </div>
     </div>
 </div>
@@ -163,16 +169,17 @@
     let messageBox = $("#message-box");
     let isSetGraphAndRootNode = true;
     let processType = $("#process-type");
-    let fromProcessType = $("#from-process-type");
-    let toProcessType = $("#to-process-type");
+    let fromStep = $("#from-step");
+    let toStep = $("#to-step");
     let nodePopup = $("#node-popup");
     let level = $("#level");
     let body = $("body");
+    let processTypeInModal = $("#modal-process-type");
 
     $("input").val(""); //On page reload clear input fields
     processType.val(""); //Reset on reload
-    fromProcessType.val(""); //Reset on reload
-    toProcessType.val(""); //Reset on reload
+    fromStep.val(""); //Reset on reload
+    toStep.val(""); //Reset on reload
 
     initializeGraph();
 
@@ -217,7 +224,7 @@
     }
 
     function checkEvents() {
-        network.on("click", function (params) {
+        network.on("doubleClick", function (params) {
 
             body.not(nodePopup).css({
                 "pointer-events": "none",
@@ -228,43 +235,25 @@
             let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
             let nodeId = parsedObject.nodes[0];
             let node = getNodeObject(nodeId);
-            if(node===null)
+            if(node===null || node.id===1)
             {
                 closeNodePopup();
                 return;
             }
 
-            console.log(node);
             nodePopup.css("display", "block");
-            nodePopup.attr("data-node", nodeId);
+            nodePopup.attr("data-nodeId", nodeId);
+            processTypeInModal.val(node.tableId);
             level.html(node.level);
 
             $(".close").on("click", function () {
                 closeNodePopup();
             });
-
-            $("#remove-processType").on("click", function () {
-                if (confirm("Are you sure to delete: " + node.label)) {
-                    removeProcessType(getNameOfProcessTypeThroughNodID(node.id));
-                    closeNodePopup();
-                    $('#to-process-type option').each(function() {
-                        if ( $(this).val() === node.tableId.toString() ) {
-                            $(this).remove();
-                        }
-                    });
-
-                    $('#from-process-type option').each(function() {
-                        if ( $(this).val() === node.tableId.toString() ) {
-                            $(this).remove();
-                        }
-                    });
-                }
-            });
         });
     }
 
     $("#increase-level").on("click", function () {
-        let nodeId = parseInt(nodePopup.attr("data-node"));
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
         let node = getNodeObject(nodeId);
         node.level++;
         level.html(node.level);
@@ -273,7 +262,7 @@
     });
 
     $("#decrease-level").on("click", function () {
-        let nodeId = parseInt(nodePopup.attr("data-node"));
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
         let node = getNodeObject(nodeId);
         node.level--;
         level.html(node.level);
@@ -281,6 +270,50 @@
         checkEvents();
     });
 
+    $("#remove-step").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let node = getNodeObject(nodeId);
+
+        if (confirm("Are you sure to delete step with : " + node.label)) {
+            removeStep(node);
+            closeNodePopup();
+            $('#to-step option').each(function() {
+                if ( $(this).val() === node.tableId.toString() ) {
+                    $(this).remove();
+                }
+            });
+
+            $('#from-step option').each(function() {
+                if ( $(this).val() === node.tableId.toString() ) {
+                    $(this).remove();
+                }
+            });
+        }
+    });
+
+    processTypeInModal.on("change",function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let newNodeName = $(this).find(":selected").text();
+        let newTableId = $(this).val();
+        let node = getNodeObject(nodeId);
+        let oldTableId = node.tableId;
+        node.label = "<<"+newNodeName+">>";
+        node.tableId = parseInt(newTableId);
+
+        $('#from-step option').each(function() {
+            if ( parseInt($(this).val()) === oldTableId) {
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+            }
+        });
+        $('#to-step option').each(function() {
+            if ( parseInt($(this).val()) === oldTableId) {
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+            }
+        });
+
+        initializeGraph();
+        checkEvents();
+    });
 
     $("#set-graph-name-and-root-node").on("click", function () {
         let graphName = $("#name-of-graph").val();
@@ -314,7 +347,7 @@
         let nameOfProcessType = processType.find(":selected").text();
 
         if (processType.val() === "") {
-            messageBox.html("<span class='text-danger'>Please select a process type to add!!</span>");
+            messageBox.html("<span class='text-danger'>Please select a process type for the new step !!</span>");
             return;
         }
 
@@ -357,12 +390,12 @@
 
         //Reset Prerequisite edges options
         if (nodes.length < 3)
-            fromProcessType.append($("<option></option>")
+            fromStep.append($("<option></option>")
                 .attr("value", IdOfProcessType).text(nameOfProcessType));
         else {
-            fromProcessType.append($("<option></option>")
+            fromStep.append($("<option></option>")
                 .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
-            toProcessType.append($("<option></option>")
+            toStep.append($("<option></option>")
                 .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
         }
         checkEvents();
@@ -370,14 +403,14 @@
 
     $("#add-prerequisite").on("click", function () {
 
-        let nameOfFrom = fromProcessType.find(":selected").text();
-        let idOfFromProcessType = parseInt(fromProcessType.val()); //This table Id and not the node id
+        let nameOfFrom = fromStep.find(":selected").text();
+        let idOfFromStep = parseInt(fromStep.val()); //This table Id and not the node id
 
-        let nameOfTo = toProcessType.find(":selected").text();
-        let idOfToProcessType = parseInt(toProcessType.val()); //This is table Id and not the node id
+        let nameOfTo = toStep.find(":selected").text();
+        let idOfToStep = parseInt(toStep.val()); //This is table Id and not the node id
 
-        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOfFromProcessType);
-        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOfToProcessType);
+        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOfFromStep);
+        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOfToStep);
 
         let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
         let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
@@ -418,14 +451,14 @@
     });
 
     $("#remove-prerequisite").on("click", function () {
-        let nameOfFrom = fromProcessType.find(":selected").text();
-        let idOfFromProcessType = parseInt(fromProcessType.val()); //This table Id and not the node id
+        let nameOfFrom = fromStep.find(":selected").text();
+        let idOffromStep = parseInt(fromStep.val()); //This table Id and not the node id
 
-        let nameOfTo = toProcessType.find(":selected").text();
-        let idOfToProcessType = parseInt(toProcessType.val()); //This is table Id and not the node id
+        let nameOfTo = toStep.find(":selected").text();
+        let idOftoStep = parseInt(toStep.val()); //This is table Id and not the node id
 
-        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOfFromProcessType);
-        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOfToProcessType);
+        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOffromStep);
+        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOftoStep);
 
         let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
         let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
@@ -454,10 +487,10 @@
 
     /*-------------------------Helper Functions----------------------*/
 
-    function removeProcessType(nameOfProcessType) {
+    function removeStep(node) {
 
-        let idOfProcessType = parseInt(processType.val());
-        //let nameOfProcessType = processType.find(":selected").text();
+        let idOfProcessType = node.id;
+        let nameOfProcessType = node.label.replace("<<","").replace(">>","");
 
         let nodeFoundAndRemoved = false;
 
@@ -467,7 +500,7 @@
         }
 
         nodes.forEach(function (item, index) {
-            if (item.tableId === idOfProcessType) {
+            if (item.id === idOfProcessType) {
                 nodes.splice(index, 1);
                 nodeFoundAndRemoved = true;
             }
@@ -478,7 +511,7 @@
                 if (item.to === getNodeIDThroughIdOfProcessType(idOfProcessType))
                     edges.splice(index, 1);
             });
-            messageBox.html("<span class='text-success'>Okay!! " + nameOfProcessType + " was removed from the graph *_*</span>");
+            messageBox.html("<span class='text-success'>Okay!! Step with " + nameOfProcessType + " was removed from the graph *_*</span>");
             initializeGraph();
         } else {
             messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is not there in the graph :/</span>");
@@ -492,7 +525,6 @@
             if (item.label === "<<" + nameOfNode + ">>") {
                 labelIndex++;
             }
-
         });
         if (labelIndex === 1)
             return nameOfNode;
