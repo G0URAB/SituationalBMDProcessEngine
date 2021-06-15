@@ -26,7 +26,7 @@ class ProcessKind
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Process", mappedBy="processKinds", cascade={"persist", "remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\Process", mappedBy="parentProcessKind", cascade={"persist", "remove"})
      */
     private $processes;
 
@@ -118,12 +118,15 @@ class ProcessKind
     }
 
 
-    /**
-     * @return ArrayCollection
-     */
-    public function getProcesses(): ArrayCollection
+    public function getProcesses()
     {
         return $this->processes;
+    }
+
+    public function getImplodedProcesses()
+    {
+        $array = $this->processes->toArray();
+        return implode(", ",$array);
     }
 
     /**
@@ -134,10 +137,6 @@ class ProcessKind
         return $this->childBMDGraphs;
     }
 
-    public function __toString()
-    {
-        return $this->name;
-    }
 
     /**
      * @return mixed
@@ -173,11 +172,14 @@ class ProcessKind
         }
     }
 
-    /**
-     * @return ArrayCollection
-     */
-    public function getChildProcessKinds(): ArrayCollection
+
+    public function getChildProcessKinds()
     {
         return $this->childProcessKinds;
+    }
+
+    public function __toString()
+    {
+        return $this->name;
     }
 }

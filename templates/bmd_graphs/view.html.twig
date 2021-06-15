@@ -1,52 +1,119 @@
-{% extends 'method_base/base.html.twig' %}
-{% block title %}{{ bmdPattern.name }}{% endblock %}
+{% extends 'base_fluid.html.twig' %}
+{% block title %}{{ graph.name }}{% endblock %}
 
 
 {% block body %}
-    <script src="https://cdn.ckeditor.com/4.16.0/standard/ckeditor.js"></script>
-    <div class="card mt-4">
-        <div class="card-header">
-            {{ bmdPattern.name }}
-        </div>
-        <div class="card-body">
-
-            {# Pattern Image #}
-            <div class="card" id="activity-diagram">
-                <div class="card-header">Activitiy Diagram</div>
-                <div class="card-body">
-                        <a target="_blank" class="d-flex flex-row justify-content-center" href="{{ asset('images/bmdpattern/') }}{{ bmdPattern.pdf }}">
-                            <img src="{{ asset('images/bmdpattern/') }}{{ bmdPattern.pdf }}" style="width: 80%;">
-                        </a>
-                </div>
-            </div>
-
-            {# Situational Factors #}
-            <div class="card mt-3" id="situational-factors">
-                <div class="card-header">Associated Situational Factors</div>
-                {% for factor in bmdPattern.situationalFactors %}
-
-                    <div class="card-body">
-                        <div class="d-flex flex-column p-2 border rounded">
-                            <div>
-                                <span style="font-weight: bold">Name of Situational Factor:&nbsp</span>{{ factor.name }}
-                            </div>
-                            <div style="display: flex; flex-direction: column; margin: 2%;">
-                                <span style="font-weight: bold">Description</span>
-                                <textarea name="editor" disabled>
-                                    {{ factor.description }}
-                                </textarea>
-                                <script>
-                                    CKEDITOR.replace( 'editor' );
-                                </script>
-                            </div>
-                        </div>
-                    </div>
-                {% endfor %}
-            </div>
-
+    <div class="w-100 mb-3 mt-3 d-flex flex-row justify-content-center">
+        <div class="d-flex flex-row justify-content-between flex-wrap w-50">
+            <a href="{{ path('bmd_graphs') }}" class="btn btn-dark"> Go Back To BMD Graphs</a>
+            <a href="{{ path('edit_bmd_graph',{id:graph.id})}}" class="btn btn-warning">Edit this graph</a>
         </div>
     </div>
+
+    <div style="position: absolute; left:1%; right:1%;
+         height: 70%; border:1px solid black; border-radius: 4px; display: flex; flex-direction: row;">
+        <div id="mynetwork" data-nodes="{{ graph.nodes }}"
+             data-edges="{{ graph.edges }}" style="width: 80%; height: 100%;">
+        </div>
+        <div style="width: 30%; height: 100%; overflow: auto">
+            <div class="card h-100">
+                <div class="card-body bg-light">
+                    <h5 class="card-title">{{ graph.name }}</h5>
+                    <p class="card-text"><b>Parent Process Type:</b> {{ graph.parentProcessKind }}</p>
+                    <div class="card-text">
+                        <b>Children Process Types:</b>
+                        <ul>
+                            {% for processType in graph.childProcessKinds %}
+                                <li> {{ processType.name }} </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-text">
+                        <b>Situational Factors:</b>
+                        <ul>
+                            {% for factor in graph.situationalFactors %}
+                                <li> {{ factor }} </li>
+                            {% endfor %}
+                        </ul>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
 {% endblock %}
 
+{% block javascripts %}
+
+    {{ parent() }}
+
+    <script>
+        let nodes = new vis.DataSet();
+        let edges = new vis.DataSet();
+        let nodesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("nodes")));
+        let edgesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("edges")));
+
+        nodesInDatabase.forEach(function (item,index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            nodes.add([item]);
+        });
+
+        edgesInDatabase.forEach(function (item,index) {
+            item.from = parseInt(item.from);
+            item.to = parseInt(item.to);
+            edges.add([item]);
+        });
 
 
+        let network = null;
+
+        initializeGraph();
+
+        function initializeGraph() {
+            // create a network
+            let container = document.getElementById('mynetwork');
+
+            // provide the data in the vis format
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+            let options = {
+                physics: {
+                    enabled: false,
+                },
+                edges: {
+                    length: 300 // Longer edges between nodes.
+
+                },
+                layout: {
+                    hierarchical: {
+                        direction: "UD",
+                        nodeSpacing: 380
+                    },
+                },
+                nodes: {
+                    size: 35,
+                    font: {
+                        size: 20,
+                        color: '#000000'
+                    },
+                    widthConstraint:{
+                        maximum:300
+                    },
+                    /*fixed: {
+                        x: true,
+                        y: true
+                    },*/
+                },
+            };
+
+            // initialize your network!
+            network = new vis.Network(container, data, options);
+        }
+    </script>
+
+{%  endblock %}

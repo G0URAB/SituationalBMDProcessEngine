@@ -10,5 +10,48 @@
         <a href="{{ path('create_bmd_graph') }}" class="btn btn-primary">Create a BMD Graph</a>
     </div>
 
+    <div class="row mt-3">
+        {% for graph in graphs %}
+            <div class="col-sm-6 mt-2">
+                <div class="card">
+                    <div class="card-body" style="background: #93c7fb">
+                        <h5 class="card-title">{{ graph.name }}</h5>
+                        <p class="card-text"><b>Parent Process Type:</b> {{ graph.parentProcessKind }}</p>
+                        <div class="card-text">
+                            <b>Children Process Types:</b>
+                            <ul style="min-height:120px;max-height: 120px; overflow: auto">
+                                {% for processType in graph.childProcessKinds %}
+                                    <li> {{ processType.name }} </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <hr>
+                        <div class="card-text jus">
+                            <b>Situational Factors:</b>
+                            <ul style="min-height:200px;max-height: 200px; overflow: auto">
+                                {% for factor in graph.situationalFactors %}
+                                    <li> {{ factor }} </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="d-flex flex-row justify-content-between flex-wrap">
+                            <a href="{{ path('show_bmd_graph',{id:graph.id}) }}" class="btn btn-dark">Show Graph</a>
+                            <a href="{{ path('edit_bmd_graph',{id:graph.id}) }}" class="btn btn-warning">Edit Graph</a>
+                            <a href="#" class="btn btn-danger">Delete Graph</a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+
+
+    </script>
 
 {% endblock %}

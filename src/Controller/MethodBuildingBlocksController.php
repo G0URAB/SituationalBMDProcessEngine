@@ -76,10 +76,13 @@ class MethodBuildingBlocksController extends AbstractController
                 return $this->redirectToRoute("method_building_blocks");
             }
 
+            $process = $this->getDoctrine()->getRepository(Process::class)
+                ->find($id);
+            $process->getOtherRelatedProcessKinds()[]= $process->getParentProcessKind()->getName();
+
             return $this->render("method_building_blocks/update.html.twig", [
                 'form' => $form->createView(),
-                'processTypes' => $this->getDoctrine()->getRepository(Process::class)
-                    ->find($id)->getImplodedProcessKinds()
+                'processTypes' => $process->getOtherRelatedProcessKinds()
             ]);
         } else if ($request->isXmlHttpRequest()) {
             $this->handleAsyncRequestForProcessTypes($request);

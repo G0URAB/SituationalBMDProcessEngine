@@ -23,14 +23,12 @@
         <div class="card-body">
             {{ form_errors(form) }}
             {{ form_start(form) }}
-            <div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-success" id="add-new-process">Add new process</button>
-            </div>
-
 
             {{ form_row(form.processes) }}
 
-
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-success" id="add-new-process">Add new process</button>
+            </div>
             {{ form_end(form) }}
 
         </div>

@@ -1,83 +1,751 @@
-{% extends 'method_base/base.html.twig' %}
-{% block title %}Update Pattern{% endblock %}
+<html>
+<head>
+    <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+    <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
+    <link href="{{ asset('css/bootstrap.min.css') }}" rel="stylesheet" type="text/css">
+    <style type="text/css">
 
+        html, body {
+            height: 100%;
+            width: 100%;
+        }
 
-{% block body %}
-    <div class="card mt-4">
-        <div class="card-header">
-            Update Pattern
-        </div>
-        <div class="card-body">
-            {{ form_start(form) }}
+        #mynetwork {
+            width: 77%;
+            height: 100%;
+            border: 1px solid lightgray;
+        }
+
+        .blink_me {
+            animation: blinker 1s linear infinite;
+            animation-iteration-count: 3;
+        }
+
+        @keyframes blinker {
+            50% {
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+<body>
+
+{{ form_start(form) }}
+<div class="d-flex flex-row w-100 h-75">
+
+    <div id="mynetwork" data-nodes="{{ graph.nodes }}"
+         data-edges="{{ graph.edges }}"></div>
+
+    <div id="control-panel" class="p-1" style="width: 23%;">
+
+        {# Set Name of the graph #}
+        <div class="border border-dark rounded mt-2">
             {{ form_row(form.name) }}
-
-            {# Pattern Image #}
-            <div class="card mb-3" id="activity-diagram">
-                <div class="card-header">Activitiy Diagram</div>
-                <div class="card-body d-flex flex-row justify-content-center">
-                        <img src="{{ asset('images/bmdpattern/') }}{{ pattern.pdf }}" style="width: 80%;">
-
-                </div>
+            <div class="form-group">
+                <label for="name-of-root-node">Name of the root node</label>
+                <input type="text" class="form-control" id="name-of-root-node" placeholder="Apple Handset Business"
+                       autocomplete="off">
             </div>
+        </div>
 
-            {{ form_row(form.pdf,{'label':'Update the activitiy diagram'}) }}
-
-            {# Situational Factors #}
-            <div class="card">
-                <div class="card-header">Situational Factors</div>
-
-                <div id="situational-factors" class="card-body"
-                     data-prototype="{{ form_widget(form.situationalFactors.vars.prototype)|e('html_attr') }}"
-                     data-widget-counter="{{ form.situationalFactors|length }}">
-                    <button type="button" class="btn btn-warning add-situational-factor mb-4">Add Situational Factor
-                    </button>
-                    {% for situationalFactor in form.situationalFactors %}
-                        <div class="p-2 border rounded">
-                            {{ form_row(situationalFactor) }}
-                        </div>
+        {# Add Process Types #}
+        <div class="border border-dark rounded mt-2">
+            <div class="form-group">
+                <label for="process-type"></label>
+                <select class="form-control" id="process-type">
+                    <option value="">Select a process type</option>
+                    {% for processType in processTypes %}
+                        <option value={{ processType.id }}>{{ processType.name }}</option>
                     {% endfor %}
+                </select>
+            </div>
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-primary btn-sm" id="add-step">Add Step</button>
+            </div>
+        </div>
+
+        {# Add Prerequisites #}
+        <div>
+            <div class="border border-dark rounded mt-2">
+                <h6>Add/Remove Prerequisite Edge</h6>
+                {# From #}
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="from-step">From Step</label>
+                    </div>
+                    <select class="custom-select" id="from-step">
+
+                    </select>
+                </div>
+                {# To #}
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <label class="input-group-text" for="to-step">To Step</label>
+                    </div>
+                    <select class="custom-select" id="to-step">
+
+                    </select>
+                </div>
+                <div class="d-flex flex-row justify-content-around">
+                    <button type="button" class="btn btn-primary btn-sm" id="add-prerequisite">Add</button>
+                    <button type="button" class="btn btn-danger btn-sm" id="remove-prerequisite">Remove</button>
                 </div>
             </div>
-            {{ form_end(form) }}
+        </div>
+
+
+        {# Situational factors and parent-process-type #}
+        <div class="border border-dark rounded mt-2">
+            {{ form_errors(form) }}
+            <input type="hidden" name="token" value="{{ csrf_token('bmd-graph') }}"/>
+            {{ form_row(form.situationalFactors) }}
+            {{ form_row(form.parentProcessKind) }}
+        </div>
+        <div class="d-flex flex-row justify-content-center">
+            {{ form_row(form.saveGraph) }}
+            <div class="form-group">
+                <a href="{{ path('bmd_graphs') }}" class="btn btn-danger">Cancel</a>
+            </div>
         </div>
     </div>
-{% endblock %}
+</div>
+{{ form_end(form) }}
 
-{% block javascripts %}
-    {{ parent() }}
-    <script>
-        $(document).ready(function () {
 
-            //Add a new marketing strategy for this customer
-            $(".add-situational-factor").on("click", function () {
-                let situationalFactorsContainer = $("#situational-factors");
-                let situationalFactorsCounter = situationalFactorsContainer.attr("data-widget-counter");
-                let protoType = situationalFactorsContainer.attr("data-prototype").replace(/__name__/g, situationalFactorsCounter);
-                situationalFactorsContainer.append(protoType);
-                situationalFactorsContainer.attr('data-widget-counter', parseInt(situationalFactorsCounter) + 1);
+{# Buttons #}
+<div class="d-flex flex-row">
+    <div class="ml-3  d-flex flex-row" style="width: 76%;">
+        <span><b>Log:</b></span> &nbsp
+        <span id="message-box"></span>
+    </div>
+</div>
 
-                let removeSituationalFactorButtonTemplate = (counter) =>
-                    `<div class="d-flex flex-row justify-content-end">
-                       <button style="margin-bottom: 2%;"
-                        type="button" data-counter="${counter}"
-                        id="remove-situational-factor-${counter}"
-                        class="btn btn-danger" >Remove Situational Factor</button>
-                    </div>`;
-                let currentSituationalFactor = $("#pattern_situationalFactors_" + situationalFactorsCounter);
-                currentSituationalFactor.append(removeSituationalFactorButtonTemplate(situationalFactorsCounter));
 
-                currentSituationalFactor.css({
-                    'border': '1px solid rgb(140, 210, 110)',
-                    'border-radius': '4px',
-                    'padding': '2%',
-                    'margin-top': '2%'
-                });
+{# Instruction #}
+<div class="mt-1 bg-dark d-flex flex-column p-2" style="width: 77%">
+    <h5 class="text-warning">Instructions</h5>
+    <div class="d-flex flex-row text-white">
+        <span>1. <b>Example graph name:</b> London Crime Resolver Graph</span>
+        <span class="ml-4"><b>Example root node name:</b> Resolve London Crime</span>
+    </div>
+    <div class="mt-1 text-white d-flex flex-column">
+        <span>2. All the steps <b><u>should</u></b> be put in a sequence. From left to right. </span>
+        <span>3. <b class="text-danger">Red arrow</b> indicates a child sub process type and
+                 <b class="text-primary">blue arrow</b> indicates a prerequisite.</span>
+        <span>4. If two steps can be implemented <u>in parallel then there is no prerequisite!</u> </span>
+    </div>
+</div>
 
-                $("#remove-situational-factor-" + situationalFactorsCounter).on("click", function () {
-                    $(this).parent().parent().remove();
-                });
+
+{# Modal #}
+<div class="modal-dialog" role="document"
+     style="position: absolute; top:10%; left:10%; display: none;" id="node-popup" data-nodeId="">
+    <div class="modal-content">
+        <div class="modal-header">
+            <label for="modal-process-type">Change Process Type of the Step</label>
+            <select class="form-control" id="modal-process-type">
+                <option value="">Change process type</option>
+                {% for processType in processTypes %}
+                    <option value={{ processType.id }}>{{ processType.name }}</option>
+                {% endfor %}
+            </select>
+            <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
+        </div>
+        <div class="modal-body d-flex flex-column">
+            <label>Height of the step</label>
+            <div class="d-flex flex-row justify-content-between">
+                <button class="btn btn-sm btn-dark rounded-circle" id="decrease-level">-</button>
+                <span id="level"></span>
+                <button class="btn btn-sm btn-primary rounded-circle" id="increase-level">+</button>
+            </div>
+        </div>
+        <div class="modal-footer">
+            <button type="button" class="btn btn-danger" id="remove-step">Remove Step</button>
+        </div>
+    </div>
+</div>
+
+
+{#----------------------------------------------JavsScript Section-------------------------------#}
+<script>
+
+    let nodes = [];
+    let edges = [];
+    let nodesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("nodes")));
+    let edgesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("edges")));
+
+    // create an array with nodes
+    let network = null;
+    let messageBox = $("#message-box");
+    let isSetRootNode = true;
+    let processType = $("#process-type");
+    let fromStep = $("#from-step");
+    let toStep = $("#to-step");
+    let nodePopup = $("#node-popup");
+    let level = $("#level");
+    let body = $("body");
+    let processTypeInModal = $("#modal-process-type");
+    let stepsAreHidden = false;
+    let nameOfRootNode = $("#name-of-root-node");
+    let bmdGraphSaveButton = $("#bmd_graph_saveGraph");
+
+    //$("input").val(""); //On page reload clear input fields
+    processType.val(""); //Reset on reload
+
+    $("#bmd_graph_situationalFactors").css("height", "30%");
+
+    nodesInDatabase.forEach(function (item, index) {
+        item.id = parseInt(item.id);
+        item.level = parseInt(item.level);
+        item.margin = parseInt(item.margin);
+        nodes.push(item);
+    });
+
+    edgesInDatabase.forEach(function (item, index) {
+        item.from = parseInt(item.from);
+        item.to = parseInt(item.to);
+        edges.push(item);
+    });
+
+    initializeGraph();
+    initializeInputs();
+
+    function initializeGraph() {
+        // create a network
+        let container = document.getElementById('mynetwork');
+
+        // provide the data in the vis format
+        let data = {
+            nodes: nodes,
+            edges: edges
+        };
+        let options = {
+            physics: {
+                enabled: false,
+            },
+            edges: {
+                length: 300 // Longer edges between nodes.
+
+            },
+            layout: {
+                hierarchical: {
+                    direction: "UD",
+                    nodeSpacing: 380
+                },
+            },
+            nodes: {
+                size: 35,
+                font: {
+                    size: 20,
+                    color: '#000000'
+                },
+                widthConstraint: {
+                    maximum: 300
+                },
+                /*fixed: {
+                    x: true,
+                    y: true
+                },*/
+            },
+        };
+
+        // initialize your network!
+        network = new vis.Network(container, data, options);
+        checkEvents();
+    }
+
+    function checkEvents() {
+        network.on("doubleClick", function (params) {
+            body.not(nodePopup).css({
+                "pointer-events": "none",
+            });
+            body.children().not(nodePopup).css("opacity", "0.4");
+
+            params.event = "[original event]";
+            let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
+            let nodeId = parsedObject.nodes[0];
+
+            let node = getNodeObject(nodeId);
+
+            if (node === null || node.shape !== 'box') {
+                closeNodePopup();
+                if (nodes.length > 1 && !stepsAreHidden) {
+                    hideAllSteps(nodeId);
+                } else {
+                    showAllSteps(nodeId);
+                }
+
+                return;
+            }
+
+            nodePopup.css("display", "block");
+            nodePopup.attr("data-nodeId", nodeId);
+            processTypeInModal.val(node.tableId);
+            level.html(node.level);
+
+            $(".close").on("click", function () {
+                closeNodePopup();
             });
         });
-    </script>
-{% endblock %}
 
+        network.on("showPopup", function (params) {
+            console.log("hoverNode Event:", params);
+        });
+        network.on("hoverNode", function (params) {
+            console.log("hoverNode Event:", params);
+        });
+    }
+
+    $("#increase-level").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let node = getNodeObject(nodeId);
+        node.level++;
+        level.html(node.level);
+        initializeGraph();
+        checkEvents();
+    });
+
+    $("#decrease-level").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let node = getNodeObject(nodeId);
+        node.level--;
+        level.html(node.level);
+        initializeGraph();
+        checkEvents();
+    });
+
+    $("#remove-step").on("click", function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let node = getNodeObject(nodeId);
+
+        if (confirm("Are you sure to delete step with : " + node.label)) {
+            removeStep(node);
+            closeNodePopup();
+            $('#to-step option').each(function () {
+                if ($(this).val() === node.tableId.toString()) {
+                    $(this).remove();
+                }
+            });
+
+            $('#from-step option').each(function () {
+                if ($(this).val() === node.tableId.toString()) {
+                    $(this).remove();
+                }
+            });
+        }
+    });
+
+    processTypeInModal.on("change", function () {
+        let nodeId = parseInt(nodePopup.attr("data-nodeId"));
+        let newNodeName = $(this).find(":selected").text();
+        let newTableId = $(this).val();
+        let node = getNodeObject(nodeId);
+        let oldTableId = node.tableId;
+        node.label = "<<" + newNodeName + ">>";
+        node.tableId = parseInt(newTableId);
+
+        $('#from-step option').each(function () {
+            if (parseInt($(this).val()) === oldTableId) {
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+            }
+        });
+        $('#to-step option').each(function () {
+            if (parseInt($(this).val()) === oldTableId) {
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+            }
+        });
+
+        initializeGraph();
+        checkEvents();
+    });
+
+    nameOfRootNode.on("keyup", function () {
+        setTimeout(function () {
+            let rootNodeName = nameOfRootNode.val();
+            if (rootNodeName.length < 5) {
+                messageBox.html("<span class='text-danger'>Please give a valid name for the root node of the graph. Otherwise you can not click on 'Save Graph' </span>");
+                bmdGraphSaveButton.prop("disabled", true);
+                return false;
+            }
+
+            isSetRootNode = true;
+            bmdGraphSaveButton.prop("disabled", false);
+            let rootNode = nodes[0];
+            rootNode.label = rootNodeName;
+            messageBox.html("<span class='text-primary'>Root node's name was set!!</span>");
+            initializeGraph();
+
+        }, 1000);
+    });
+
+    $("#add-step").on("click", function () {
+
+        let IdOfProcessType = parseInt(processType.val());
+        let nameOfProcessType = processType.find(":selected").text();
+
+        if (isSetRootNode === false) {
+            alert("Please give a valid name for the root node first!");
+            return;
+        }
+
+        if (processType.val() === "") {
+            messageBox.html("<span class='text-danger'>Please select a process type for the new step !!</span>");
+            return;
+        }
+
+
+        let immediateLastStepHasSameProcessType = false;
+        let idOfLastNode = parseInt((nodes[nodes.length - 1]).id);
+
+
+        if (getNodeObject(idOfLastNode).label === "<<" + nameOfProcessType + ">>") {
+            messageBox.html("<span class='text-danger'>Two immediate steps can not have the same process type :/</span>");
+            immediateLastStepHasSameProcessType = true;
+        }
+
+        if (immediateLastStepHasSameProcessType)
+            return;
+
+        let newNode = {
+            id: idOfLastNode + 1,
+            label: "<<" + nameOfProcessType + ">>",
+            level: 3,
+            shape: 'box',
+            color: '#bababa',
+            margin: 8,
+            tableId: IdOfProcessType
+        };
+        nodes.push(newNode);
+
+        let newEdge = {
+            from: 1, to: newNode.id, arrows: "from", color: "red"
+        }
+        edges.push(newEdge);
+        initializeGraph();
+        messageBox.html("<span class='text-success'>Great!! " + nameOfProcessType + " was added to graph :-)</span>");
+
+        //Reset Prerequisite edges options
+        if (nodes.length < 3)
+            fromStep.append($("<option></option>")
+                .attr("value", IdOfProcessType).text(nameOfProcessType));
+        else {
+            fromStep.append($("<option></option>")
+                .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
+            toStep.append($("<option></option>")
+                .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
+        }
+        checkEvents();
+    });
+
+    $("#add-prerequisite").on("click", function () {
+
+        let nameOfFrom = fromStep.find(":selected").text();
+        let idOfFromStep = parseInt(fromStep.val()); //This table Id and not the node id
+
+        let nameOfTo = toStep.find(":selected").text();
+        let idOfToStep = parseInt(toStep.val()); //This is table Id and not the node id
+
+        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOfFromStep);
+        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOfToStep);
+
+        let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
+        let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
+
+        if (!prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, 'add'))
+            return;
+
+        /*
+        If there are three nodes sequentially e.g. a,b,c and there is going to be an edge between a and c
+        then in that case lower down b. If there is another edge between b and d then c should be lowered but
+        in this case, it should be checked whether the previous node (i.e. b) has lowered, if b has already been
+        lowered then no need to lower c.
+         */
+        if (indexOfToObject - indexOfFromObject > 1) {
+            //There is someone in between, loop on them and get them down
+
+            for (let i = indexOfFromObject + 1; i < indexOfToObject; i++) {
+                if (indexOfToObject - indexOfFromObject === 2) {
+                    //If a, b, c, d are on same level then take b down and c (down+1).
+                    if (nodes[i - 1].level === nodes[i].level) {
+                        let referenceLevel = nodes[i - 1].level;
+                        nodes[i].level = referenceLevel + 1;
+                        nodes[i].x = nodes[i - 1].x + 1;
+                    }
+                } else {
+                    if (nodes[i].level === nodes[i - 1].level || nodes[i].level === nodes[i + 1].level)
+                        nodes[i].level++;
+                }
+            }
+        }
+
+        let newEdge = {
+            from: id_of_FromNode, to: id_of_ToNode, arrows: "to", color: "blue"
+        };
+        edges.push(newEdge);
+        initializeGraph();
+        checkEvents();
+    });
+
+    $("#remove-prerequisite").on("click", function () {
+        let nameOfFrom = fromStep.find(":selected").text();
+        let idOffromStep = parseInt(fromStep.val()); //This table Id and not the node id
+
+        let nameOfTo = toStep.find(":selected").text();
+        let idOftoStep = parseInt(toStep.val()); //This is table Id and not the node id
+
+        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOffromStep);
+        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOftoStep);
+
+        let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
+        let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
+
+        if (!prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, 'remove'))
+            return;
+
+        edges.forEach(function (item, index) {
+            if (item.from === id_of_FromNode && item.to === id_of_ToNode)
+                edges.splice(index, 1);
+        });
+
+        if (indexOfToObject - indexOfFromObject > 1) {
+            //There is someone in between, loop on them and get them up
+
+            for (let i = indexOfFromObject + 1; i < indexOfToObject; i++) {
+                if (!nodeIsInBetweenAnEdge(nodes[i].id))
+                    nodes[i].level--;
+            }
+        }
+        initializeGraph();
+        messageBox.html("<span class='text-success'> Edge from " + nameOfFrom + " to " + nameOfTo + " deleted from the graph :/</span>");
+        checkEvents();
+    });
+
+    bmdGraphSaveButton.hover(function () {
+        setTimeout(function () {
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('set_graph_nodes_in_session') }}',
+                data: {
+                    nodes: nodes,
+                    edges: edges
+                },
+                success: function (response) {
+                    let obj = JSON.parse(JSON.stringify(response));
+                    console.log(obj);
+                }
+            });
+
+        }, 200);
+    });
+
+
+    /*-------------------------Helper Functions----------------------*/
+
+    function removeStep(node) {
+
+        let idOfProcessType = node.id;
+        let nameOfProcessType = node.label.replace("<<", "").replace(">>", "");
+
+        let nodeFoundAndRemoved = false;
+
+        if (nodeIsPartOfAnEdge(getNodeIDThroughIdOfProcessType(idOfProcessType))) {
+            messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is part of a prerequisite edge. Delete the edge first to delete the node!</span>");
+            return;
+        }
+
+        nodes.forEach(function (item, index) {
+            if (item.id === idOfProcessType) {
+                nodes.splice(index, 1);
+                nodeFoundAndRemoved = true;
+            }
+        });
+
+        if (nodeFoundAndRemoved) {
+            edges.forEach(function (item, index) {
+                if (item.to === getNodeIDThroughIdOfProcessType(idOfProcessType))
+                    edges.splice(index, 1);
+            });
+            messageBox.html("<span class='text-success'>Okay!! Step with " + nameOfProcessType + " was removed from the graph *_*</span>");
+            initializeGraph();
+        } else {
+            messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is not there in the graph :/</span>");
+        }
+    }
+
+    function updatedNameOfProcessTypeForEdgeOptions(nameOfNode) {
+        let labelIndex = 0;
+        nodes.forEach(function (item, index) {
+
+            if (item.label === "<<" + nameOfNode + ">>") {
+                labelIndex++;
+            }
+        });
+        if (labelIndex === 1)
+            return nameOfNode;
+        else
+            return nameOfNode + "-" + labelIndex;
+    }
+
+    function nodeExistInGraph(id) {
+        let existInGraph = false;
+        nodes.forEach(function (item, index) {
+            if (item.id === id)
+                existInGraph = true;
+        });
+        return existInGraph;
+    }
+
+    //If an edge between two nodes already exist
+    function edgeExistInGraph(idOfFrom, idOfTo) {
+        let edgeExistInGraph = false;
+        edges.forEach(function (item, index) {
+            if (item.from === idOfFrom && item.to === idOfTo)
+                edgeExistInGraph = true;
+        });
+        return edgeExistInGraph;
+    }
+
+    //If an edge from a node exists
+    function edgeFromThisNodeExist(idOfNode) {
+        let edgeFromNodeExist = false;
+        edges.forEach(function (item, index) {
+            if (item.from === idOfNode)
+                edgeFromNodeExist = true;
+        });
+        return edgeFromNodeExist;
+    }
+
+    function getNodeIDThroughIdOfProcessType(idOfProcessType) {
+        let nodeId = null;
+        nodes.forEach(function (item, index) {
+            if (item.tableId === idOfProcessType)
+                nodeId = item.id;
+        });
+        return nodeId;
+    }
+
+    function getIndexOfNodeObject(nodeId) {
+        let indexOfObject = null;
+        nodes.forEach(function (item, index) {
+            if (item.id === nodeId)
+                indexOfObject = index;
+        });
+        return indexOfObject;
+    }
+
+    function nodeIsPartOfAnEdge(idOfNode) {
+        let nodeHasEdge = false;
+        edges.forEach(function (item, index) {
+            if ((item.from !== 1 && item.to === idOfNode) || item.from === idOfNode)
+                nodeHasEdge = true;
+        });
+        return nodeHasEdge;
+    }
+
+    function nodeIsInBetweenAnEdge(idOfNode) {
+        let nodeIsBetweenAnEdge = false;
+        edges.forEach(function (item, index) {
+            if (item.arrows === "to" && item.from < idOfNode && item.to > idOfNode)
+                nodeIsBetweenAnEdge = true;
+        });
+        return nodeIsBetweenAnEdge;
+    }
+
+    function getNodeObject(nodeId) {
+        let node = null;
+        nodes.forEach(function (item, index) {
+            if (item.id === nodeId)
+                node = item;
+        });
+        return node;
+    }
+
+    function getNameOfProcessTypeThroughNodID(nodeId) {
+        let name = null;
+        nodes.forEach(function (item, index) {
+            if (item.id === nodeId) {
+                name = item.label.replace("<<", "").replace(">>", "");
+            }
+        });
+        return name;
+    }
+
+    function closeNodePopup() {
+        nodePopup.css("display", "none");
+        body.not(nodePopup).css({
+            "pointer-events": "auto",
+        });
+        body.children().not(nodePopup).css("opacity", "1");
+    }
+
+    function hideAllSteps(rootNode) {
+        nodes[0].title = "All steps are hidden";
+        nodes[0].color = "brown";
+
+        edges.forEach(function (edge, index) {
+            if (edge.from === rootNode && edge.color === "red")
+                getNodeObject(edge.to).hidden = true;
+        });
+        initializeGraph();
+        stepsAreHidden = true;
+        console.log('steps hidden: '+stepsAreHidden);
+    }
+
+    function showAllSteps(rootNode) {
+        console.log(rootNode, nodes[0]);
+        delete nodes[0].title;
+        nodes[0].color = "#bababa";
+
+        edges.forEach(function (edge, index) {
+            if (edge.from === rootNode && edge.color === "red")
+                getNodeObject(edge.to).hidden = false;
+        });
+        stepsAreHidden = false;
+        initializeGraph();
+        console.log('steps hidden: '+stepsAreHidden);
+    }
+
+    function prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, actionType) {
+        let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
+        let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
+        let actionIsValid = true;
+
+        if (id_of_FromNode === id_of_ToNode && id_of_FromNode !== null) {
+            messageBox.html("<span class='text-danger'>From and To process types can not be the same!!</span>");
+            actionIsValid = false;
+        } else if (indexOfToObject === null) {
+            messageBox.html("<span class='text-danger'>The 'To Step' is empty!</span>");
+            actionIsValid = false;
+        } else if (!nodeExistInGraph(id_of_FromNode)) {
+            messageBox.html("<span class='text-danger'>Step: " + nameOfFrom + " does not exist in the graph!!</span>");
+            actionIsValid = false;
+        } else if (!nodeExistInGraph(id_of_ToNode)) {
+            messageBox.html("<span class='text-danger'>Step: " + nameOfTo + " does not exist in the graph!!</span>");
+            actionIsValid = false;
+        } else if (actionType === 'add') {
+            if (edgeExistInGraph(id_of_FromNode, id_of_ToNode)) {
+                messageBox.html("<span class='text-danger'>An edge from the step:" + nameOfFrom + " to step:" + nameOfTo + " already exists!!</span>");
+                actionIsValid = false;
+            }
+        } else if (actionType === 'remove') {
+            if (!edgeExistInGraph(id_of_FromNode, id_of_ToNode)) {
+                messageBox.html("<span class='text-danger'>An edge from the step:" + nameOfFrom + " to step:" + nameOfTo + " does not exist!</span>");
+                actionIsValid = false;
+            }
+        }
+        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
+            messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
+            actionIsValid = false;
+        }
+        return actionIsValid;
+    }
+
+    function initializeInputs() {
+        $("#name-of-root-node").val(nodes[0].label);
+    }
+
+</script>
+</body>
+</html>

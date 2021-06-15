@@ -34,7 +34,7 @@
                 <thead class="text-center">
                 <tr style="position: sticky;top: 0;background: #bde3a9;">
                     <th scope="col">Index</th>
-                    <th scope="col">Name</th>
+                    <th scope="col">Name of Process</th>
                     <th scope="col">Process Type</th>
                     <th scope="col">Delete</th>
                 </tr>
@@ -44,7 +44,37 @@
                     <tr>
                         <td><a href="{{ path('edit_process',{'id':process.id}) }}">{{ loop.index }}</a></td>
                         <td>{{ process.name }}</td>
-                        <td>{{ process.implodedProcessKinds }}</td>
+                        <td>{#{{ process.parentProcessKind.name }}#}</td>
+                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card mt-5">
+        <div class="card-header bg-primary text-white">
+            <b>Total Process Types: {{ processTypes|length }}</b>
+        </div>
+        <div class="table-responsive" style="max-height: 500px">
+            <table class="table table-sm table-primary">
+                <thead class="text-center">
+                <tr style="position: sticky;top: 0;background: #60c5fc;">
+                    <th scope="col">Index</th>
+                    <th scope="col">Name of Process Type</th>
+                    <th scope="col">Parent Process Type</th>
+                    <th scope="col">Related Processes</th>
+                    <th scope="col">Delete</th>
+                </tr>
+                </thead>
+                <tbody class="text-center">
+                {% for type in processTypes %}
+                    <tr>
+                        <td><a href="{{ path('edit_process_type',{'id':type.id}) }}">{{ loop.index }} </a></td>
+                        <td>{% if type.childProcessKinds is not empty %}{{ type.name~'*' }}{% else %}{{ type.name }}{% endif %}</td>
+                        <td>{{ type.parentProcessKind }}</td>
+                        <td style="text-align: left; width: 30%;">{#{{ type.implodedProcesses }}#}</td>
                         <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
@@ -62,7 +92,7 @@
                 <thead class="text-center">
                 <tr>
                     <th scope="col">Index</th>
-                    <th scope="col">Name</th>
+                    <th scope="col">Name of Role</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
@@ -88,7 +118,7 @@
                 <thead class="text-center">
                 <tr style="position: sticky;top: 0;background: #a4dadd;">
                     <th scope="col">Index</th>
-                    <th scope="col">Name</th>
+                    <th scope="col">Name of Artifact</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>
@@ -133,34 +163,6 @@
             </table>
         </div>
     </div>
-
-
-    <div class="card mt-5">
-        <div class="card-header bg-primary text-white">
-            <b>Total Process Types: {{ processTypes|length }}</b>
-        </div>
-        <div class="table-responsive" style="max-height: 500px">
-            <table class="table table-sm table-primary">
-                <thead class="text-center">
-                <tr style="position: sticky;top: 0;background: #60c5fc;">
-                    <th scope="col">Index</th>
-                    <th scope="col">Name</th>
-                    <th scope="col">Delete</th>
-                </tr>
-                </thead>
-                <tbody class="text-center">
-                {% for type in processTypes %}
-                    <tr>
-                        <td><a href="{{ path('edit_process_type',{'id':type.id}) }}">{{ loop.index }} </a></td>
-                        <td>{{ type.name }}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
-                    </tr>
-                {% endfor %}
-                </tbody>
-            </table>
-        </div>
-    </div>
-
 
     <div class="card mt-5">
         <div class="card-header bg-secondary">

@@ -24,7 +24,7 @@ class BmdGraph
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\SituationalFactor")
+     * @ORM\Column(type="array")
      */
     private $situationalFactors;
 
@@ -37,6 +37,17 @@ class BmdGraph
      * @ORM\ManyToMany(targetEntity="ProcessKind")
      */
     private $childProcessKinds;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $nodes;
+
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $edges;
+
 
     public function __construct()
     {
@@ -61,10 +72,8 @@ class BmdGraph
         return $this;
     }
 
-    /**
-     * @return ArrayCollection
-     */
-    public function getChildProcessKinds(): ArrayCollection
+
+    public function getChildProcessKinds()
     {
         return $this->childProcessKinds;
     }
@@ -85,40 +94,33 @@ class BmdGraph
      */
     public function removeChildProcessKind(ProcessKind $processType)
     {
-        if(!$this->childProcessKinds->contains($processType))
+        if($this->childProcessKinds->contains($processType))
         {
             $this->childProcessKinds->removeElement($processType);
         }
     }
 
-    /**
-     * @param SituationalFactor $situationalFactor
-     */
-    public function addSituationalFactor(SituationalFactor $situationalFactor)
+    public function getImplodedChildrenProcessTypes()
     {
-        if(!$this->situationalFactors->contains($situationalFactor))
-        {
-            $this->situationalFactors[] = $situationalFactor;
-        }
+        $array = $this->childProcessKinds->toArray();
+        return implode(", ",$array);
     }
 
-    /**
-     * @param SituationalFactor $situationalFactor
-     */
-    public function removeSituationalFactor(SituationalFactor $situationalFactor)
+    public function setSituationalFactors(array $situationalFactors)
     {
-        if($this->situationalFactors->contains($situationalFactor))
-        {
-            $this->situationalFactors->removeElement($situationalFactor);
-        }
+        $this->situationalFactors = new ArrayCollection($situationalFactors);
     }
 
-    /**
-     * @return ArrayCollection
-     */
-    public function getSituationalFactors(): ArrayCollection
+    public function getSituationalFactors()
     {
-        return $this->situationalFactors;
+        return $this->situationalFactors->toArray();
+    }
+
+    public function getImplodedSituationalFactors()
+    {
+        $situationalFactorsArray = $this->situationalFactors->toArray();
+        sort($situationalFactorsArray);
+        return implode(", ", $situationalFactorsArray);
     }
 
     /**
@@ -136,5 +138,37 @@ class BmdGraph
     public function setParentProcessKind($parentProcessType)
     {
         $this->parentProcessKind = $parentProcessType;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getNodes()
+    {
+        return $this->nodes;
+    }
+
+    /**
+     * @param mixed $nodes
+     */
+    public function setNodes($nodes)
+    {
+        $this->nodes = $nodes;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getEdges()
+    {
+        return $this->edges;
+    }
+
+    /**
+     * @param mixed $edges
+     */
+    public function setEdges($edges)
+    {
+        $this->edges = $edges;
     }
 }

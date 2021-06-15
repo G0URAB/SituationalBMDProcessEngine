@@ -7,6 +7,7 @@ use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
+
 /**
  * @ORM\Entity(repositoryClass=ProcessRepository::class)
  * @UniqueEntity("name")
@@ -27,13 +28,18 @@ class Process
     private $name;
 
     /**
-     * @ORM\ManyToMany(targetEntity="ProcessKind", inversedBy="processes")
+     * @ORM\ManyToOne(targetEntity="ProcessKind", inversedBy="processes")
      */
-    private $processKinds;
+    private $parentProcessKind;
+
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $otherRelatedProcessKinds;
 
     public function __construct()
     {
-        $this->processKinds = new ArrayCollection();
+        $this->otherRelatedProcessKinds = new ArrayCollection();
     }
 
 
@@ -55,38 +61,41 @@ class Process
     }
 
     /**
+     * @return mixed
+     */
+    public function getParentProcessKind()
+    {
+        return $this->parentProcessKind;
+    }
+
+    /**
+     * @param mixed $parentProcessKind
+     */
+    public function setParentProcessKind($parentProcessKind)
+    {
+        $this->parentProcessKind = $parentProcessKind;
+    }
+
+
+    /**
      * @return string
      */
-    public function getImplodedProcessKinds()
+    public function getImplodedOtherRelatedProcessKinds()
     {
-        $processKindsArray =  $this->processKinds->toArray();
-        return implode(", ",$processKindsArray);
+        $processKindsArray = $this->otherRelatedProcessKinds->toArray();
+        return implode(", ", $processKindsArray);
     }
 
 
-    public function getProcessKinds()
+    public function getOtherRelatedProcessKinds()
     {
-        return $this->processKinds;
+        return $this->otherRelatedProcessKinds? $this->otherRelatedProcessKinds->toArray():null;
     }
 
-    /**
-     * @param ProcessKind $processKind
-     */
-    public function addProcessKind(ProcessKind $processKind)
-    {
-        if (!$this->processKinds->contains($processKind)) {
-            $this->processKinds[] = $processKind;
-        }
-    }
 
-    /**
-     * @param ProcessKind $processKind
-     */
-    public function removeProcessKind(ProcessKind $processKind)
+    public function setOtherRelatedProcessKinds($kinds)
     {
-        if ($this->processKinds->contains($processKind)) {
-            $this->processKinds->removeElement($processKind);
-        }
+        $this->otherRelatedProcessKinds = $kinds;
     }
 
     public function __toString()

@@ -128,11 +128,10 @@
         <span class="ml-4"><b>Example root node name:</b> Resolve London Crime</span>
     </div>
     <div class="mt-1 text-white d-flex flex-column">
-        <span>2. All the process types <b><u>should</u></b> be put in a sequence. </span>
-        <span>3. The sequence direction should be from left to right!!</span>
-        <span>4. <b class="text-danger">Red arrow</b> indicates a child sub process type and
+        <span>2. All the steps <b><u>should</u></b> be put in a sequence. From left to right. </span>
+        <span>3. <b class="text-danger">Red arrow</b> indicates a child sub process type and
                  <b class="text-primary">blue arrow</b> indicates a prerequisite.</span>
-        <span>5. If two processes types can be implemented <u>in parallel then there is no prerequisite!</u> </span>
+        <span>4. If two steps can be implemented <u>in parallel then there is no prerequisite!</u> </span>
     </div>
 </div>
 
@@ -178,7 +177,7 @@
     let edges = [];
     let network = null;
     let messageBox = $("#message-box");
-    let isSetGraphAndRootNode = true;
+    let isSetGraphAndRootNode = false;
     let processType = $("#process-type");
     let fromStep = $("#from-step");
     let toStep = $("#to-step");
@@ -196,6 +195,7 @@
     toStep.val(""); //Reset on reload
     bmdGraphSaveButton.prop("disabled", true); //Disable form submit until root node's name is invalid
     messageBox.html("To submit the form, we need a valid name for the root node");
+    $("#bmd_graph_situationalFactors").css("height", "30%");
 
     initializeGraph();
 
@@ -227,6 +227,9 @@
                 font: {
                     size: 20,
                     color: '#000000'
+                },
+                widthConstraint:{
+                    maximum:300
                 },
                 /*fixed: {
                     x: true,
@@ -354,14 +357,11 @@
             isSetGraphAndRootNode = true;
             bmdGraphSaveButton.prop("disabled", false);
 
-            for (let i = 0; i < nodes.length; i++) {
-                let node = nodes[i];
-                if (node.level === '0') {
-                    node.label = rootNodeName;
-                    document.getElementById("message-box").innerHTML = "Root node's name was set!!";
-                    initializeGraph();
-                }
-            }
+            let rootNode = nodes[0];
+            rootNode.label = rootNodeName;
+            messageBox.html("<span class='text-primary'>Root node's name was set!!</span>");
+            initializeGraph();
+
         }, 1000);
     });
 
@@ -370,14 +370,14 @@
         let IdOfProcessType = parseInt(processType.val());
         let nameOfProcessType = processType.find(":selected").text();
 
-        if (processType.val() === "") {
-            messageBox.html("<span class='text-danger'>Please select a process type for the new step !!</span>");
+        if (isSetGraphAndRootNode === false) {
+            alert("Please give a valid name for the root node first!");
             return;
         }
 
-        if (isSetGraphAndRootNode === false) {
-            document.getElementById("message-box").innerHTML = "<span class='text-danger'>Please give a valid name for the graph and the root node first</span>";
-            return false;
+        if (processType.val() === "") {
+            messageBox.html("<span class='text-danger'>Please select a process type for the new step !!</span>");
+            return;
         }
 
         let immediateLastStepHasSameProcessType = false;
@@ -408,7 +408,7 @@
         }
         edges.push(newEdge);
         initializeGraph();
-        messageBox.html("<span class='text-success'>Great!! " + nameOfProcessType + " was added to graph :-)</span>");
+        messageBox.html("<span class='text-success'>Great!! A step with process type '"+nameOfProcessType +"' was added to graph :-)</span>");
 
         //Reset Prerequisite edges options
         if (nodes.length < 3)

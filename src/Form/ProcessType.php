@@ -26,11 +26,20 @@ class ProcessType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
-            ->add('processKinds',EntityType::class,[
-                'label'=> "Process Types",
+            ->add('parentProcessKind',EntityType::class,[
+                'label'=> "Parent Process Type",
+                'placeholder'=> 'Please select a parent process type',
                 'class' => ProcessKind::class,
+                'required'=> true,
+                'multiple' => false,
+                'expanded' => false,
+            ])
+            ->add('otherRelatedProcessKinds',EntityType::class,[
+                'label'=> "In which other process types can it be used? (Hold control to select multiple types)",
+                'class' => ProcessKind::class,
+                'placeholder'=> "Select other related process types",
+                'empty_data' => '',
                 'multiple' => true,
-                'expanded' => true,
             ]);
     }
 
@@ -38,7 +47,6 @@ class ProcessType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Process::class,
-            'processKinds' => null,
         ]);
     }
 }

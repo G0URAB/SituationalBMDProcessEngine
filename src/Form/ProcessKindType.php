@@ -20,11 +20,12 @@ class ProcessKindType extends AbstractType
                 'label'=>'Name of process type',
                 'constraints' => [
                     new NotBlank(),
-                    new Length(['min' => 5]),
+                    new Length(['min' => 4]),
                 ],
             ])
             ->add('parentProcessKind', EntityType::class,[
-                'label'=> "Process Types",
+                'required'=>false,
+                'label'=> "Parent Process Type",
                 'class' => ProcessKind::class,
                 'placeholder'=> "Select a parent process type"
             ])

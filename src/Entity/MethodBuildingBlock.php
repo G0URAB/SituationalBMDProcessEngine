@@ -65,20 +65,6 @@ class MethodBuildingBlock
         return $this->id;
     }
 
-    /*public function addInputArtifact(Artifact $artifact)
-    {
-        if(!$this->inputArtifacts->contains($artifact))
-            $this->inputArtifacts->add($artifact);
-    }
-
-    public function removeInputArtifact(Artifact $artifact)
-    {
-        if($this->inputArtifacts->contains($artifact))
-        {
-            $this->inputArtifacts->removeElement($artifact);
-        }
-    }*/
-
     public function getInputArtifacts()
     {
         $array = $this->inputArtifacts->toArray();

@@ -19,6 +19,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -108,18 +109,26 @@ class MethodElementsController extends AbstractController
     public function editProcess(Request $request, $id)
     {
         $process = $this->entityManager->getRepository(Process::class)->find($id);
-        $form = $this->createForm(ProcessType::class,$process);
+
+        $otherRelatedProcessKinds = $process->getOtherRelatedProcessKinds();
+        if ($otherRelatedProcessKinds) {
+            foreach ($otherRelatedProcessKinds as $kind)
+                $this->entityManager->persist($kind);
+        }
+
+
+        $form = $this->createForm(ProcessType::class, $process);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
+            $this->entityManager->persist($form->getData());
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/processes/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/processes/update.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 
@@ -164,18 +173,17 @@ class MethodElementsController extends AbstractController
     public function editRole(Request $request, $id)
     {
         $role = $this->entityManager->getRepository(Role::class)->find($id);
-        $form = $this->createForm(RoleType::class,$role);
+        $form = $this->createForm(RoleType::class, $role);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/roles/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/roles/update.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 
@@ -221,18 +229,17 @@ class MethodElementsController extends AbstractController
     public function editArtifact(Request $request, $id)
     {
         $artifact = $this->entityManager->getRepository(Artifact::class)->find($id);
-        $form = $this->createForm(ArtifactType::class,$artifact);
+        $form = $this->createForm(ArtifactType::class, $artifact);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/artifacts/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/artifacts/update.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 
@@ -276,18 +283,18 @@ class MethodElementsController extends AbstractController
     public function editProcessKind(Request $request, $id)
     {
         $processType = $this->entityManager->getRepository(ProcessKind::class)->find($id);
-        $form = $this->createForm(ProcessKindType::class,$processType);
+        $form = $this->createForm(ProcessKindType::class, $processType);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/process_types/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/process_types/update.html.twig', [
+            'form' => $form->createView(),
+            'processType' => $processType
         ]);
     }
 
@@ -330,19 +337,18 @@ class MethodElementsController extends AbstractController
     public function editSituationalFactor(Request $request, $id)
     {
         $situationalFactor = $this->entityManager->getRepository(SituationalFactor::class)->find($id);
-        $form = $this->createForm(SituationalFactorType::class,$situationalFactor);
+        $form = $this->createForm(SituationalFactorType::class, $situationalFactor);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $situationalFactor->setVariants($situationalFactor->getVariants()->toArray());
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/situational_factors/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/situational_factors/update.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 
@@ -385,19 +391,18 @@ class MethodElementsController extends AbstractController
     public function editTool(Request $request, $id)
     {
         $tool = $this->entityManager->getRepository(Tool::class)->find($id);
-        $form = $this->createForm(ToolType::class,$tool);
+        $form = $this->createForm(ToolType::class, $tool);
 
         $form->handleRequest($request);
 
-        if($form->isSubmitted() && $form->isValid())
-        {
+        if ($form->isSubmitted() && $form->isValid()) {
             $tool->setVariants($tool->getVariants()->toArray());
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/tools/update.html.twig',[
-            'form'=>$form->createView()
+        return $this->render('method_elements/tools/update.html.twig', [
+            'form' => $form->createView()
         ]);
     }
 
@@ -418,6 +423,29 @@ class MethodElementsController extends AbstractController
             ])
             ->add('Submit', SubmitType::class)
             ->getForm();
+    }
+
+    /**
+     * @Route("/method_elements/delete/{type}/{id?}", name="delete_method_element")
+     * @param Request $request
+     * @param $id
+     * @param $type
+     * @return RedirectResponse
+     */
+    public function deleteMethodElement(Request $request, $id, $type)
+    {
+        $entityType = $type == 'process' ? Process::class :
+            $type == 'processKind' ? ProcessKind::class :
+                $type == 'artifact' ? Artifact::class :
+                    $type == 'situationalFactor' ? SituationalFactor::class :
+                        $type == 'role' ? Role::class : Tool::class;
+        $entityManager = $this->getDoctrine()->getManager();
+        $entity = $entityManager->getRepository($entityType)->find($id);
+
+        $entityManager->remove($entity);
+        $entityManager->flush();
+
+        return $this->redirectToRoute('method_elements');
     }
 
 }

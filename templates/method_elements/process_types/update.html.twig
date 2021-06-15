@@ -30,6 +30,19 @@
         </div>
     </div>
 
+    <div class="card mt-4">
+        <div class="card-header bg-success">
+            <b>Related Processes</b>
+        </div>
+        <div class="card-body">
+            <ul>
+                {% for process in processType.processes %}
+                    <li>{{ process.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
