@@ -89,7 +89,7 @@ class Process
 
     public function getOtherRelatedProcessKinds()
     {
-        return $this->otherRelatedProcessKinds? $this->otherRelatedProcessKinds->toArray():null;
+        return $this->otherRelatedProcessKinds? $this->otherRelatedProcessKinds:null;
     }
 
 

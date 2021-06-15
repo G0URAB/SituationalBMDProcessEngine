@@ -35,11 +35,10 @@ class ProcessType extends AbstractType
                 'expanded' => false,
             ])
             ->add('otherRelatedProcessKinds',EntityType::class,[
-                'label'=> "In which other process types can it be used? (Hold control to select multiple types)",
                 'class' => ProcessKind::class,
-                'placeholder'=> "Select other related process types",
-                'empty_data' => '',
                 'multiple' => true,
+                'expanded'=> true,
+                'required'=> false
             ]);
     }
 

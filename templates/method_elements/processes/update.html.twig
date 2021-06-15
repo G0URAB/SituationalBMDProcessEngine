@@ -23,8 +23,17 @@
         <div class="card-body">
             {{ form_errors(form) }}
             {{ form_start(form) }}
-                {{ form_row(form) }}
-              <button type="submit" class="btn btn-primary">Save</button>
+            {{ form_row(form.name) }}
+            {{ form_row(form.parentProcessKind) }}
+            <div class="d-flex flex-column">
+                <h5> In which other process types can it be used?</h5>
+                <div style="max-height: 250px; overflow: auto">
+                    {{ form_row(form.otherRelatedProcessKinds) }}
+                </div>
+
+            </div>
+
+            <button type="submit" class="btn btn-primary mt-3">Save</button>
             {{ form_end(form) }}
 
         </div>
