@@ -434,14 +434,16 @@ class MethodElementsController extends AbstractController
      */
     public function deleteMethodElement(Request $request, $id, $type)
     {
-        $entityType = $type == 'process' ? Process::class :
-            $type == 'processKind' ? ProcessKind::class :
-                $type == 'artifact' ? Artifact::class :
-                    $type == 'situationalFactor' ? SituationalFactor::class :
-                        $type == 'role' ? Role::class : Tool::class;
+        $entityType = null;
+        if($type=='process')
+            $entityType = Process::class;
+        else if($type =='processKind')
+            $entityType = ProcessKind::class;
+        else if($type =='role')
+            $entityType = Role::class;
+
         $entityManager = $this->getDoctrine()->getManager();
         $entity = $entityManager->getRepository($entityType)->find($id);
-
         $entityManager->remove($entity);
         $entityManager->flush();
 

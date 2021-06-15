@@ -75,7 +75,7 @@
                         <td>{% if type.childProcessKinds is not empty %}{{ type.name~'*' }}{% else %}{{ type.name }}{% endif %}</td>
                         <td>{{ type.parentProcessKind }}</td>
                         <td style="text-align: left; width: 30%;">{#{{ type.implodedProcesses }}#}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td><a href="{{ path('delete_method_element',{'id':type.id,'type':'processKind'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
