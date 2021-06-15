@@ -5,6 +5,7 @@ namespace App\Entity;
 use App\Repository\ProcessRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinTable;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 
@@ -33,7 +34,11 @@ class Process
     private $parentProcessKind;
 
     /**
-     * @ORM\Column(type="array", nullable=true)
+     * @ORM\ManyToMany(targetEntity="ProcessKind")
+     * \@ORM\JoinTable(name="users_other_related_process_kinds",
+     *      joinColumns={@JoinColumn(name="process_id", referencedColumnName="id")},
+     *      inverseJoinColumns={@JoinColumn(name="process_kind_id", referencedColumnName="id")}
+     *      )
      */
     private $otherRelatedProcessKinds;
 
@@ -89,13 +94,20 @@ class Process
 
     public function getOtherRelatedProcessKinds()
     {
-        return $this->otherRelatedProcessKinds? $this->otherRelatedProcessKinds:null;
+        return $this->otherRelatedProcessKinds->toArray();
     }
 
 
-    public function setOtherRelatedProcessKinds($kinds)
+    public function addOtherRelatedProcessKind($kind)
     {
-        $this->otherRelatedProcessKinds = $kinds;
+        if (!$this->otherRelatedProcessKinds->contains($kind))
+            $this->otherRelatedProcessKinds[] = $kind;
+    }
+
+    public function removeOtherRelatedProcessKind($kind)
+    {
+        if ($this->otherRelatedProcessKinds->contains($kind))
+            $this->otherRelatedProcessKinds->removeElement($kind);
     }
 
     public function __toString()

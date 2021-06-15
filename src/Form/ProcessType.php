@@ -7,6 +7,7 @@ use App\Entity\Process;
 use App\Entity\ProcessKind;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
 use Symfony\Component\OptionsResolver\OptionsResolver;
@@ -18,27 +19,28 @@ class ProcessType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('name',TextType::class,[
-                'label'=>'Process Name',
-                'label_attr'=>['class'=>"font-weight-bold"],
+            ->add('name', TextType::class, [
+                'label' => 'Process Name',
+                'label_attr' => ['class' => "font-weight-bold"],
                 'constraints' => [
                     new NotBlank(),
                     new Length(['min' => 5]),
                 ],
             ])
-            ->add('parentProcessKind',EntityType::class,[
-                'label'=> "Parent Process Type",
-                'placeholder'=> 'Please select a parent process type',
+            ->add('parentProcessKind', EntityType::class, [
+                'label' => "Parent Process Type",
+                'placeholder' => 'Please select a parent process type',
                 'class' => ProcessKind::class,
-                'required'=> true,
+                'required' => true,
                 'multiple' => false,
                 'expanded' => false,
             ])
-            ->add('otherRelatedProcessKinds',EntityType::class,[
-                'class' => ProcessKind::class,
+            ->add('otherRelatedProcessKinds', ChoiceType::class, [
+                'choices' => $options['choices'],
+                'choice_label'=>'name',
                 'multiple' => true,
-                'expanded'=> true,
-                'required'=> false
+                'expanded' => true,
+                'required' => false
             ]);
     }
 
@@ -46,6 +48,7 @@ class ProcessType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Process::class,
+            'choices' => null
         ]);
     }
 }

@@ -110,14 +110,7 @@ class MethodElementsController extends AbstractController
     {
         $process = $this->entityManager->getRepository(Process::class)->find($id);
 
-        $otherRelatedProcessKinds = $process->getOtherRelatedProcessKinds();
-        if ($otherRelatedProcessKinds) {
-            foreach ($otherRelatedProcessKinds as $kind)
-                $this->entityManager->persist($kind);
-        }
-
-
-        $form = $this->createForm(ProcessType::class, $process);
+        $form = $this->createForm(ProcessType::class, $process, ['choices'=>$this->processKinds]);
 
         $form->handleRequest($request);
 

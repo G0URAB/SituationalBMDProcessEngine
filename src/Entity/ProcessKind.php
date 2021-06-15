@@ -45,6 +45,8 @@ class ProcessKind
      */
     private $childProcessKinds;
 
+
+
     public function __construct()
     {
         $this->processes = new ArrayCollection();
