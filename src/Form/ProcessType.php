@@ -37,7 +37,7 @@ class ProcessType extends AbstractType
                 'expanded' => false,
             ])
             ->add('otherRelatedProcessKinds', EntityType::class, [
-                'label'=> 'In which other process types can it be used?',
+                'label'=> 'In which other process types (except child and parent process types) can it be used?',
                 'class'=> ProcessKind::class,
                 'multiple' => true,
                 'expanded' => true,

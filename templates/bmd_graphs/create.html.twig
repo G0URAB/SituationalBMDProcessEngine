@@ -52,14 +52,14 @@
             <div class="form-group">
                 <label for="process-type"></label>
                 <select class="form-control" id="process-type">
-                    <option value="">Select a process type</option>
+                    <option value="">Add a new step with a process type</option>
                     {% for processType in processTypes %}
                         <option value={{ processType.id }}>{{ processType.name }}</option>
                     {% endfor %}
                 </select>
             </div>
             <div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-primary btn-sm" id="add-processType">Add Step</button>
+                <button type="button" class="btn btn-primary btn-sm" id="add-step">Add Step</button>
             </div>
         </div>
 
@@ -228,8 +228,8 @@
                     size: 20,
                     color: '#000000'
                 },
-                widthConstraint:{
-                    maximum:300
+                widthConstraint: {
+                    maximum: 300
                 },
                 /*fixed: {
                     x: true,
@@ -305,19 +305,23 @@
         let node = getNodeObject(nodeId);
 
         if (confirm("Are you sure to delete step with : " + node.label)) {
-            removeStep(node);
-            closeNodePopup();
+            if (!removeStep(node)) {
+                closeNodePopup();
+                return;
+            }
+
             $('#to-step option').each(function () {
-                if ($(this).val() === node.tableId.toString()) {
+                if ($(this).attr("data-node") === node.id.toString()) {
                     $(this).remove();
                 }
             });
 
             $('#from-step option').each(function () {
-                if ($(this).val() === node.tableId.toString()) {
+                if ($(this).attr("data-node") === node.id.toString()) {
                     $(this).remove();
                 }
             });
+            closeNodePopup();
         }
     });
 
@@ -362,10 +366,10 @@
             messageBox.html("<span class='text-primary'>Root node's name was set!!</span>");
             initializeGraph();
 
-        }, 1000);
+        }, 600);
     });
 
-    $("#add-processType").on("click", function () {
+    $("#add-step").on("click", function () {
 
         let IdOfProcessType = parseInt(processType.val());
         let nameOfProcessType = processType.find(":selected").text();
@@ -384,8 +388,8 @@
         let idOfLastNode = parseInt((nodes[nodes.length - 1]).id);
 
 
-        if (getNodeObject(idOfLastNode).label === "<<"+nameOfProcessType+">>") {
-                messageBox.html("<span class='text-danger'>Two immediate steps can not have the same process type :/</span>");
+        if (getNodeObject(idOfLastNode).label === "<<" + nameOfProcessType + ">>") {
+            messageBox.html("<span class='text-danger'>Two immediate steps can not have the same process type :/</span>");
             immediateLastStepHasSameProcessType = true;
         }
 
@@ -408,17 +412,28 @@
         }
         edges.push(newEdge);
         initializeGraph();
-        messageBox.html("<span class='text-success'>Great!! A step with process type '"+nameOfProcessType +"' was added to graph :-)</span>");
+        messageBox.html("<span class='text-success'>Great!! A step with process type '" + nameOfProcessType + "' was added to graph :-)</span>");
 
         //Reset Prerequisite edges options
         if (nodes.length < 3)
-            fromStep.append($("<option></option>")
-                .attr("value", IdOfProcessType).text(nameOfProcessType));
+            fromStep.append($('<option>', {
+                value: IdOfProcessType,
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                'data-node': newNode.id
+            }));
         else {
-            fromStep.append($("<option></option>")
-                .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
-            toStep.append($("<option></option>")
-                .attr("value", IdOfProcessType).text(updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType)));
+
+            fromStep.append($('<option>', {
+                value: IdOfProcessType,
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                'data-node': newNode.id
+            }));
+
+            toStep.append($('<option>', {
+                value: IdOfProcessType,
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                'data-node': newNode.id
+            }));
         }
         checkEvents();
     });
@@ -426,13 +441,13 @@
     $("#add-prerequisite").on("click", function () {
 
         let nameOfFrom = fromStep.find(":selected").text();
-        let idOfFromStep = parseInt(fromStep.val()); //This table Id and not the node id
+        let idOfFromStep = parseInt(fromStep.find(":selected").attr("data-node"));
 
         let nameOfTo = toStep.find(":selected").text();
-        let idOfToStep = parseInt(toStep.val()); //This is table Id and not the node id
+        let idOfToStep = parseInt(toStep.find(":selected").attr("data-node"));
 
-        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOfFromStep);
-        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOfToStep);
+        let id_of_FromNode = getNodeIdOfStep(idOfFromStep);
+        let id_of_ToNode = getNodeIdOfStep(idOfToStep);
 
         let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
         let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
@@ -474,13 +489,13 @@
 
     $("#remove-prerequisite").on("click", function () {
         let nameOfFrom = fromStep.find(":selected").text();
-        let idOffromStep = parseInt(fromStep.val()); //This table Id and not the node id
+        let idOffromStep = parseInt(fromStep.find(":selected").attr("data-node"));
 
         let nameOfTo = toStep.find(":selected").text();
-        let idOftoStep = parseInt(toStep.val()); //This is table Id and not the node id
+        let idOftoStep = parseInt(toStep.find(":selected").attr("data-node"));
 
-        let id_of_FromNode = getNodeIDThroughIdOfProcessType(idOffromStep);
-        let id_of_ToNode = getNodeIDThroughIdOfProcessType(idOftoStep);
+        let id_of_FromNode = getNodeIdOfStep(idOffromStep);
+        let id_of_ToNode = getNodeIdOfStep(idOftoStep);
 
         let indexOfFromObject = getIndexOfNodeObject(id_of_FromNode);
         let indexOfToObject = getIndexOfNodeObject(id_of_ToNode);
@@ -534,7 +549,7 @@
 
         let nodeFoundAndRemoved = false;
 
-        if (nodeIsPartOfAnEdge(getNodeIDThroughIdOfProcessType(idOfProcessType))) {
+        if (nodeIsPartOfAnEdge(getNodeIdOfStep(idOfProcessType))) {
             messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is part of a prerequisite edge. Delete the edge first to delete the node!</span>");
             return;
         }
@@ -548,7 +563,7 @@
 
         if (nodeFoundAndRemoved) {
             edges.forEach(function (item, index) {
-                if (item.to === getNodeIDThroughIdOfProcessType(idOfProcessType))
+                if (item.to === getNodeIdOfStep(idOfProcessType))
                     edges.splice(index, 1);
             });
             messageBox.html("<span class='text-success'>Okay!! Step with " + nameOfProcessType + " was removed from the graph *_*</span>");
@@ -556,6 +571,8 @@
         } else {
             messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is not there in the graph :/</span>");
         }
+
+        return true;
     }
 
     function updatedNameOfProcessTypeForEdgeOptions(nameOfNode) {
@@ -601,10 +618,10 @@
         return edgeFromNodeExist;
     }
 
-    function getNodeIDThroughIdOfProcessType(idOfProcessType) {
+    function getNodeIdOfStep(idOfProcessType) {
         let nodeId = null;
         nodes.forEach(function (item, index) {
-            if (item.tableId === idOfProcessType)
+            if (item.id === idOfProcessType)
                 nodeId = item.id;
         });
         return nodeId;
@@ -718,6 +735,7 @@
                 actionIsValid = false;
             }
         }
+
         if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
             messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
             actionIsValid = false;

@@ -77,7 +77,7 @@ class MethodBuildingBlocksController extends AbstractController
             }
 
             $process = $buildingBlock->getProcess();
-            
+
             return $this->render("method_building_blocks/update.html.twig", [
                 'form' => $form->createView(),
                 'processType' => $process->getParentProcessKind()
