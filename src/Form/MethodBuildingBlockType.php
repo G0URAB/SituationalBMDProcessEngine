@@ -47,6 +47,7 @@ class MethodBuildingBlockType extends AbstractType
                 'label' => 'Tools',
                 'class' => Tool::class,
                 'multiple' => true,
+                'required'=> false
             ])
             ->add('situationalFactors', ChoiceType::class, [
                 'label' => 'Situational Factors',

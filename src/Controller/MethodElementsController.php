@@ -448,6 +448,8 @@ class MethodElementsController extends AbstractController
             $entityType = ProcessKind::class;
         else if ($type == 'role')
             $entityType = Role::class;
+        else if ($type == 'artifact')
+            $entityType = Artifact::class;
 
         $entityManager = $this->getDoctrine()->getManager();
         $entity = $entityManager->getRepository($entityType)->find($id);

@@ -76,13 +76,11 @@ class MethodBuildingBlocksController extends AbstractController
                 return $this->redirectToRoute("method_building_blocks");
             }
 
-            $process = $this->getDoctrine()->getRepository(Process::class)
-                ->find($id);
-            $process->getOtherRelatedProcessKinds()[]= $process->getParentProcessKind()->getName();
-
+            $process = $buildingBlock->getProcess();
+            
             return $this->render("method_building_blocks/update.html.twig", [
                 'form' => $form->createView(),
-                'processTypes' => $process->getOtherRelatedProcessKinds()
+                'processType' => $process->getParentProcessKind()
             ]);
         } else if ($request->isXmlHttpRequest()) {
             $this->handleAsyncRequestForProcessTypes($request);
@@ -120,14 +118,16 @@ class MethodBuildingBlocksController extends AbstractController
     {
         $process = $this->getDoctrine()->getRepository(Process::class)->find($request->get('id'));
         $processTypes = "";
+        $processTypes .= $process->getParentProcessKind()->getName();
         if ($process) {
-            foreach ($process->getProcessKinds() as $processKind) {
+            foreach ($process->getOtherRelatedProcessKinds() as $processKind) {
                 if (!empty($processTypes))
                     $processTypes .= ", " . $processKind->getName();
                 else
                     $processTypes .= $processKind->getName();
             }
         }
+
         return new JsonResponse(['processTypes' => $processTypes]);
     }
 }

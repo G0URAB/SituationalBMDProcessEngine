@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_fluid.html.twig' %}
 
 {% block title %} Update Process {% endblock %}
 
@@ -15,29 +15,40 @@
         {% endfor %}
     </div>
 
-    {# Form box #}
-    <div class="card mt-4">
-        <div class="card-header bg-success">
-            <b>Update Process</b>
-        </div>
-        <div class="card-body">
-            {{ form_errors(form) }}
-            {{ form_start(form) }}
-            {{ form_row(form.name) }}
-            {{ form_row(form.parentProcessKind) }}
-            <div class="d-flex flex-column">
-                <h5> In which other process types can it be used?</h5>
-                <div style="max-height: 250px; overflow: auto">
-                    {{ form_row(form.otherRelatedProcessKinds) }}
+    <div style="display: flex; flex-direction: row; ">
+
+        {# Form box #}
+        <div class="card mt-4 w-50" style="min-width: 50%;">
+            <div class="card-header bg-success">
+                <b>Update Process</b>
+            </div>
+            <div class="card-body">
+                {{ form_errors(form) }}
+                {{ form_start(form) }}
+                {{ form_row(form.name) }}
+                {{ form_row(form.parentProcessKind) }}
+                <div class="d-flex flex-column">
+                    <h5> In which other process types can it be used?</h5>
+                    <div style="max-height: 250px; overflow: auto">
+                        {{ form_row(form.otherRelatedProcessKinds) }}
+                    </div>
+
                 </div>
 
+                <button type="submit" class="btn btn-primary mt-3">Save</button>
+                {{ form_end(form) }}
+
             </div>
-
-            <button type="submit" class="btn btn-primary mt-3">Save</button>
-            {{ form_end(form) }}
-
         </div>
+
+        {# Picture #}
+        <div class="p-4 w-50">
+            <h4 style="text-align: center"><u>Recommendation of processes in any situation</u>  </h4>
+            <img class="w-100" src="{{ asset('images/ProcessRecommendation.JPG') }}">
+        </div>
+
     </div>
+
 
 {% endblock %}
 
@@ -61,17 +72,29 @@
             });
 
             function disableParentProcessTypesInRelatedTypes() {
-                let childProcessType = parentProcessKind.find(":selected").text();
-                let parentProcessType = parentAndChildProcessTypes[childProcessType];
+                let processType = parentProcessKind.find(":selected").text();
+                let parentProcessType = parentAndChildProcessTypes[processType];
+                let childProcessType = null;
+
+                Object.entries(parentAndChildProcessTypes).forEach(([key, value]) => {
+                    if(`${value}`===processType) // "a 5", "b 7", "c 9"
+                        childProcessType = `${key}`
+                });
 
                 $('input[type=checkbox]').each(function () {
-                    if (childProcessType === $(this).next('label').text())
+                    if (processType === $(this).next('label').text())
                     {
                         if($(this).is(":checked"))
                             $(this).prop('checked', false);
                         $(this).parent().css("display", "none");
                     }
                     if (parentProcessType === $(this).next('label').text())
+                    {
+                        if($(this).is(":checked"))
+                            $(this).prop('checked', false);
+                        $(this).parent().css("display", "none");
+                    }
+                    if (childProcessType === $(this).next('label').text())
                     {
                         if($(this).is(":checked"))
                             $(this).prop('checked', false);

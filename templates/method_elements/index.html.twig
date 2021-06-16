@@ -36,6 +36,7 @@
                     <th scope="col">Index</th>
                     <th scope="col">Name of Process</th>
                     <th scope="col">Process Type</th>
+                    <th scope="col">Applicability in other types</th>
                     <th scope="col">Delete</th>
                 </tr>
                 </thead>{#test#}
@@ -44,8 +45,9 @@
                     <tr>
                         <td><a href="{{ path('edit_process',{'id':process.id}) }}">{{ loop.index }}</a></td>
                         <td>{{ process.name }}</td>
-                        <td>{#{{ process.parentProcessKind.name }}#}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td>{{ process.parentProcessKind.name }}</td>
+                        <td>{{ process.implodedOtherRelatedProcessKinds }}</td>
+                        <td><a href="{{ path('delete_method_element',{id:process.id,type:'process'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -74,7 +76,7 @@
                         <td><a href="{{ path('edit_process_type',{'id':type.id}) }}">{{ loop.index }} </a></td>
                         <td>{% if type.childProcessKinds is not empty %}{{ type.name~'*' }}{% else %}{{ type.name }}{% endif %}</td>
                         <td>{{ type.parentProcessKind }}</td>
-                        <td style="text-align: left; width: 30%;">{#{{ type.implodedProcesses }}#}</td>
+                        <td style="text-align: left; width: 30%;">{{ type.implodedProcesses }}</td>
                         <td><a href="{{ path('delete_method_element',{'id':type.id,'type':'processKind'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
@@ -127,7 +129,7 @@
                     <tr>
                         <td><a href="{{ path('edit_artifact',{'id':artifact.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ artifact.name }}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td><a href="{{ path('delete_method_element',{id:artifact.id,type:'artifact'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

@@ -20,6 +20,7 @@ class ArtifactType extends AbstractType
         $builder
             ->add('name', TextType::class,[
                 'label_attr'=>['class'=>"font-weight-bold"],
+                'attr'=> ['autocomplete'=>'off'],
                 'constraints' => [
                     new NotBlank(),
                     new Length(['min' => 5]),

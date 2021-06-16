@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_fluid.html.twig' %}
 
 {% block title %} Create Processes {% endblock %}
 
@@ -15,24 +15,34 @@
         {% endfor %}
     </div>
 
-    {# Form box #}
-    <div class="card mt-4" data-prototype="{{ form_widget(form.processes.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.processes| length }}">
-        <div class="card-header bg-warning">
-            <b>Create Processes</b>
-        </div>
-        <div class="card-body">
-            {{ form_errors(form) }}
-            {{ form_start(form) }}
+    <div style="display: flex; flex-direction: row; ">
 
-            {{ form_row(form.processes) }}
-
-            <div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-success" id="add-new-process">Add new process</button>
+        {# Form box #}
+        <div class="card w-50 mt-4" data-prototype="{{ form_widget(form.processes.vars.prototype)|e('html_attr') }}"
+             data-index="{{ form.processes| length }}">
+            <div class="card-header bg-warning">
+                <b>Create Processes</b>
             </div>
-            {{ form_end(form) }}
+            <div class="card-body">
+                {{ form_errors(form) }}
+                {{ form_start(form) }}
 
+                {{ form_row(form.processes) }}
+
+                <div class="d-flex flex-row justify-content-center">
+                    <button type="button" class="btn btn-success" id="add-new-process">Add new process</button>
+                </div>
+                {{ form_end(form) }}
+
+            </div>
         </div>
+
+        {# Picture #}
+        <div class="p-4 w-50" style="position: fixed;top: 8%; right:1%">
+            <h4 style="text-align: center"><u>Recommendation of processes in any situation</u></h4>
+            <img class="w-100" src="{{ asset('images/ProcessRecommendation.JPG') }}">
+        </div>
+
     </div>
 
 {% endblock %}
@@ -61,25 +71,40 @@
                 $(this).parent().parent().remove();
             });
 
+            $("[id^=form_processes_] [id$=otherRelatedProcessKinds]").css({
+                "max-height":"250px",
+                "overflow":"auto"
+            });
+
             /* Remove parent process types from other related process types */
             $("[id^=form_processes_] [id$=parentProcessKind]").on("change", function () {
-                let childProcessType = $(this).find(":selected").text();
-                let parentProcessType = parentAndChildProcessTypes[childProcessType];
+                let processType = $(this).find(":selected").text();
+                let parentProcessType = parentAndChildProcessTypes[processType];
+                let childProcessType = null;
+
+                Object.entries(parentAndChildProcessTypes).forEach(([key, value]) => {
+                    if(`${value}`===processType) // "a 5", "b 7", "c 9"
+                        childProcessType = `${key}`
+                });
 
                 $(this).parent().parent().children().eq(2).find(':checkbox').each(function () {
                     $(this).parent().css("display", "block");
                 });
 
+
                 $(this).parent().parent().children().eq(2).find(':checkbox').each(function () {
-                    if (childProcessType === $(this).next('label').text())
-                    {
-                        if($(this).is(":checked"))
+                    if (processType === $(this).next('label').text()) {
+                        if ($(this).is(":checked"))
                             $(this).prop('checked', false);
                         $(this).parent().css("display", "none");
                     }
-                    if (parentProcessType === $(this).next('label').text())
-                    {
-                        if($(this).is(":checked"))
+                    if (parentProcessType === $(this).next('label').text()) {
+                        if ($(this).is(":checked"))
+                            $(this).prop('checked', false);
+                        $(this).parent().css("display", "none");
+                    }
+                    if (childProcessType === $(this).next('label').text()) {
+                        if ($(this).is(":checked"))
                             $(this).prop('checked', false);
                         $(this).parent().css("display", "none");
                     }

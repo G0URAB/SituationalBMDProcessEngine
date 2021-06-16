@@ -22,13 +22,14 @@ class ProcessType extends AbstractType
             ->add('name', TextType::class, [
                 'label' => 'Process Name',
                 'label_attr' => ['class' => "font-weight-bold"],
+                'attr'=> ['autocomplete'=>'off'],
                 'constraints' => [
                     new NotBlank(),
                     new Length(['min' => 5]),
                 ],
             ])
             ->add('parentProcessKind', EntityType::class, [
-                'label' => "Parent Process Type",
+                'label' => "Process Type",
                 'placeholder' => 'Please select a parent process type',
                 'class' => ProcessKind::class,
                 'required' => true,
@@ -36,6 +37,7 @@ class ProcessType extends AbstractType
                 'expanded' => false,
             ])
             ->add('otherRelatedProcessKinds', EntityType::class, [
+                'label'=> 'In which other process types can it be used?',
                 'class'=> ProcessKind::class,
                 'multiple' => true,
                 'expanded' => true,
