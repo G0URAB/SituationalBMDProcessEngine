@@ -44,6 +44,43 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-        $("legend").remove();
+        $(document).ready(function () {
+            $("legend").remove();
+            let parentAndChildProcessTypes = JSON.parse(("{{ childAndParentProcessTypes|json_encode  }}").
+            replace(/&quot;/ig,'"'));
+            console.log(parentAndChildProcessTypes);
+
+            let parentProcessKind = $("#process_parentProcessKind");
+            disableParentProcessTypesInRelatedTypes();
+
+            parentProcessKind.on("change", function () {
+                $('input[type=checkbox]').each(function (){
+                    $(this).parent().css("display","block");
+                });
+                disableParentProcessTypesInRelatedTypes();
+            });
+
+            function disableParentProcessTypesInRelatedTypes() {
+                let childProcessType = parentProcessKind.find(":selected").text();
+                let parentProcessType = parentAndChildProcessTypes[childProcessType];
+
+                $('input[type=checkbox]').each(function () {
+                    if (childProcessType === $(this).next('label').text())
+                    {
+                        if($(this).is(":checked"))
+                            $(this).prop('checked', false);
+                        $(this).parent().css("display", "none");
+                    }
+                    if (parentProcessType === $(this).next('label').text())
+                    {
+                        if($(this).is(":checked"))
+                            $(this).prop('checked', false);
+                        $(this).parent().css("display", "none");
+                    }
+                });
+            }
+        });
+
+
     </script>
 {% endblock %}

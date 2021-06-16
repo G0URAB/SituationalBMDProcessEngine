@@ -35,9 +35,8 @@ class ProcessType extends AbstractType
                 'multiple' => false,
                 'expanded' => false,
             ])
-            ->add('otherRelatedProcessKinds', ChoiceType::class, [
-                'choices' => $options['choices'],
-                'choice_label'=>'name',
+            ->add('otherRelatedProcessKinds', EntityType::class, [
+                'class'=> ProcessKind::class,
                 'multiple' => true,
                 'expanded' => true,
                 'required' => false
@@ -48,7 +47,6 @@ class ProcessType extends AbstractType
     {
         $resolver->setDefaults([
             'data_class' => Process::class,
-            'choices' => null
         ]);
     }
 }

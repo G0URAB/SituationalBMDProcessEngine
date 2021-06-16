@@ -70,6 +70,12 @@ class MethodElementsController extends AbstractController
     public function createProcess(Request $request): Response
     {
         $form = $this->createMultiEntityForm('processes', ProcessType::class);
+        $childAndParentProcessTypes = [];
+
+        foreach ($this->processKinds as $kind) {
+            if ($kind->getParentProcessKind())
+                $childAndParentProcessTypes[$kind->getName()] = $kind->getParentProcessKind()->getName();
+        }
 
         $form->handleRequest($request);
 
@@ -97,6 +103,7 @@ class MethodElementsController extends AbstractController
 
         return $this->render('method_elements/processes/create.html.twig', [
             'form' => $form->createView(),
+            'childAndParentProcessTypes' => $childAndParentProcessTypes
         ]);
     }
 
@@ -109,8 +116,14 @@ class MethodElementsController extends AbstractController
     public function editProcess(Request $request, $id)
     {
         $process = $this->entityManager->getRepository(Process::class)->find($id);
+        $childAndParentProcessTypes = [];
 
-        $form = $this->createForm(ProcessType::class, $process, ['choices'=>$this->processKinds]);
+        foreach ($this->processKinds as $kind) {
+            if ($kind->getParentProcessKind())
+                $childAndParentProcessTypes[$kind->getName()] = $kind->getParentProcessKind()->getName();
+        }
+
+        $form = $this->createForm(ProcessType::class, $process);
 
         $form->handleRequest($request);
 
@@ -121,7 +134,8 @@ class MethodElementsController extends AbstractController
         }
 
         return $this->render('method_elements/processes/update.html.twig', [
-            'form' => $form->createView()
+            'form' => $form->createView(),
+            'childAndParentProcessTypes' => $childAndParentProcessTypes
         ]);
     }
 
@@ -428,11 +442,11 @@ class MethodElementsController extends AbstractController
     public function deleteMethodElement(Request $request, $id, $type)
     {
         $entityType = null;
-        if($type=='process')
+        if ($type == 'process')
             $entityType = Process::class;
-        else if($type =='processKind')
+        else if ($type == 'processKind')
             $entityType = ProcessKind::class;
-        else if($type =='role')
+        else if ($type == 'role')
             $entityType = Role::class;
 
         $entityManager = $this->getDoctrine()->getManager();
