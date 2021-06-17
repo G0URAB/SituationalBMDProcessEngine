@@ -78,7 +78,6 @@ class ProcessKind
     {
         if (!$this->processes->contains($process)) {
             $this->processes[] = $process;
-            $process->addProcessKind($this);
         }
     }
 
@@ -90,7 +89,6 @@ class ProcessKind
     public function removeProcess(Process $process)
     {
         if ($this->processes->contains($process)) {
-            $process->removeProcessKind($this);
             $this->processes->removeElement($process);
         }
     }
@@ -131,10 +129,8 @@ class ProcessKind
         return implode(", ",$array);
     }
 
-    /**
-     * @return ArrayCollection
-     */
-    public function getChildBMDGraphs(): ArrayCollection
+
+    public function getChildBMDGraphs()
     {
         return $this->childBMDGraphs;
     }

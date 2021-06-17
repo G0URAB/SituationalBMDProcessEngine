@@ -30,6 +30,7 @@ class BmdGraphController extends AbstractController
     /**
      * @Route("/bmd/graph/create", name="create_bmd_graph")
      * @param Request $request
+     * @param SessionInterface $session
      * @return Response
      */
     public function create(Request $request, SessionInterface $session): Response
@@ -84,7 +85,7 @@ class BmdGraphController extends AbstractController
     }
 
     /**
-     * @Route("/bmd/graph/show/{id}", name="show_bmd_graph")
+     * @Route("/bmd/graph/show/{id?}", name="show_bmd_graph")
      * @param $id
      * @return Response
      */

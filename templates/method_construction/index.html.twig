@@ -1,0 +1,94 @@
+{% extends 'base_fluid.html.twig' %}
+
+{% block title %}Situational Method Construction{% endblock %}
+
+{% block body %}
+
+    {# Situational Checkboxes #}
+    <h3 class="text-center mt-3">Situational Factors</h3>
+    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded">
+        {% for factor in situationalFactors %}
+            <div class="d-flex flex-column m-2">
+                <h6><u>{{ factor.name }}</u></h6>
+                <div id="factor-{{ factor.id }}" class="d-flex flex-column align-items-start">
+                    {% for variant in factor.variants %}
+                        <lable><input type="checkbox" name="factor-{{ factor.id }}-variant-{{ variant }}"
+                                      value="{{ factor~" : "~variant }}">{{ variant }}</lable>
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+    </div>
+
+    {# queried BMD Graphs #}
+    <div class="mt-4 d-flex flex-column ">
+        <h3> Situation Specific BMD Graphs </h3>
+        <div id="graphs" class="d-flex flex-row justify-content-between flex-wrap border border-secondary rounded p-3">
+            <h6 class="text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
+                    Graphs </i></h6>
+
+            <div id="spinner" style="display: none;">
+                <div class="d-flex align-items-center">
+                    <strong>Loading...</strong>
+                    <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+
+        let graphTemplate = (name, situationalFactors, route) => `
+           <div class="jumbotron" style="width: 48%;">
+                <h1 class="display-4"><b>Name:</b> ${name}</h1>
+                <p class="lead"><b>Description:</b>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+                <hr class="my-4">
+                <p><b>Situational Factors:</b> ${situationalFactors} </p>
+                <p class="lead">
+                    <a target="_blank" class="btn btn-primary btn-lg" href="${route}" role="button">Learn more</a>
+                </p>
+            </div>`;
+
+        $('input[type="checkbox"]').each(function () {
+            $(this).prop('checked', false);
+        });
+        $('input[type=checkbox]').on("click", function () {
+            let situationalFactors = [];
+            $("input:checked").each(function () {
+                situationalFactors.push($(this).val());
+            });
+            $("#spinner").css("display", "block");
+            $("#graphs").children().not("#spinner").remove();
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('method_construction') }}',
+                data: {
+                    situationalFactors: situationalFactors,
+                },
+                success: function (response) {
+                    let obj = JSON.parse(JSON.stringify(response));
+                    $("#spinner").css("display", "none");
+
+                    if (obj.graphs.length > 0) {
+                        obj.graphs.forEach(function (item, index) {
+                            let graph = graphTemplate(item.name, item.situationalFactors, "/bmd/graph/show/" + item.id);
+                            $("#graphs").append(graph);
+                        });
+                    } else {
+                        $("#graphs").append(`<h6 class="text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
+                    Graphs </i></h6>`);
+                    }
+
+                }
+            });
+        });
+
+    </script>
+{% endblock %}
