@@ -212,15 +212,7 @@
             };
             let options = {
                 physics: {
-                    enabled: true,
-                    hierarchicalRepulsion: {
-                        centralGravity: 0.0,
-                        springLength: 500,
-                        springConstant: 0.01,
-                        nodeDistance: 400,
-                        damping: 0.09
-                    },
-                    solver: 'hierarchicalRepulsion'
+                    enabled:false
                 },
                 edges: {
                     length: 300 // Longer edges between nodes.
@@ -230,7 +222,6 @@
                     hierarchical: {
                         direction: "UD",
                         nodeSpacing: 380,
-                        treeSpacing: 580
                     },
                 },
                 nodes: {
