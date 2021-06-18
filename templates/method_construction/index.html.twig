@@ -6,24 +6,25 @@
 
     {# Situational Checkboxes #}
     <h3 class="text-center mt-3">Situational Factors</h3>
-    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded">
+    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto" style="width: 90%;">
         {% for factor in situationalFactors %}
             <div class="d-flex flex-column m-2">
                 <h6><u>{{ factor.name }}</u></h6>
                 <div id="factor-{{ factor.id }}" class="d-flex flex-column align-items-start">
                     {% for variant in factor.variants %}
-                        <lable><input type="checkbox" name="factor-{{ factor.id }}-variant-{{ variant }}"
-                                      value="{{ factor~" : "~variant }}">{{ variant }}</lable>
+                        <label><input type="checkbox" name="factor-{{ factor.id }}-variant-{{ variant }}"
+                                      value="{{ factor~" : "~variant }}">{{ variant }}</label>
                     {% endfor %}
                 </div>
             </div>
         {% endfor %}
     </div>
 
-    {# queried BMD Graphs #}
-    <div class="mt-4 d-flex flex-column ">
+    {# situation-specific BMD Graphs #}
+    <div class="mt-4 d-flex flex-column " style="width: 90%; margin:auto;">
         <h3> Situation Specific BMD Graphs </h3>
-        <div id="graphs" class="d-flex flex-row justify-content-between flex-wrap border border-secondary rounded p-3">
+        <div id="graphs" class="d-flex flex-row flex-wrap border border-secondary rounded p-3"
+             style="max-height: 400px; overflow: auto;">
             <h6 class="text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
                     Graphs </i></h6>
 
@@ -37,6 +38,66 @@
         </div>
     </div>
 
+    {# Construct situational Method #}
+    <div class="mt-5 d-flex flex-column ">
+        <h3 class="m-auto"> Construct Situational Method</h3>
+        <div style="width: 90%; height:800px; border: 1px solid black; border-radius: 2%; margin:auto">
+            <h6 class=" mt-4 text-center w-100 text-success"><i>Select BMD Graphs to Construct a situational
+                    method. </i></h6>
+            <div id="situational-methods"
+                 style="width: 100%; height: 96%; display: flex; flex-direction: row; align-items: flex-start">
+
+            </div>
+        </div>
+    </div>
+
+    {# Modal 1 #}
+    <div class="modal-dialog" role="document"
+         style="position: fixed;top: 8%; left:10%;display: none;" id="node-popup" data-nodeId="">
+        <div class="modal-content">
+            <div class="modal-header">
+                <label for="modal-process-type">Change Process Type of the Step</label>
+                <select class="form-control" id="modal-process-type">
+                    <option value="">Change process type</option>
+
+                </select>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body d-flex flex-column">
+                <label>Height of the step</label>
+                <div class="d-flex flex-row justify-content-between">
+                    <button class="btn btn-sm btn-dark rounded-circle" id="decrease-level">-</button>
+                    <span id="level"></span>
+                    <button class="btn btn-sm btn-primary rounded-circle" id="increase-level">+</button>
+                </div>
+            </div>
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" id="remove-step">Remove Step</button>
+            </div>
+        </div>
+    </div>
+
+    {# Modal 2 #}
+    <div id="node-popup-2" style="position: fixed;top: 8%; left:10%;display: none; width: 40%;" role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-dark">
+                <div class="input-group mb-3">
+                    <div class="input-group-prepend">
+                        <span class="input-group-text" id="root-node">Name of your situational method</span>
+                    </div>
+                    <input type="text" class="form-control"
+                           placeholder="Elephant Trading Business" aria-label="Username"
+                           aria-describedby="basic-addon1" id="name-of-root-node">
+                </div>
+                <button type="button" class="close bg-danger" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 
 {% endblock %}
 
@@ -44,14 +105,44 @@
     {{ parent() }}
     <script>
 
-        let graphTemplate = (name, situationalFactors, route) => `
-           <div class="jumbotron" style="width: 48%;">
-                <h1 class="display-4"><b>Name:</b> ${name}</h1>
+
+        // create an array with nodes
+        let nodes = [
+            {
+                id: 1,
+                label: 'Name of your situational method',
+                level: '0',
+                shape: 'circle',
+                color: '#bababa',
+                margin: 8,
+                title: "Double Click to change name"
+            },
+        ];
+
+        let recordOfOldAndNewNodes = [];
+
+        let edges = [];
+        let network = null;
+        let body = $("body");
+        let nodePopup = $("#node-popup");
+        let nodePopup2 = $("#node-popup-2")
+        let processTypeInModal = $("#modal-process-type");
+        let level = $("#level");
+        let situationalMethods = $("#situational-methods");
+        let nameOfRootNode = $("#name-of-root-node");
+        nameOfRootNode.val("");
+
+        let nodePopupToRefer = null;
+        let bmdGraphsBeingUsed = [];
+
+        let graphTemplate = (name, situationalFactors, nodes, edges) => `
+           <div class="jumbotron m-2" style="width: 32%;">
+                <h4 style="max-height: 20%; min-height: 20%; overflow: auto"><b>Name:</b> ${name}</h4>
                 <p class="lead"><b>Description:</b>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
                 <hr class="my-4">
-                <p><b>Situational Factors:</b> ${situationalFactors} </p>
+                <p style="max-height: 30%;min-height: 30%; overflow: auto;"><b>Situational Factors:</b> ${situationalFactors} </p>
                 <p class="lead">
-                    <a target="_blank" class="btn btn-primary btn-lg" href="${route}" role="button">Learn more</a>
+                    <button class="btn btn-primary btn-lg select-graph" data-name='${name}' data-nodes='${nodes}' data-edges='${edges}' type="button">Select this BMD Graph</button>
                 </p>
             </div>`;
 
@@ -78,17 +169,232 @@
 
                     if (obj.graphs.length > 0) {
                         obj.graphs.forEach(function (item, index) {
-                            let graph = graphTemplate(item.name, item.situationalFactors, "/bmd/graph/show/" + item.id);
+                            let graph = graphTemplate(item.name, item.situationalFactors, item.nodes, item.edges);
                             $("#graphs").append(graph);
+
+                            $(".select-graph").each(function () {
+                                if (bmdGraphsBeingUsed.includes($(this).data("name")))
+                                    $(this).prop("disabled", true);
+                            });
+
+                            /* On Select a particular graph */
+                            $(".select-graph").on("click", function (e) {
+                                e.stopImmediatePropagation();
+                                bmdGraphsBeingUsed.push($(this).data("name"));
+                                $(this).prop("disabled", true);
+                                situationalMethods.parent().find(".text-primary").remove();
+                                let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
+                                let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
+                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0]);
+                            });
+
                         });
                     } else {
-                        $("#graphs").append(`<h6 class="text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
+                        $("#graphs").append(`<h6 class="mt-4 text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
                     Graphs </i></h6>`);
                     }
 
                 }
             });
         });
+
+
+        initializeGraph();
+
+        function initializeGraph() {
+            // create a network
+            let container = document.getElementById('situational-methods');
+
+            // provide the data in the vis format
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+            let options = {
+                physics: {
+                    enabled: true,
+                    hierarchicalRepulsion: {
+                        centralGravity: 0.0,
+                        springLength: 500,
+                        springConstant: 0.01,
+                        nodeDistance: 400,
+                        damping: 0.09
+                    },
+                    solver: 'hierarchicalRepulsion'
+                },
+                edges: {
+                    length: 300 // Longer edges between nodes.
+
+                },
+                layout: {
+                    hierarchical: {
+                        direction: "UD",
+                        nodeSpacing: 380,
+                        treeSpacing: 580
+                    },
+                },
+                nodes: {
+                    size: 35,
+                    font: {
+                        size: 20,
+                        color: '#000000'
+                    },
+                    widthConstraint: {
+                        maximum: 300
+                    },
+                    /*fixed: {
+                        x: true,
+                        y: true
+                    },*/
+                },
+            };
+
+            // initialize your network!
+            network = new vis.Network(container, data, options);
+            checkEvents();
+        }
+
+        function checkEvents() {
+
+            network.on("doubleClick", function (params) {
+
+                params.event = "[original event]";
+                let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
+                let nodeId = parsedObject.nodes[0];
+
+                let node = getNodeObject(nodeId);
+
+                if (node === null) {
+                    return;
+                } else if (node.id === 1) {
+                    $(".container-fluid").children().not(nodePopup2).css({
+                        "pointer-events": "none",
+                        "opacity": "0.4"
+                    });
+                    nodePopup2.css("display", "block");
+                    nodePopupToRefer = nodePopup2;
+                } else if (node.id !== 1 && node.shape === 'circle') {
+                    if (node.isHidden)
+                        showAllSteps(nodeId);
+                    else
+                        hideAllSteps(nodeId);
+                    return;
+                }
+
+                $(".close").on("click", function (e) {
+                    e.stopImmediatePropagation();
+                    closeNodePopup(nodePopupToRefer);
+                });
+            });
+        }
+
+        let typingTimer;                //timer identifier
+        let doneTypingInterval = 800;  //time in ms, 2 second for example
+
+        //on keyup, start the countdown
+        nameOfRootNode.on('keyup', function () {
+            clearTimeout(typingTimer);
+            typingTimer = setTimeout(setRootNodeName, doneTypingInterval);
+        });
+
+        //on keydown, clear the countdown
+        nameOfRootNode.on('keydown', function () {
+            clearTimeout(typingTimer);
+        });
+
+        function setRootNodeName() {
+            let rootNodeName = nameOfRootNode.val();
+            if (rootNodeName.length < 5) {
+                alert("Please give a valid name for the root node of your situational method!!");
+                return false;
+            }
+
+            let rootNode = nodes[0];
+            rootNode.label = rootNodeName;
+            alert("Root node's name was set!!");
+            initializeGraph();
+        }
+
+
+        /*-----------------------------Helper Functions ----------------------------------*/
+        function getNodeObject(nodeId) {
+            let node = null;
+            nodes.forEach(function (item, index) {
+                if (item.id === nodeId)
+                    node = item;
+            });
+            return node;
+        }
+
+        function closeNodePopup(divToClose) {
+            divToClose.css("display", "none");
+            $(".container-fluid").children().not(divToClose).css({
+                "pointer-events": "auto",
+            });
+            $(".container-fluid").children().not(divToClose).css("opacity", "1");
+        }
+
+        function hideAllSteps(rootNodeId) {
+
+            getNodeObject(rootNodeId).color = "brown";
+            getNodeObject(rootNodeId).isHidden = true;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red")
+                    getNodeObject(edge.to).hidden = true;
+            });
+            initializeGraph();
+        }
+
+        function showAllSteps(rootNodeId) {
+            getNodeObject(rootNodeId).color = "#bababa";
+            getNodeObject(rootNodeId).isHidden = false;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red")
+                    getNodeObject(edge.to).hidden = false;
+            });
+            initializeGraph();
+        }
+
+        function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode) {
+
+            let totalNodeLength = nodes.length;
+            let rootNodeOfChildGraph = childNodes[0];
+
+            childNodes.forEach(function (node, index) {
+                node.oldId = node.id;
+                if (node.shape === 'circle') {
+                    node.title = "Double click to collapse/expand";
+                    node.isHidden = false;
+                }
+
+                node.id = totalNodeLength + 1;
+                node.margin = parseInt(node.margin);
+                if (node === rootNodeOfChildGraph)
+                    node.level = parseInt(parentNode.level) + 2;
+                else
+                    node.level = parseInt(rootNodeOfChildGraph.level) + parseInt(node.level);
+                totalNodeLength++;
+                nodes.push(node);
+            });
+
+            childEdges.forEach(function (edge, index) {
+                childNodes.forEach(function (node, index) {
+                    if (edge.from === node.oldId)
+                        edge.from = node.id;
+                    if (edge.to === node.oldId)
+                        edge.to = node.id;
+                });
+                edges.push(edge);
+            });
+
+            /*
+            Add the last edge from root node of the child graph
+            to the parent node.
+             */
+            edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
+            console.log(nodes);
+            initializeGraph();
+        }
 
     </script>
 {% endblock %}
