@@ -6,7 +6,8 @@
 
     {# Situational Checkboxes #}
     <h3 class="text-center mt-3">Situational Factors</h3>
-    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto" style="width: 90%;">
+    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto"
+         style="width: 90%;">
         {% for factor in situationalFactors %}
             <div class="d-flex flex-column m-2">
                 <h6><u>{{ factor.name }}</u></h6>
@@ -134,6 +135,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = [];
+        let totalHiddenTrees = 0;
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
            <div class="jumbotron m-2" style="width: 32%;">
@@ -199,9 +201,9 @@
         });
 
 
-        initializeGraph();
+        initializeGraph(true);
 
-        function initializeGraph() {
+        function initializeGraph(physicsStatus) {
             // create a network
             let container = document.getElementById('situational-methods');
 
@@ -212,16 +214,24 @@
             };
             let options = {
                 physics: {
-                    enabled:false
+                    enabled: physicsStatus,
+                    hierarchicalRepulsion: {
+                        centralGravity: 0.0,
+                        springLength: 450,
+                        springConstant: 0.01,
+                        nodeDistance: 450,
+                        damping: 0.09
+                    },
+                    solver: 'hierarchicalRepulsion'
                 },
                 edges: {
-                    length: 300 // Longer edges between nodes.
+                    length: 400// Longer edges between nodes.
 
                 },
                 layout: {
                     hierarchical: {
                         direction: "UD",
-                        nodeSpacing: 380,
+                        nodeSpacing: 400,
                     },
                 },
                 nodes: {
@@ -303,7 +313,7 @@
             let rootNode = nodes[0];
             rootNode.label = rootNodeName;
             alert("Root node's name was set!!");
-            initializeGraph();
+            initializeGraph(true);
         }
 
 
@@ -333,7 +343,8 @@
                 if (edge.from === rootNodeId && edge.color === "red")
                     getNodeObject(edge.to).hidden = true;
             });
-            initializeGraph();
+            totalHiddenTrees++;
+            initializeGraph(false);
         }
 
         function showAllSteps(rootNodeId) {
@@ -343,7 +354,11 @@
                 if (edge.from === rootNodeId && edge.color === "red")
                     getNodeObject(edge.to).hidden = false;
             });
-            initializeGraph();
+            totalHiddenTrees--;
+            if (totalHiddenTrees === 0)
+                initializeGraph(true);
+            else
+                initializeGraph(false);
         }
 
         function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode) {
@@ -384,7 +399,7 @@
              */
             edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
             console.log(nodes);
-            initializeGraph();
+            initializeGraph(true);
         }
 
     </script>
