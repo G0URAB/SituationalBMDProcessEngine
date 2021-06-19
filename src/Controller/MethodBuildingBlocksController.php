@@ -56,7 +56,7 @@ class MethodBuildingBlocksController extends AbstractController
     }
 
     /**
-     * @Route("/method/building/block/{id?}", name="edit_method_building_block")
+     * @Route("/method/building/block/edit/{id?}", name="edit_method_building_block")
      * @param Request $request
      * @param int $id
      * @return Response
@@ -86,6 +86,20 @@ class MethodBuildingBlocksController extends AbstractController
             $this->handleAsyncRequestForProcessTypes($request);
         }
         return new Response('Invalid request', 400);
+    }
+
+    /**
+     * @Route("/method/building/block/{id?}", name="show_method_building_block")
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
+    public function showMethodBuildingBlock(Request $request, int $id): Response
+    {
+        $block = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->find($id);
+        return $this->render('method_building_blocks/show.html.twig', [
+            'block' => $block
+        ]);
     }
 
 

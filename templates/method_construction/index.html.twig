@@ -5,20 +5,22 @@
 {% block body %}
 
     {# Situational Checkboxes #}
-    <h3 class="text-center mt-3">Situational Factors</h3>
-    <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto"
-         style="width: 90%;">
-        {% for factor in situationalFactors %}
-            <div class="d-flex flex-column m-2">
-                <h6><u>{{ factor.name }}</u></h6>
-                <div id="factor-{{ factor.id }}" class="d-flex flex-column align-items-start">
-                    {% for variant in factor.variants %}
-                        <label><input type="checkbox" name="factor-{{ factor.id }}-variant-{{ variant }}"
-                                      value="{{ factor~" : "~variant }}">{{ variant }}</label>
-                    {% endfor %}
+    <div id="situational-factor-box">
+        <h3 class="text-center mt-3">Situational Factors</h3>
+        <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto"
+             style="width: 90%;">
+            {% for factor in situationalFactors %}
+                <div class="d-flex flex-column m-2">
+                    <h6><u>{{ factor.name }}</u></h6>
+                    <div id="factor-{{ factor.id }}" class="d-flex flex-column align-items-start">
+                        {% for variant in factor.variants %}
+                            <label><input type="checkbox" name="factor-{{ factor.id }}-variant-{{ variant }}"
+                                          value="{{ factor~" : "~variant }}">{{ variant }}</label>
+                        {% endfor %}
+                    </div>
                 </div>
-            </div>
-        {% endfor %}
+            {% endfor %}
+        </div>
     </div>
 
     {# situation-specific BMD Graphs #}
@@ -54,28 +56,26 @@
 
     {# Modal 1 #}
     <div class="modal-dialog" role="document"
-         style="position: fixed;top: 8%; left:10%;display: none;" id="node-popup" data-nodeId="">
+         style="position: fixed;top: 8%; left:10%;display: none; width: 500px;" id="node-popup" data-nodeId="">
         <div class="modal-content">
             <div class="modal-header">
-                <label for="modal-process-type">Change Process Type of the Step</label>
-                <select class="form-control" id="modal-process-type">
-                    <option value="">Change process type</option>
-
-                </select>
+                <label for="modal-process-type"><b>Select methods for this step</b></label>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
             <div class="modal-body d-flex flex-column">
-                <label>Height of the step</label>
-                <div class="d-flex flex-row justify-content-between">
-                    <button class="btn btn-sm btn-dark rounded-circle" id="decrease-level">-</button>
-                    <span id="level"></span>
-                    <button class="btn btn-sm btn-primary rounded-circle" id="increase-level">+</button>
+                <div class="d-flex flex-column" id="method-blocks-box">
+                    <div id="spinner-2">
+                        <strong>Loading...</strong>
+                        <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
+                    </div>
                 </div>
             </div>
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" id="remove-step">Remove Step</button>
+                <button type="button" class="btn btn-secondary" id="add-these-blocks">Add above method blocks to the
+                    step
+                </button>
             </div>
         </div>
     </div>
@@ -135,6 +135,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = [];
+        let methodBlocks = [];
         let totalHiddenTrees = 0;
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
@@ -148,12 +149,12 @@
                 </p>
             </div>`;
 
-        $('input[type="checkbox"]').each(function () {
+        $('#situational-factor-box input[type="checkbox"]').each(function () {
             $(this).prop('checked', false);
         });
-        $('input[type=checkbox]').on("click", function () {
+        $('#situational-factor-box input[type=checkbox]').on("click", function () {
             let situationalFactors = [];
-            $("input:checked").each(function () {
+            $("#situational-factor-box input:checked").each(function () {
                 situationalFactors.push($(this).val());
             });
             $("#spinner").css("display", "block");
@@ -163,6 +164,7 @@
                 type: 'POST',
                 url: '{{ path('method_construction') }}',
                 data: {
+                    request_type: 'get_graphs',
                     situationalFactors: situationalFactors,
                 },
                 success: function (response) {
@@ -187,7 +189,7 @@
                                 situationalMethods.parent().find(".text-primary").remove();
                                 let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
                                 let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
-                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0]);
+                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"));
                             });
 
                         });
@@ -217,21 +219,21 @@
                     enabled: physicsStatus,
                     hierarchicalRepulsion: {
                         centralGravity: 0.0,
-                        springLength: 450,
+                        springLength: 300,
                         springConstant: 0.01,
-                        nodeDistance: 450,
+                        nodeDistance: 300,
                         damping: 0.09
                     },
                     solver: 'hierarchicalRepulsion'
                 },
                 edges: {
-                    length: 400// Longer edges between nodes.
+                    length: 320// Longer edges between nodes.
 
                 },
                 layout: {
                     hierarchical: {
                         direction: "UD",
-                        nodeSpacing: 400,
+                        nodeSpacing: 350,
                     },
                 },
                 nodes: {
@@ -268,18 +270,72 @@
                 if (node === null) {
                     return;
                 } else if (node.id === 1) {
-                    $(".container-fluid").children().not(nodePopup2).css({
-                        "pointer-events": "none",
-                        "opacity": "0.4"
-                    });
-                    nodePopup2.css("display", "block");
-                    nodePopupToRefer = nodePopup2;
+                    showNodePopup(nodePopup2);
                 } else if (node.id !== 1 && node.shape === 'circle') {
                     if (node.isHidden)
                         showAllSteps(nodeId);
                     else
                         hideAllSteps(nodeId);
                     return;
+                } else if (node.shape === 'box') {
+                    showNodePopup(nodePopup);
+                    nodePopup.attr("data-nodeId", node.id);
+                    let localRootNode = getLocalRootNodeObject(node.id)
+                    console.log(localRootNode);
+                    $.ajax({
+                        type: 'POST',
+                        url: '{{ path('method_construction') }}',
+                        data: {
+                            request_type: 'get_method_blocks',
+                            process_type: (node.label).replace(">>", "").replace("<<", ""),
+                            graph_name: localRootNode.graphName,
+                        },
+                        success: function (response) {
+                            $("#spinner-2").css("display", "none");
+                            let obj = JSON.parse(JSON.stringify(response));
+                            console.log(obj);
+
+                            let methodBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
+                              <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
+                               data-outputArtifacts="${outputArtifacts}" data-tools="${tools}">
+                                    <input class="form-check-input" type="checkbox" value="" id="method-block-${id}">
+                                    <label class="form-check-label" for="method-block-${id}">
+                                        <a target="_blank" href="/method/building/block/${id}">${name}</a>
+                                    </label>
+                              </div>
+                            `;
+                            obj.data.forEach(function (item, index) {
+                                $("#method-blocks-box").append(methodBlockDiv(
+                                    item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
+                                ));
+                            });
+
+                            let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+
+                            $('#method-blocks-box input[type=checkbox]').on("click", function () {
+                                if (totalBlocks > 0)
+                                    $("#add-these-blocks").prop("disabled", false);
+                                else
+                                    $("#add-these-blocks").prop("disabled", true);
+                            });
+
+                            $("#add-these-blocks").on("click", function () {
+
+                                $('#method-blocks-box input[type="checkbox"]:checked').each(function () {
+                                    let methodObject = {
+                                        id: nodes.length+1,
+                                        shape:'box',
+                                        processType: localRootNode.label,
+                                        margin: 8,
+                                        level: parseInt(localRootNode.level) + 2,
+                                        label: $(this).next('label').text(),
+                                        rootNode: localRootNode
+                                    };
+                                });
+                            });
+
+                        }
+                    });
                 }
 
                 $(".close").on("click", function (e) {
@@ -335,6 +391,24 @@
             $(".container-fluid").children().not(divToClose).css("opacity", "1");
         }
 
+        function showNodePopup(divToShow) {
+
+            if (divToShow === nodePopup) {
+                $("#spinner-2").css("display", "block");
+                $('#method-blocks-box input[type="checkbox"]').each(function () {
+                    $(this).parent().remove();
+                });
+                $("#add-these-blocks").prop("disabled", true);
+            }
+
+            $(".container-fluid").children().not(divToShow).css({
+                "pointer-events": "none",
+                "opacity": "0.4"
+            });
+            divToShow.css("display", "block");
+            nodePopupToRefer = divToShow;
+        }
+
         function hideAllSteps(rootNodeId) {
 
             getNodeObject(rootNodeId).color = "brown";
@@ -361,7 +435,7 @@
                 initializeGraph(false);
         }
 
-        function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode) {
+        function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode, nameOfTheLocalGraph) {
 
             let totalNodeLength = nodes.length;
             let rootNodeOfChildGraph = childNodes[0];
@@ -371,6 +445,7 @@
                 if (node.shape === 'circle') {
                     node.title = "Double click to collapse/expand";
                     node.isHidden = false;
+                    node.graphName = nameOfTheLocalGraph;
                 }
 
                 node.id = totalNodeLength + 1;
@@ -398,8 +473,21 @@
             to the parent node.
              */
             edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
-            console.log(nodes);
-            initializeGraph(true);
+            if (totalHiddenTrees === 0)
+                initializeGraph(true);
+            else
+                initializeGraph(false);
+        }
+
+        function getLocalRootNodeObject(nodeId) {
+
+            let localRootNodeObject = null;
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
+                    localRootNodeObject = getNodeObject(parseInt(edge.from));
+                }
+            });
+            return localRootNodeObject;
         }
 
     </script>

@@ -6,7 +6,7 @@ use App\Entity\BmdGraph;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalFactor;
 use App\Form\BmdGraphType;
-use App\Service\FormHelperService;
+use App\Service\dataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -32,28 +32,28 @@ class BmdGraphController extends AbstractController
      * @Route("/bmd/graph/create", name="create_bmd_graph")
      * @param Request $request
      * @param SessionInterface $session
-     * @param FormHelperService $formHelperService
+     * @param dataService $graphService
      * @return Response
      */
-    public function create(Request $request, SessionInterface $session, FormHelperService $formHelperService): Response
+    public function create(Request $request, SessionInterface $session, dataService $graphService): Response
     {
         $submittedToken = $request->request->get('token');
 
         $bmdGraph = new BmdGraph();
-        $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $formHelperService->getSituationalChoices()]);
+        $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $graphService->getSituationalChoices()]);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             if (!$this->isCsrfTokenValid('bmd-graph', $submittedToken)) {
                 $form->addError(new FormError("Looks like this form has been hacked!!"));
                 return $this->render('bmd_graphs/create.html.twig', [
-                    'processTypes' => $formHelperService->getAllProcessTypes(),
-                    'situationalFactors' => $formHelperService->getSituationalChoices(),
+                    'processTypes' => $graphService->getAllProcessTypes(),
+                    'situationalFactors' => $graphService->getSituationalChoices(),
                     'form' => $form->createView()
                 ]);
             }
 
-            $bmdGraph = $formHelperService->processBMDGraph($bmdGraph, $session->get("nodes"), $session->get("edges"));
+            $bmdGraph = $graphService->processBMDGraph($bmdGraph, $session->get("nodes"), $session->get("edges"));
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($bmdGraph);
@@ -62,7 +62,7 @@ class BmdGraphController extends AbstractController
         }
 
         return $this->render('bmd_graphs/create.html.twig', [
-            'processTypes' => $formHelperService->getAllProcessTypes(),
+            'processTypes' => $graphService->getAllProcessTypes(),
             'form' => $form->createView()
         ]);
     }
@@ -103,15 +103,15 @@ class BmdGraphController extends AbstractController
      * @param $id
      * @param Request $request
      * @param SessionInterface $session
-     * @param FormHelperService $formHelperService
+     * @param dataService $graphService
      * @return Response
      */
-    public function editGraph($id, Request $request, SessionInterface $session, FormHelperService $formHelperService)
+    public function editGraph($id, Request $request, SessionInterface $session, dataService $graphService)
     {
         $submittedToken = $request->request->get('token');
 
         $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->find($id);
-        $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $formHelperService->getSituationalChoices()]);
+        $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $graphService->getSituationalChoices()]);
 
         $form->handleRequest($request);
 
@@ -119,13 +119,13 @@ class BmdGraphController extends AbstractController
             if (!$this->isCsrfTokenValid('bmd-graph', $submittedToken)) {
                 $form->addError(new FormError("Looks like this form has been hacked!!"));
                 return $this->render('bmd_graphs/update.html.twig', [
-                    'processTypes' => $formHelperService->getAllProcessTypes(),
-                    'situationalFactors' => $formHelperService->getSituationalChoices(),
+                    'processTypes' => $graphService->getAllProcessTypes(),
+                    'situationalFactors' => $graphService->getSituationalChoices(),
                     'form' => $form->createView()
                 ]);
             }
 
-            $bmdGraph = $formHelperService->processBMDGraph($bmdGraph, $session->get("nodes"), $session->get("edges"));
+            $bmdGraph = $graphService->processBMDGraph($bmdGraph, $session->get("nodes"), $session->get("edges"));
 
             $entityManager = $this->getDoctrine()->getManager();
             $entityManager->persist($bmdGraph);
@@ -134,7 +134,7 @@ class BmdGraphController extends AbstractController
         }
 
         return $this->render("bmd_graphs/update.html.twig", [
-            'processTypes' => $formHelperService->getAllProcessTypes(),
+            'processTypes' => $graphService->getAllProcessTypes(),
             'form' => $form->createView(),
             'graph'=>$bmdGraph
         ]);

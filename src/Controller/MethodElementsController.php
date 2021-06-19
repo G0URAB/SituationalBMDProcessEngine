@@ -14,7 +14,7 @@ use App\Form\ProcessType;
 use App\Form\RoleType;
 use App\Form\SituationalFactorType;
 use App\Form\ToolType;
-use App\Service\FormHelperService;
+use App\Service\DataService;
 use Doctrine\ORM\EntityManagerInterface;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -40,33 +40,33 @@ class MethodElementsController extends AbstractController
 
     /**
      * @Route("/method_elements", name="method_elements")
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function index(FormHelperService $formHelperService): Response
+    public function index(DataService $dataService): Response
     {
         return $this->render('method_elements/index.html.twig', [
-            'artifacts' => $formHelperService->getAllArtifacts(),
-            'processes' => $formHelperService->getAllProcesses(),
-            'processTypes' => $formHelperService->getAllProcessTypes(),
-            'roles' => $formHelperService->getAllRoles(),
-            'situationalFactors' => $formHelperService->getAllSituationalFactors(),
-            'tools' => $formHelperService->getAllTools()
+            'artifacts' => $dataService->getAllArtifacts(),
+            'processes' => $dataService->getAllProcesses(),
+            'processTypes' => $dataService->getAllProcessTypes(),
+            'roles' => $dataService->getAllRoles(),
+            'situationalFactors' => $dataService->getAllSituationalFactors(),
+            'tools' => $dataService->getAllTools()
         ]);
     }
 
     /**
      * @Route("/method_elements/process/create", name="create_process")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function createProcess(Request $request, FormHelperService $formHelperService): Response
+    public function createProcess(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('processes', ProcessType::class);
+        $form = $this->createMultiEntityForm('processes', ProcessType::class);
         $childAndParentProcessTypes = [];
 
-        foreach ($formHelperService->getAllProcessTypes() as $kind) {
+        foreach ($dataService->getAllProcessTypes() as $kind) {
             if ($kind->getParentProcessKind())
                 $childAndParentProcessTypes[$kind->getName()] = $kind->getParentProcessKind()->getName();
         }
@@ -75,7 +75,7 @@ class MethodElementsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['processes'] as $process) {
-                foreach ($formHelperService->getAllProcesses() as $existingProcess) {
+                foreach ($dataService->getAllProcesses() as $existingProcess) {
                     if (strcasecmp($existingProcess->getName(), $process->getName()) === 0) {
                         $form->addError(new FormError($process->getName() . ' already exists'));
                         return $this->render('method_elements/processes/create.html.twig', [
@@ -104,16 +104,16 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/process/edit/{id?}", name="edit_process")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @param $id
      * @return Response
      */
-    public function editProcess(Request $request, FormHelperService $formHelperService, $id)
+    public function editProcess(Request $request, DataService $dataService, $id)
     {
         $process = $this->entityManager->getRepository(Process::class)->find($id);
         $childAndParentProcessTypes = [];
 
-        foreach ($formHelperService->getAllProcessTypes() as $kind) {
+        foreach ($dataService->getAllProcessTypes() as $kind) {
             if ($kind->getParentProcessKind())
                 $childAndParentProcessTypes[$kind->getName()] = $kind->getParentProcessKind()->getName();
         }
@@ -137,16 +137,17 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/role/create", name="create_role")
      * @param Request $request
+     * @param DataService $dataService
      * @return Response
      */
-    public function createRole(Request $request, FormHelperService $formHelperService): Response
+    public function createRole(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('roles', RoleType::class);
+        $form = $this->createMultiEntityForm('roles', RoleType::class);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['roles'] as $role) {
-                foreach ($formHelperService->getAllRoles() as $existingRole) {
+                foreach ($dataService->getAllRoles() as $existingRole) {
                     if (strcasecmp($existingRole->getName(), $role->getName()) === 0) {
                         $form->addError(new FormError($role->getName() . ' already exists'));
                         return $this->render('method_elements/roles/create.html.twig', [
@@ -193,17 +194,17 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/artifact/create", name="create_artifact")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function createArtifact(Request $request, FormHelperService $formHelperService): Response
+    public function createArtifact(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('artifacts', ArtifactType::class);
+        $form = $this->createMultiEntityForm('artifacts', ArtifactType::class);
 
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['artifacts'] as $artifact) {
-                foreach ($formHelperService->getAllArtifacts() as $existingArtifact) {
+                foreach ($dataService->getAllArtifacts() as $existingArtifact) {
                     if (strcasecmp($existingArtifact->getName(), $artifact->getName()) === 0) {
                         $form->addError(new FormError($artifact->getName() . ' already exists'));
                         return $this->render('method_elements/artifacts/create.html.twig', [
@@ -250,16 +251,16 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/process_type/create", name="create_process_type")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function createProcessKind(Request $request, FormHelperService $formHelperService): Response
+    public function createProcessKind(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('processKinds', ProcessKindType::class);
+        $form = $this->createMultiEntityForm('processKinds', ProcessKindType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['processKinds'] as $processKind) {
-                foreach ($formHelperService->getAllProcessTypes() as $existingProcessKind) {
+                foreach ($dataService->getAllProcessTypes() as $existingProcessKind) {
                     if (strcasecmp($existingProcessKind->getName(), $processKind->getName()) === 0) {
                         $form->addError(new FormError($processKind->getName() . ' already exists'));
                         return $this->render('method_elements/process_types/create.html.twig', [
@@ -305,16 +306,16 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/situational_factor/create", name="create_situational_factor")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function createSituationalFactor(Request $request, FormHelperService $formHelperService): Response
+    public function createSituationalFactor(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('situationalFactors', SituationalFactorType::class);
+        $form = $this->createMultiEntityForm('situationalFactors', SituationalFactorType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['situationalFactors'] as $situationalFactor) {
-                foreach ($formHelperService->getAllSituationalFactors() as $existingSituationalFactor) {
+                foreach ($dataService->getAllSituationalFactors() as $existingSituationalFactor) {
                     if (strcasecmp($existingSituationalFactor->getName(), $situationalFactor->getName()) === 0) {
                         $form->addError(new FormError($situationalFactor->getName() . ' already exists'));
                         return $this->render('method_elements/situational_factors/create.html.twig', [
@@ -360,16 +361,16 @@ class MethodElementsController extends AbstractController
     /**
      * @Route("/method_elements/tool/create", name="create_tool")
      * @param Request $request
-     * @param FormHelperService $formHelperService
+     * @param DataService $dataService
      * @return Response
      */
-    public function createTool(Request $request, FormHelperService $formHelperService): Response
+    public function createTool(Request $request, DataService $dataService): Response
     {
-        $form = $formHelperService->createMultiEntityForm('tools', ToolType::class);
+        $form = $this->createMultiEntityForm('tools', ToolType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
             foreach ($form->getData()['tools'] as $tool) {
-                foreach ($formHelperService->getAllTools() as $existingTool) {
+                foreach ($dataService->getAllTools() as $existingTool) {
                     if (strcasecmp($existingTool->getType(), $tool->getType()) === 0) {
                         $form->addError(new FormError($tool->getType() . ' already exists. Please add new tools inside this tool type.'));
                         return $this->render('method_elements/tools/create.html.twig', [
@@ -438,6 +439,25 @@ class MethodElementsController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute('method_elements');
+    }
+
+    public function createMultiEntityForm(string $multiEntityFormat, $formType)
+    {
+        return $this->createFormBuilder()
+            ->add($multiEntityFormat, CollectionType::class, [
+                'label' => false,
+                'entry_type' => $formType,
+                'entry_options' => [
+                    'label' => false
+                ],
+                'allow_add' => true,
+                'allow_delete' => true,
+                'prototype' => true,
+                'error_bubbling' => false,
+                'allow_extra_fields' => true
+            ])
+            ->add('Submit', SubmitType::class)
+            ->getForm();
     }
 
 }

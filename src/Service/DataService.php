@@ -9,10 +9,10 @@ use App\Entity\Role;
 use App\Entity\SituationalFactor;
 use App\Entity\Tool;
 use Doctrine\ORM\EntityManagerInterface;
-use Symfony\Component\Form\Extension\Core\Type\CollectionType;
-use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 
-class FormHelperService{
+
+class DataService
+{
 
     private $entityManager;
     private $situationalChoices = [];
@@ -23,6 +23,7 @@ class FormHelperService{
     private $artifacts;
     private $tools;
     private $situationalFactors;
+    private $builder;
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -87,12 +88,12 @@ class FormHelperService{
         $id_of_process_types_to_remove = [];
 
         foreach ($bmdGraph->getChildProcessKinds() as $processKind)
-            array_push($id_of_old_process_types,$processKind->getId());
+            array_push($id_of_old_process_types, $processKind->getId());
 
         //Add child-processes to the graph
         foreach ($nodes as $node) {
             if ($node["shape"] === "box") {
-                array_push($id_of_new_process_types,$node["tableId"]);
+                array_push($id_of_new_process_types, $node["tableId"]);
                 $childProcessType = $this->entityManager->getRepository(ProcessKind::class)->find($node["tableId"]);
                 $bmdGraph->addChildProcessKind($childProcessType);
             }
@@ -100,17 +101,14 @@ class FormHelperService{
 
         //find old process types that needs to be removed
         foreach ($id_of_old_process_types as $oldId) {
-            if(!in_array($oldId,$id_of_new_process_types))
-                array_push($id_of_process_types_to_remove,$oldId);
+            if (!in_array($oldId, $id_of_new_process_types))
+                array_push($id_of_process_types_to_remove, $oldId);
         }
 
         //Remove child-process from the graph
-        foreach ($id_of_process_types_to_remove as $id)
-        {
-            foreach ($bmdGraph->getChildProcessKinds()->toArray() as $processType)
-            {
-                if($processType->getId()==$id)
-                {
+        foreach ($id_of_process_types_to_remove as $id) {
+            foreach ($bmdGraph->getChildProcessKinds()->toArray() as $processType) {
+                if ($processType->getId() == $id) {
                     $bmdGraph->removeChildProcessKind($processType);
                 }
 
@@ -122,24 +120,4 @@ class FormHelperService{
 
         return $bmdGraph;
     }
-
-    public function createMultiEntityForm(string $multiEntityFormat, $formType)
-    {
-        return $this->createFormBuilder()
-            ->add($multiEntityFormat, CollectionType::class, [
-                'label' => false,
-                'entry_type' => $formType,
-                'entry_options' => [
-                    'label' => false
-                ],
-                'allow_add' => true,
-                'allow_delete' => true,
-                'prototype' => true,
-                'error_bubbling' => false,
-                'allow_extra_fields' => true
-            ])
-            ->add('Submit', SubmitType::class)
-            ->getForm();
-    }
-
 }

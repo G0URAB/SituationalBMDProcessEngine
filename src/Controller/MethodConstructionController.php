@@ -3,11 +3,12 @@
 namespace App\Controller;
 
 use App\Entity\BmdGraph;
+use App\Entity\MethodBuildingBlock;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalFactor;
 
 use App\Form\BmdGraphType;
-use App\Service\FormHelperService;
+use App\Service\dataService;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -36,44 +37,95 @@ class MethodConstructionController extends AbstractController
             ]);
         }
 
-        $matchingGraphs = [];
-        if ($request->get('situationalFactors')) {
-            $queriedFactors = $request->get("situationalFactors");
-            $countOfQueriedFactors = count($queriedFactors);
-            $totalGraphs = $this->getDoctrine()->getRepository(BmdGraph::class)->findAll();
-            foreach ($totalGraphs as $graph) {
+        if ($request->get("request_type") == "get_graphs") {
+            $matchingGraphs = [];
+            if ($request->get('situationalFactors')) {
+                $queriedFactors = $request->get("situationalFactors");
+                $countOfQueriedFactors = count($queriedFactors);
+                $totalGraphs = $this->getDoctrine()->getRepository(BmdGraph::class)->findAll();
+                foreach ($totalGraphs as $graph) {
 
-                $countFound = 0;
-                foreach ($graph->getSituationalFactors() as $factor) {
+                    $countFound = 0;
+                    foreach ($graph->getSituationalFactors() as $factor) {
 
-                    if (in_array($factor, $queriedFactors)) {
-                        $countFound++;
+                        if (in_array($factor, $queriedFactors)) {
+                            $countFound++;
+                        }
+                    }
+                    if ($countOfQueriedFactors == $countFound) {
+                        $obj = new stdClass;
+                        $obj->id = $graph->getId();
+                        $obj->name = $graph->getName();
+                        $obj->nodes = $graph->getNodes();
+                        $obj->edges = $graph->getEdges();
+                        $obj->situationalFactors = $graph->getImplodedSituationalFactors();
+                        $matchingGraphs[] = $obj;
+                    }
+
+                }
+            }
+            return new JsonResponse(['status' => "ok", 'graphs' => $matchingGraphs]);
+        }
+
+        if ($request->get("request_type") == "get_method_blocks") {
+            $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->findOneBy([
+                'name' => $request->get("graph_name")
+            ]);
+
+            $processType = $this->getDoctrine()->getRepository(ProcessKind::class)->findOneBy([
+                'name' => $request->get("process_type")
+            ]);
+
+            $situationSpecificMethodBuildingBlocks = [];
+
+            foreach ($processType->getProcesses() as $process) {
+
+                $matchedSituationalFactors = 0;
+                $totalSituationalFactors = 0;
+
+                $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findOneBy([
+                    'process' => $process
+                ]);
+
+                if ($methodBlock) {
+                    foreach ($methodBlock->getSituationalFactors() as $factor) {
+                        if (in_array($factor, $bmdGraph->getSituationalFactors()))
+                            $matchedSituationalFactors++;
+                        $totalSituationalFactors++;
+                    }
+
+                    /*
+                     * If percentage of situational factors are more than or equal to 60% then recommend the method block.
+                     * If the method block can be used in all situation, then recommend it as well.
+                     */
+                    $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
+                    if ($percentageOfSituationalApplicability >= 60 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
+                        $obj = new stdClass;
+                        $obj->id = $methodBlock->getId();
+                        $obj->name = $methodBlock->getProcess()->getName();
+                        $obj->inputArtifacts = $methodBlock->getInputArtifacts();
+                        $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
+                        $obj->roles = $methodBlock->getRoles();
+                        $obj->tools = $methodBlock->getTools();
+                        $situationSpecificMethodBuildingBlocks[] = $obj;
                     }
                 }
-                if ($countOfQueriedFactors == $countFound) {
-                    $obj = new stdClass;
-                    $obj->id = $graph->getId();
-                    $obj->name = $graph->getName();
-                    $obj->nodes = $graph->getNodes();
-                    $obj->edges = $graph->getEdges();
-                    $obj->situationalFactors = $graph->getImplodedSituationalFactors();
-                    $matchingGraphs[] = $obj;
-                }
-
             }
+            return new JsonResponse(['data' => $situationSpecificMethodBuildingBlocks]);
         }
-        return new JsonResponse(['status' => "ok", 'graphs' => $matchingGraphs]);
+
+        return new Response("Invalid request", 400);
     }
 
     /**
      * @Route("/construct/method/{id?}", name="construct_method")
      * @param Request $request
      * @param SessionInterface $session
-     * @param FormHelperService $formHelperService
+     * @param dataService $formHelperService
      * @param $id
      * @return Response
      */
-    public function construct(Request $request, SessionInterface $session, FormHelperService $formHelperService,$id): Response
+    public function construct(Request $request, SessionInterface $session, dataService $formHelperService, $id): Response
     {
         $submittedToken = $request->request->get('token');
 
@@ -103,10 +155,9 @@ class MethodConstructionController extends AbstractController
         return $this->render("method_construction/construct.html.twig", [
             'processTypes' => $formHelperService->getAllProcessTypes(),
             'form' => $form->createView(),
-            'graph'=>$bmdGraph
+            'graph' => $bmdGraph
         ]);
     }
-
 
 
 }
