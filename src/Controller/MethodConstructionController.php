@@ -4,11 +4,12 @@ namespace App\Controller;
 
 use App\Entity\BmdGraph;
 use App\Entity\MethodBuildingBlock;
+use App\Entity\Process;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalFactor;
 
 use App\Form\BmdGraphType;
-use App\Service\dataService;
+use App\Service\DataService;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
@@ -27,13 +28,23 @@ class MethodConstructionController extends AbstractController
      * @param Request $request
      * @return Response
      */
-    public function index(Request $request): Response
+    public function index(Request $request, DataService $dataService): Response
     {
         if (!$request->isXmlHttpRequest()) {
-            $entityManager = $this->getDoctrine()->getManager();
-            $situationalFactors = $entityManager->getRepository(SituationalFactor::class)->findAll();
+
+            $situationalFactors = $dataService->getAllSituationalFactors();
+
+            $tools = [];
+            $roles = [];
+            foreach ($dataService->getAllTools() as $tool)
+                $tools [$tool->getType()] = $tool->getImplodedVariants();
+            foreach ($dataService->getAllRoles() as $role)
+                $roles [] = $role->getName();
+
             return $this->render('method_construction/index.html.twig', [
                 'situationalFactors' => $situationalFactors,
+                'tools' => $tools,
+                'roles' => $roles,
             ]);
         }
 
@@ -80,37 +91,27 @@ class MethodConstructionController extends AbstractController
 
             foreach ($processType->getProcesses() as $process) {
 
-                $matchedSituationalFactors = 0;
-                $totalSituationalFactors = 0;
-
                 $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findOneBy([
                     'process' => $process
                 ]);
 
-                if ($methodBlock) {
-                    foreach ($methodBlock->getSituationalFactors() as $factor) {
-                        if (in_array($factor, $bmdGraph->getSituationalFactors()))
-                            $matchedSituationalFactors++;
-                        $totalSituationalFactors++;
-                    }
+                if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph))
+                    $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
+            }
 
-                    /*
-                     * If percentage of situational factors are more than or equal to 60% then recommend the method block.
-                     * If the method block can be used in all situation, then recommend it as well.
-                     */
-                    $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
-                    if ($percentageOfSituationalApplicability >= 60 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
-                        $obj = new stdClass;
-                        $obj->id = $methodBlock->getId();
-                        $obj->name = $methodBlock->getProcess()->getName();
-                        $obj->inputArtifacts = $methodBlock->getInputArtifacts();
-                        $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
-                        $obj->roles = $methodBlock->getRoles();
-                        $obj->tools = $methodBlock->getTools();
-                        $situationSpecificMethodBuildingBlocks[] = $obj;
-                    }
+            //Also check which other processes can also be used in this process type
+            $allProcesses = $this->getDoctrine()->getRepository(Process::class)->findAll();
+            foreach ($allProcesses as $process) {
+                if (in_array($processType, $process->getOtherRelatedProcessKinds())) {
+                    $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findOneBy([
+                        'process' => $process
+                    ]);
+
+                    if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph))
+                        $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
                 }
             }
+
             return new JsonResponse(['data' => $situationSpecificMethodBuildingBlocks]);
         }
 
@@ -121,16 +122,23 @@ class MethodConstructionController extends AbstractController
      * @Route("/construct/method/{id?}", name="construct_method")
      * @param Request $request
      * @param SessionInterface $session
-     * @param dataService $formHelperService
+     * @param DataService $formHelperService
      * @param $id
      * @return Response
      */
-    public function construct(Request $request, SessionInterface $session, dataService $formHelperService, $id): Response
+    public function construct(Request $request, SessionInterface $session, DataService $formHelperService, $id): Response
     {
         $submittedToken = $request->request->get('token');
 
         $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->find($id);
         $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $formHelperService->getSituationalChoices()]);
+
+        $tools = [];
+        $roles = [];
+        foreach ($formHelperService->getAllTools() as $tool)
+            $tools [$tool->getType()] = $tool->getImplodedVariants();
+        foreach ($formHelperService->getAllRoles() as $role)
+            $roles [] = $role->getName();
 
         $form->handleRequest($request);
 
@@ -155,9 +163,51 @@ class MethodConstructionController extends AbstractController
         return $this->render("method_construction/construct.html.twig", [
             'processTypes' => $formHelperService->getAllProcessTypes(),
             'form' => $form->createView(),
-            'graph' => $bmdGraph
+            'graph' => $bmdGraph,
+            'tools' => $tools,
+            'roles' => $roles,
         ]);
     }
 
+    public function checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)
+    {
+        $methodBlockIsSituationSpecific = false;
+
+        if ($methodBlock) {
+
+            $matchedSituationalFactors = 0;
+            $totalSituationalFactors = 0;
+
+            foreach ($methodBlock->getSituationalFactors() as $factor) {
+                if (in_array($factor, $bmdGraph->getSituationalFactors()))
+                    $matchedSituationalFactors++;
+                $totalSituationalFactors++;
+            }
+
+            /*
+             * If percentage of situational factors are more than or equal to 50% then recommend the method block.
+             * If the method block can be used in all situation, then recommend it as well.
+             */
+            $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
+            if ($percentageOfSituationalApplicability >= 50 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
+                $methodBlockIsSituationSpecific = true;
+            }
+        }
+
+        return $methodBlockIsSituationSpecific;
+    }
+
+    public function getMethodBlockObject($methodBlock)
+    {
+        $obj = new stdClass;
+        $obj->id = $methodBlock->getId();
+        $obj->name = $methodBlock->getProcess()->getName();
+        $obj->inputArtifacts = $methodBlock->getInputArtifacts();
+        $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
+        $obj->roles = explode(", ", $methodBlock->implodedRoles());
+        $obj->tools = explode(", ", $methodBlock->getImplodedTools());
+
+        return $obj;
+    }
 
 }

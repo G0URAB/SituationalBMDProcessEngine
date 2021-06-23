@@ -6,7 +6,7 @@ use App\Entity\BmdGraph;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalFactor;
 use App\Form\BmdGraphType;
-use App\Service\dataService;
+use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;

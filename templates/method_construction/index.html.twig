@@ -48,7 +48,7 @@
             <h6 class=" mt-4 text-center w-100 text-success"><i>Select BMD Graphs to Construct a situational
                     method. </i></h6>
             <div id="situational-methods"
-                 style="width: 100%; height: 96%; display: flex; flex-direction: row; align-items: flex-start">
+                 style="width: 100%; height: 93%; display: flex; flex-direction: row; align-items: flex-start">
 
             </div>
         </div>
@@ -66,13 +66,20 @@
             </div>
             <div class="modal-body d-flex flex-column">
                 <div class="d-flex flex-column" id="method-blocks-box">
+
                     <div id="spinner-2">
                         <strong>Loading...</strong>
                         <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
                     </div>
+                    {#-------------------Method Blocks Come Here -------------------------#}
                 </div>
             </div>
-            <div class="modal-footer">
+            <div class="modal-footer"
+                 style="display:flex; flex-direction: row; justify-content: space-between; flex-wrap: wrap">
+                <button type="button" class="btn btn-warning" id="hide-step-method-blocks" style="display: none;">
+                    Hide/Show step's method blocks
+                </button>
+
                 <button type="button" class="btn btn-secondary" id="add-these-blocks">Add above method blocks to the
                     step
                 </button>
@@ -96,6 +103,61 @@
                     <span aria-hidden="true">&times;</span>
                 </button>
             </div>
+        </div>
+    </div>
+
+    {# Modal 3 : Popup For Method Blocks #}
+    <div id="method-block-popup" tabindex="-1"
+         style="position: fixed;top: 8%; left:10%;display: none; width: 60%; background: #a4cbf8"
+         role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
+        <div class="modal-content">
+            {# Header #}
+            <div class="modal-header">
+                <h5 class="modal-title" id="name-of-method-block"> {#Name of block comes here#}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            {# Body #}
+            <div class="modal-body">
+                {# input artifacts, output artifacts, roles and tools come here #}
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Input Artifacts</h5>
+                    <div class="input-artifacts">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Output Artifacts</h5>
+                    <div class="output-artifacts">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Roles</h5>
+                    <div class="roles">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Tools</h5>
+                    <div class="tools">
+
+                    </div>
+                </div>
+
+            </div>
+
+            {# Footer #}
+            <div class="modal-footer">
+                <button type="button" class="btn btn-danger" data-dismiss="modal">Remove Method Block</button>
+                <button type="button" class="btn btn-primary">Save Data</button>
+            </div>
+
         </div>
     </div>
 
@@ -127,16 +189,24 @@
         let body = $("body");
         let nodePopup = $("#node-popup");
         let nodePopup2 = $("#node-popup-2")
+        let methodBlockPopup = $("#method-block-popup");
         let processTypeInModal = $("#modal-process-type");
         let level = $("#level");
         let situationalMethods = $("#situational-methods");
         let nameOfRootNode = $("#name-of-root-node");
+        let hideShowMethodBlocksOfStep = $("#hide-step-method-blocks");
         nameOfRootNode.val("");
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = [];
-        let methodBlocks = [];
+        let tasks = [];
         let totalHiddenTrees = 0;
+        let temporaryNode = null;
+
+        let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
+        let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
+
+        console.log(tools, roles);
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
            <div class="jumbotron m-2" style="width: 32%;">
@@ -271,33 +341,48 @@
                     return;
                 } else if (node.id === 1) {
                     showNodePopup(nodePopup2);
-                } else if (node.id !== 1 && node.shape === 'circle') {
+                } else if (node.id !== 1 && (node.shape === 'circle')) {
                     if (node.isHidden)
                         showAllSteps(nodeId);
                     else
                         hideAllSteps(nodeId);
                     return;
-                } else if (node.shape === 'box') {
+                } else if ((node.shape === 'box' || node.shape === 'diamond') && node.type === "processType") {
                     showNodePopup(nodePopup);
                     nodePopup.attr("data-nodeId", node.id);
-                    let localRootNode = getLocalRootNodeObject(node.id)
-                    console.log(localRootNode);
+                    let localRootNode = getLocalRootNodeObject(node.id);
+
+                    temporaryNode = node;
+
+                    if (node.shape === 'diamond') {
+                        hideShowMethodBlocksOfStep.css("display", "block");
+                        hideShowMethodBlocksOfStep.on("click", function (e) {
+                            e.stopImmediatePropagation();
+                            node = refreshedNodeValue();
+                            if (node.isHidden)
+                                showAllSteps(node.id);
+                            else
+                                hideAllSteps(node.id);
+                            closeNodePopup(nodePopup);
+                        });
+                    }
+
                     $.ajax({
                         type: 'POST',
                         url: '{{ path('method_construction') }}',
                         data: {
                             request_type: 'get_method_blocks',
-                            process_type: (node.label).replace(">>", "").replace("<<", ""),
+                            process_type: 'label' in node ?
+                                (node.label).replace(">>", "").replace("<<", "") : node.title,
                             graph_name: localRootNode.graphName,
                         },
                         success: function (response) {
                             $("#spinner-2").css("display", "none");
                             let obj = JSON.parse(JSON.stringify(response));
-                            console.log(obj);
 
                             let methodBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
                               <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
-                               data-outputArtifacts="${outputArtifacts}" data-tools="${tools}">
+                               data-outputArtifacts="${outputArtifacts}" data-tools="${tools}" data-id="${id}">
                                     <input class="form-check-input" type="checkbox" value="" id="method-block-${id}">
                                     <label class="form-check-label" for="method-block-${id}">
                                         <a target="_blank" href="/method/building/block/${id}">${name}</a>
@@ -305,37 +390,217 @@
                               </div>
                             `;
                             obj.data.forEach(function (item, index) {
-                                $("#method-blocks-box").append(methodBlockDiv(
-                                    item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
-                                ));
+
+                                if (!stepAlreadyHasThisMethodBlock(item.id, node.id)) {
+                                    $("#method-blocks-box").append(methodBlockDiv(
+                                        item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
+                                    ));
+                                }
                             });
 
-                            let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
 
                             $('#method-blocks-box input[type=checkbox]').on("click", function () {
+
+                                let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+
                                 if (totalBlocks > 0)
                                     $("#add-these-blocks").prop("disabled", false);
                                 else
                                     $("#add-these-blocks").prop("disabled", true);
                             });
 
-                            $("#add-these-blocks").on("click", function () {
+                            temporaryNode = node;
+
+                            $("#add-these-blocks").on("click", function (e) {
+
+                                e.stopImmediatePropagation();
+                                let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+                                let totalNodes = nodes.length;
+                                let totalEdges = edges.length;
+
+                                node = temporaryNode;
+                                let nodeLabel = 'label' in node ?
+                                    node.label.replace("<<", "").replace(">>", "") : node.title;
 
                                 $('#method-blocks-box input[type="checkbox"]:checked').each(function () {
-                                    let methodObject = {
-                                        id: nodes.length+1,
-                                        shape:'box',
-                                        processType: localRootNode.label,
-                                        margin: 8,
-                                        level: parseInt(localRootNode.level) + 2,
-                                        label: $(this).next('label').text(),
-                                        rootNode: localRootNode
-                                    };
+
+                                    let rootNodeOfMethodBlock = JSON.stringify(node);
+
+                                    let roles = $(this).parent().attr("data-roles").split(",");
+                                    let tools = $(this).parent().attr("data-tools").split(",");
+
+                                    if (totalBlocks === 1 && stepHasLessThanTwoBlocks(node.id)) {
+
+                                        node.label = ($(this).next('label').text()).trim();
+                                        node.color = "#f86262";
+                                        node.type = "methodBlock";
+                                        node.inputArtifacts = ($(this).parent().attr("data-inputArtifacts")).split(",");
+                                        node.outputArtifacts = $(this).parent().attr("data-outputArtifacts").split(",");
+                                        node.tableId = $(this).parent().attr("data-id");
+                                        node.rootNode = rootNodeOfMethodBlock;
+                                        roles.forEach(function (role, index) {
+                                            node[role] = null;
+                                        });
+                                        tools.forEach(function (tool, index) {
+                                            node[tool] = null;
+                                        });
+                                        tasks.push(node);
+
+                                    } else {
+
+                                        /* Determine the level of each method block */
+                                        let level = getHighestStepLevel() + 1;
+
+                                        if (tasks.length === 0) {
+                                            level = getHighestStepLevel() + 2;
+
+                                        } else {
+
+                                            tasks.forEach(function (task, index) {
+                                                let rootNode = JSON.parse(task.rootNode);
+                                                if (task.processType === nodeLabel && parseInt(rootNode.id) === parseInt(node.id)) {
+                                                    level = task.level;
+                                                }
+                                            });
+                                        }
+
+
+                                        let methodBlock = {
+                                            id: totalNodes + 1,
+                                            shape: 'box',
+                                            type: 'methodBlock',
+                                            processType: nodeLabel,
+                                            color: "#f86262",
+                                            margin: 8,
+                                            level: level,
+                                            label: ($(this).next('label').text()).trim(),
+                                            rootNode: rootNodeOfMethodBlock,
+                                            tableId: $(this).parent().attr("data-id"),
+                                            inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
+                                            outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
+                                        };
+
+                                        roles.forEach(function (role, index) {
+                                            methodBlock[role] = null;
+                                        });
+                                        tools.forEach(function (tool, index) {
+                                            methodBlock[tool] = null;
+                                        });
+
+                                        tasks.push(methodBlock);
+                                        nodes.push(methodBlock);
+                                        totalNodes++;
+
+                                        let edgeFromMethodBlockToProcessType = {
+                                            id: totalEdges + 1,
+                                            from: node.id,
+                                            to: methodBlock.id,
+                                            arrows: "from",
+                                            color: "red"
+                                        }
+                                        edges.push(edgeFromMethodBlockToProcessType);
+                                        totalEdges++;
+                                    }
+
+                                    if (totalBlocks > 1 && !stepHasLessThanTwoBlocks(node.id) && node.shape !== 'diamond') {
+                                        node.title = nodeLabel;
+                                        if ('label' in node)
+                                            delete node.label;
+                                        node.shape = "diamond";
+                                        node.color = "#f86262";
+                                    }
                                 });
+                                console.log(tasks);
+                                checkIfLocalSupremeRootNodeReadyToBeExecuted(node);
+                                closeNodePopup(nodePopup);
                             });
 
                         }
                     });
+                } else if (node.type === 'methodBlock') {
+
+                    let artifactHTML = (artifactType, artifact, nodeId) => `
+                               <div class="d-flex flex-row flex-wrap border rounded mb-2 justify-content-between">
+                                  <span style="width: 40%; display: flex; flex-direction: column; justify-content: center;
+                                    color: #010668; margin-left:1%;">
+                                      ${artifact}
+                                  </span>
+                                  <button class="remove-artifact btn btn-warning ml-3"
+                                   data-id="${nodeId}" data-artifactType="${artifactType}">
+                                        Remove ${artifact}
+                                  </button>
+                               </div>
+                                `;
+
+                    let toBeFilledUpRole = (key, nodeId) => `
+                               <div class="to-be-filled-role d-flex flex-row flex-wrap mb-3">
+                                   <div class="input-group" style="width: 70%;">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">${key}</span>
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="Provide a name for ${key}" required>
+                                   </div>
+                                   <button class="remove-to-be-filled-role btn btn-warning" data-id="${nodeId}" data-role="${key}">
+                                        Remove ${key}
+                                   </button>
+                               </div>
+                                `;
+
+                    let toBeFilledUpTool = (toolType, selectId, nodeId) => `
+                               <div class="to-be-filled-tool d-flex flex-row flex-wrap mb-3 justify-content-between">
+                                    <div style="display: flex; flex-direction: row; width: 66%;">
+                                          <div class="input-group-prepend">
+                                            <label class="input-group-text"><b>Tool Type: &nbsp</b> ${toolType} </label>
+                                          </div>
+                                          <select class="custom-select tool-select" id="${selectId}">
+                                            <option selected>Choose a tool..</option>
+
+                                          </select>
+                                    </div>
+                                   <button class="remove-to-be-filled-tool btn btn-warning"
+                                        data-id="${nodeId}" data-toolType="${toolType}">Remove ${toolType}
+                                   </button>
+                               </div>
+                                `;
+
+                    nodePopupToRefer = methodBlockPopup;
+                    showNodePopup(methodBlockPopup);
+                    methodBlockPopup.attr("data-nodeId", node.id);
+
+                    //Clear previous contents from the dom
+                    $(".input-artifacts").children().remove();
+                    $(".output-artifacts").children().remove();
+                    $(".roles").children().remove();
+                    $(".tools").children().remove();
+
+                    $("#name-of-method-block").html("<b>Name of method block::</b> " + node.label);
+                    for (let [key, value] of Object.entries(node)) {
+                        if (key === 'inputArtifacts') {
+                            node[key].forEach(function (artifact, index) {
+                                if (artifact !== "")
+                                    methodBlockPopup.find(".input-artifacts").append(artifactHTML('inputArtifact', artifact, node.id));
+                            });
+                        }
+                        if (key === 'outputArtifacts') {
+                            node[key].forEach(function (artifact, index) {
+                                if (artifact !== "")
+                                    methodBlockPopup.find(".output-artifacts").append(artifactHTML('outputArtifact', artifact, node.id));
+                            });
+                        }
+                        if (roles.includes(key)) {
+                            methodBlockPopup.find(".roles").append(toBeFilledUpRole(key, node.id));
+                        }
+                        if (key in tools) {
+                            let selectId = key.replace(/ /g, '') + "-" + node.id;
+                            methodBlockPopup.find(".tools").append(toBeFilledUpTool(key, selectId, node.id));
+
+                            let toolsOptions = tools[key].split(",");
+                            toolsOptions.forEach(function (item, index) {
+                                $("#" + selectId).append(new Option(item, item));
+                            });
+
+                        }
+                    }
                 }
 
                 $(".close").on("click", function (e) {
@@ -389,6 +654,10 @@
                 "pointer-events": "auto",
             });
             $(".container-fluid").children().not(divToClose).css("opacity", "1");
+
+            if (divToClose === nodePopup) {
+                $("#method-blocks-box").children().not("#spinner-2").remove();
+            }
         }
 
         function showNodePopup(divToShow) {
@@ -411,22 +680,38 @@
 
         function hideAllSteps(rootNodeId) {
 
-            getNodeObject(rootNodeId).color = "brown";
+            /*getNodeObject(rootNodeId).color = "brown";*/
             getNodeObject(rootNodeId).isHidden = true;
             edges.forEach(function (edge, index) {
-                if (edge.from === rootNodeId && edge.color === "red")
-                    getNodeObject(edge.to).hidden = true;
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    node.hidden = true;
+
+                    //Check if the above nodeObject has tree or not
+                    edges.forEach(function (edge, index) {
+                        if (parseInt(edge.from) === parseInt(node.id) && edge.color === "red")
+                            getNodeObject(edge.to).hidden = true;
+                    });
+                }
             });
             totalHiddenTrees++;
             initializeGraph(false);
         }
 
         function showAllSteps(rootNodeId) {
-            getNodeObject(rootNodeId).color = "#bababa";
+            /*getNodeObject(rootNodeId).color = "#bababa";*/
             getNodeObject(rootNodeId).isHidden = false;
             edges.forEach(function (edge, index) {
-                if (edge.from === rootNodeId && edge.color === "red")
-                    getNodeObject(edge.to).hidden = false;
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    node.hidden = false;
+
+                    //Check if the above nodeObject has tree or not
+                    edges.forEach(function (edge, index) {
+                        if (parseInt(edge.from) === parseInt(node.id) && edge.color === "red")
+                            getNodeObject(edge.to).hidden = false;
+                    });
+                }
             });
             totalHiddenTrees--;
             if (totalHiddenTrees === 0)
@@ -447,6 +732,13 @@
                     node.isHidden = false;
                     node.graphName = nameOfTheLocalGraph;
                 }
+
+                if (node.shape === 'box') {
+                    node.type = "processType";
+                    node.isHidden = false;
+                    node.rootNode = JSON.stringify(rootNodeOfChildGraph);
+                }
+
 
                 node.id = totalNodeLength + 1;
                 node.margin = parseInt(node.margin);
@@ -488,6 +780,65 @@
                 }
             });
             return localRootNodeObject;
+        }
+
+        function checkIfLocalSupremeRootNodeReadyToBeExecuted(childNode) //This was previously a processType node
+        {
+            let localSupremeNode = getLocalRootNodeObject(childNode.id);
+
+            let allLocalChildren = [];
+            //Get all the edged nodes from child to local supreme and check if they are ready
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === 'from' && parseInt(edge.from) === parseInt(localSupremeNode.id) && edge.color === "red")
+                    allLocalChildren.push(getNodeObject(parseInt(edge.to)));
+            });
+
+            let allChildNodesAreActive = true;
+            allLocalChildren.forEach(function (childNode, index) {
+                if (childNode.color !== "#f86262")
+                    allChildNodesAreActive = false;
+            });
+
+            if (allChildNodesAreActive)
+                localSupremeNode.color = "#f86262";
+
+            initializeGraph(true);
+        }
+
+        function stepAlreadyHasThisMethodBlock(tableIdOfMethodBlock, idOfStep) {
+            let methodBlockExistInStep = false;
+            edges.forEach(function (edge, index) {
+                if (parseInt(edge.from) === idOfStep && edge.color === "red" && edge.arrows === "from") {
+                    let nodeToCheck = getNodeObject(parseInt(edge.to));
+                    if (parseInt(nodeToCheck.tableId) === parseInt(tableIdOfMethodBlock))
+                        methodBlockExistInStep = true;
+                }
+            });
+            return methodBlockExistInStep;
+        }
+
+        function stepHasLessThanTwoBlocks(idOfStep) {
+            let numberOfBlocks = 0;
+            edges.forEach(function (edge, index) {
+                if (parseInt(edge.from) === idOfStep && edge.color === "red" && edge.arrows === "from") {
+                    numberOfBlocks++;
+                }
+            });
+            return numberOfBlocks <= 1;
+        }
+
+        function getHighestStepLevel() {
+            let highestLevel = 0;
+            nodes.forEach(function (node, index) {
+                if (parseInt(node.level) > highestLevel)
+                    highestLevel = parseInt(node.level);
+            });
+
+            return highestLevel;
+        }
+
+        function refreshedNodeValue() {
+            return temporaryNode;
         }
 
     </script>
