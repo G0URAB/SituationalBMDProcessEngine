@@ -154,8 +154,10 @@
 
             {# Footer #}
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal">Remove Method Block</button>
-                <button type="button" class="btn btn-primary">Save Data</button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">Remove Method
+                    Block
+                </button>
+                <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
             </div>
 
         </div>
@@ -205,8 +207,6 @@
 
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
-
-        console.log(tools, roles);
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
            <div class="jumbotron m-2" style="width: 32%;">
@@ -415,14 +415,12 @@
 
                                 e.stopImmediatePropagation();
                                 let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
-                                let totalNodes = nodes.length;
-                                let totalEdges = edges.length;
 
                                 node = temporaryNode;
                                 let nodeLabel = 'label' in node ?
                                     node.label.replace("<<", "").replace(">>", "") : node.title;
 
-                                $('#method-blocks-box input[type="checkbox"]:checked').each(function () {
+                                $('#method-blocks-box input[type="checkbox"]:checked').each(function (index) {
 
                                     let rootNodeOfMethodBlock = JSON.stringify(node);
 
@@ -432,7 +430,7 @@
                                     if (totalBlocks === 1 && stepHasLessThanTwoBlocks(node.id)) {
 
                                         node.label = ($(this).next('label').text()).trim();
-                                        node.color = "#f86262";
+                                        node.color = "#bababa";
                                         node.type = "methodBlock";
                                         node.inputArtifacts = ($(this).parent().attr("data-inputArtifacts")).split(",");
                                         node.outputArtifacts = $(this).parent().attr("data-outputArtifacts").split(",");
@@ -466,11 +464,11 @@
 
 
                                         let methodBlock = {
-                                            id: totalNodes + 1,
+                                            id: Date.now()+ index,
                                             shape: 'box',
                                             type: 'methodBlock',
                                             processType: nodeLabel,
-                                            color: "#f86262",
+                                            color: "#bababa",
                                             margin: 8,
                                             level: level,
                                             label: ($(this).next('label').text()).trim(),
@@ -489,17 +487,18 @@
 
                                         tasks.push(methodBlock);
                                         nodes.push(methodBlock);
-                                        totalNodes++;
+
+                                        node = refreshedNodeValue();
 
                                         let edgeFromMethodBlockToProcessType = {
-                                            id: totalEdges + 1,
+                                            id: Date.now() + index,
                                             from: node.id,
                                             to: methodBlock.id,
                                             arrows: "from",
                                             color: "red"
                                         }
+
                                         edges.push(edgeFromMethodBlockToProcessType);
-                                        totalEdges++;
                                     }
 
                                     if (totalBlocks > 1 && !stepHasLessThanTwoBlocks(node.id) && node.shape !== 'diamond') {
@@ -507,11 +506,12 @@
                                         if ('label' in node)
                                             delete node.label;
                                         node.shape = "diamond";
-                                        node.color = "#f86262";
+                                        node.color = "#bababa";
                                     }
                                 });
-                                console.log(tasks);
-                                checkIfLocalSupremeRootNodeReadyToBeExecuted(node);
+                                console.log(nodes, edges, tasks);
+                                /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
+                                initializeGraph(true);
                                 closeNodePopup(nodePopup);
                             });
 
@@ -624,6 +624,36 @@
             clearTimeout(typingTimer);
         });
 
+        $("#remove-method-block").on("click", function () {
+            /* If the methodBlock's id and its rootNode id are different then the method block exists
+            * in a tree where the root of the tree is the root node of the method block. Otherwise, the methodBlock,
+            * has replaced the rootNode. Use the helper function "stepHasLessThanTwoBlocks". */
+
+            let methodBlockId = methodBlockPopup.attr("data-nodeId");
+            let methodBlockObject = getNodeObject(parseInt(methodBlockId));
+            let rootOfMethodBlock = JSON.parse(methodBlockObject.rootNode);
+            if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id)) //When methodblock not in place of processtype
+                removeMethodBlock(parseInt(methodBlockId), parseInt(rootOfMethodBlock.id));
+            else{ //When methodblock sitting on top of process type
+                nodes.forEach(function (node,index) {
+                    if(parseInt(node.id)=== parseInt(methodBlockId))
+                        nodes.splice(index,1);
+                });
+                tasks.forEach(function (task,index) {
+                    if(parseInt(task.id)=== parseInt(methodBlockId))
+                        tasks.splice(index,1);
+                });
+                nodes.push(rootOfMethodBlock);
+                initializeGraph(true);
+            }
+
+            console.log(nodes, edges, tasks);
+            closeNodePopup(methodBlockPopup);
+        });
+
+
+        /*-----------------------------Helper Functions ----------------------------------*/
+
         function setRootNodeName() {
             let rootNodeName = nameOfRootNode.val();
             if (rootNodeName.length < 5) {
@@ -637,8 +667,6 @@
             initializeGraph(true);
         }
 
-
-        /*-----------------------------Helper Functions ----------------------------------*/
         function getNodeObject(nodeId) {
             let node = null;
             nodes.forEach(function (item, index) {
@@ -835,6 +863,57 @@
             });
 
             return highestLevel;
+        }
+
+        function removeMethodBlock(methodBlockId, rootNodeIdOfMethodBlock) {
+            let methodBlockRemoved = false;
+
+            nodes.forEach(function (node, index) {
+                if (parseInt(node.id) === parseInt(methodBlockId)) {
+                    nodes.splice(index, 1);
+                    methodBlockRemoved = true;
+                }
+            });
+
+            if (methodBlockRemoved) {
+                edges.forEach(function (edge, index) {
+                    if (parseInt(edge.to) === parseInt(methodBlockId) && parseInt(rootNodeIdOfMethodBlock) === parseInt(edge.from)
+                        && edge.color === "red")
+                        edges.splice(index, 1);
+                });
+
+                tasks.forEach(function (task, index) {
+                    if (parseInt(task.id) === parseInt(methodBlockId))
+                        tasks.splice(index, 1);
+                });
+
+                if (stepHasLessThanTwoBlocks(rootNodeIdOfMethodBlock)) {
+                    //Then get the last methodBlock
+                    let lastMethodBlock = null;
+                    let newLevelOftheLastMethodBlock = null;
+                    edges.forEach(function (edge, index) {
+                        if (parseInt(rootNodeIdOfMethodBlock) === parseInt(edge.from) && edge.color === "red") {
+                            lastMethodBlock = getNodeObject(parseInt(edge.to));
+                            edges.splice(index, 1);
+                        }
+
+                    });
+                    let rootRemoved = false;
+                    nodes.forEach(function (node, index) {
+                        if (parseInt(node.id) === parseInt(rootNodeIdOfMethodBlock)) {
+                            newLevelOftheLastMethodBlock = node.level;
+                            nodes.splice(index, 1);
+                            rootRemoved = true;
+                        }
+                    });
+                    if (rootRemoved) {
+                        lastMethodBlock.id = rootNodeIdOfMethodBlock;
+                        lastMethodBlock.level = newLevelOftheLastMethodBlock;
+                    }
+                }
+
+                initializeGraph(true);
+            }
         }
 
         function refreshedNodeValue() {
