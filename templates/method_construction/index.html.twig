@@ -348,175 +348,7 @@
                         hideAllSteps(nodeId);
                     return;
                 } else if ((node.shape === 'box' || node.shape === 'diamond') && node.type === "processType") {
-                    showNodePopup(nodePopup);
-                    nodePopup.attr("data-nodeId", node.id);
-                    let localRootNode = getLocalRootNodeObject(node.id);
-
-                    temporaryNode = node;
-
-                    if (node.shape === 'diamond') {
-                        hideShowMethodBlocksOfStep.css("display", "block");
-                        hideShowMethodBlocksOfStep.on("click", function (e) {
-                            e.stopImmediatePropagation();
-                            node = refreshedNodeValue();
-                            if (node.isHidden)
-                                showAllSteps(node.id);
-                            else
-                                hideAllSteps(node.id);
-                            closeNodePopup(nodePopup);
-                        });
-                    }
-
-                    $.ajax({
-                        type: 'POST',
-                        url: '{{ path('method_construction') }}',
-                        data: {
-                            request_type: 'get_method_blocks',
-                            process_type: 'label' in node ?
-                                (node.label).replace(">>", "").replace("<<", "") : node.title,
-                            graph_name: localRootNode.graphName,
-                        },
-                        success: function (response) {
-                            $("#spinner-2").css("display", "none");
-                            let obj = JSON.parse(JSON.stringify(response));
-
-                            let methodBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
-                              <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
-                               data-outputArtifacts="${outputArtifacts}" data-tools="${tools}" data-id="${id}">
-                                    <input class="form-check-input" type="checkbox" value="" id="method-block-${id}">
-                                    <label class="form-check-label" for="method-block-${id}">
-                                        <a target="_blank" href="/method/building/block/${id}">${name}</a>
-                                    </label>
-                              </div>
-                            `;
-                            obj.data.forEach(function (item, index) {
-
-                                if (!stepAlreadyHasThisMethodBlock(item.id, node.id)) {
-                                    $("#method-blocks-box").append(methodBlockDiv(
-                                        item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
-                                    ));
-                                }
-                            });
-
-
-                            $('#method-blocks-box input[type=checkbox]').on("click", function () {
-
-                                let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
-
-                                if (totalBlocks > 0)
-                                    $("#add-these-blocks").prop("disabled", false);
-                                else
-                                    $("#add-these-blocks").prop("disabled", true);
-                            });
-
-                            temporaryNode = node;
-
-                            $("#add-these-blocks").on("click", function (e) {
-
-                                e.stopImmediatePropagation();
-                                let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
-
-                                node = temporaryNode;
-                                let nodeLabel = 'label' in node ?
-                                    node.label.replace("<<", "").replace(">>", "") : node.title;
-
-                                $('#method-blocks-box input[type="checkbox"]:checked').each(function (index) {
-
-                                    let rootNodeOfMethodBlock = JSON.stringify(node);
-
-                                    let roles = $(this).parent().attr("data-roles").split(",");
-                                    let tools = $(this).parent().attr("data-tools").split(",");
-
-                                    if (totalBlocks === 1 && stepHasLessThanTwoBlocks(node.id)) {
-
-                                        node.label = ($(this).next('label').text()).trim();
-                                        node.color = "#bababa";
-                                        node.type = "methodBlock";
-                                        node.inputArtifacts = ($(this).parent().attr("data-inputArtifacts")).split(",");
-                                        node.outputArtifacts = $(this).parent().attr("data-outputArtifacts").split(",");
-                                        node.tableId = $(this).parent().attr("data-id");
-                                        node.rootNode = rootNodeOfMethodBlock;
-                                        roles.forEach(function (role, index) {
-                                            node[role] = null;
-                                        });
-                                        tools.forEach(function (tool, index) {
-                                            node[tool] = null;
-                                        });
-                                        tasks.push(node);
-
-                                    } else {
-
-                                        /* Determine the level of each method block */
-                                        let level = getHighestStepLevel() + 1;
-
-                                        if (tasks.length === 0) {
-                                            level = getHighestStepLevel() + 2;
-
-                                        } else {
-
-                                            tasks.forEach(function (task, index) {
-                                                let rootNode = JSON.parse(task.rootNode);
-                                                if (task.processType === nodeLabel && parseInt(rootNode.id) === parseInt(node.id)) {
-                                                    level = task.level;
-                                                }
-                                            });
-                                        }
-
-
-                                        let methodBlock = {
-                                            id: Date.now()+ index,
-                                            shape: 'box',
-                                            type: 'methodBlock',
-                                            processType: nodeLabel,
-                                            color: "#bababa",
-                                            margin: 8,
-                                            level: level,
-                                            label: ($(this).next('label').text()).trim(),
-                                            rootNode: rootNodeOfMethodBlock,
-                                            tableId: $(this).parent().attr("data-id"),
-                                            inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
-                                            outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
-                                        };
-
-                                        roles.forEach(function (role, index) {
-                                            methodBlock[role] = null;
-                                        });
-                                        tools.forEach(function (tool, index) {
-                                            methodBlock[tool] = null;
-                                        });
-
-                                        tasks.push(methodBlock);
-                                        nodes.push(methodBlock);
-
-                                        node = refreshedNodeValue();
-
-                                        let edgeFromMethodBlockToProcessType = {
-                                            id: Date.now() + index,
-                                            from: node.id,
-                                            to: methodBlock.id,
-                                            arrows: "from",
-                                            color: "red"
-                                        }
-
-                                        edges.push(edgeFromMethodBlockToProcessType);
-                                    }
-
-                                    if (totalBlocks > 1 && !stepHasLessThanTwoBlocks(node.id) && node.shape !== 'diamond') {
-                                        node.title = nodeLabel;
-                                        if ('label' in node)
-                                            delete node.label;
-                                        node.shape = "diamond";
-                                        node.color = "#bababa";
-                                    }
-                                });
-                                console.log(nodes, edges, tasks);
-                                /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
-                                initializeGraph(true);
-                                closeNodePopup(nodePopup);
-                            });
-
-                        }
-                    });
+                    checkAndAddMethodBlocksToStep(node);
                 } else if (node.type === 'methodBlock') {
 
                     let artifactHTML = (artifactType, artifact, nodeId) => `
@@ -627,27 +459,27 @@
         $("#remove-method-block").on("click", function () {
             /* If the methodBlock's id and its rootNode id are different then the method block exists
             * in a tree where the root of the tree is the root node of the method block. Otherwise, the methodBlock,
-            * has replaced the rootNode. Use the helper function "stepHasLessThanTwoBlocks". */
+            * has replaced the rootNode. Use the helper function "stepHasOnlyOneBlock". */
 
             let methodBlockId = methodBlockPopup.attr("data-nodeId");
             let methodBlockObject = getNodeObject(parseInt(methodBlockId));
             let rootOfMethodBlock = JSON.parse(methodBlockObject.rootNode);
             if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id)) //When methodblock not in place of processtype
                 removeMethodBlock(parseInt(methodBlockId), parseInt(rootOfMethodBlock.id));
-            else{ //When methodblock sitting on top of process type
-                nodes.forEach(function (node,index) {
-                    if(parseInt(node.id)=== parseInt(methodBlockId))
-                        nodes.splice(index,1);
+            else { //When methodblock sitting on top of process type
+                nodes.forEach(function (node, index) {
+                    if (parseInt(node.id) === parseInt(methodBlockId))
+                        nodes.splice(index, 1);
                 });
-                tasks.forEach(function (task,index) {
-                    if(parseInt(task.id)=== parseInt(methodBlockId))
-                        tasks.splice(index,1);
+                tasks.forEach(function (task, index) {
+                    if (parseInt(task.id) === parseInt(methodBlockId))
+                        tasks.splice(index, 1);
                 });
                 nodes.push(rootOfMethodBlock);
                 initializeGraph(true);
             }
 
-            console.log(nodes, edges, tasks);
+            /*console.log(nodes, edges, tasks);*/
             closeNodePopup(methodBlockPopup);
         });
 
@@ -845,14 +677,26 @@
             return methodBlockExistInStep;
         }
 
-        function stepHasLessThanTwoBlocks(idOfStep) {
-            let numberOfBlocks = 0;
-            edges.forEach(function (edge, index) {
-                if (parseInt(edge.from) === idOfStep && edge.color === "red" && edge.arrows === "from") {
-                    numberOfBlocks++;
+        function stepHasOnlyOneBlock(idOfStep) {
+            let hasOnlyOneBlock = false;
+            nodes.forEach(function (node, index) {
+                if ('rootNode' in node) {
+                    let rootOfNode = JSON.parse(node.rootNode);
+                    if (parseInt(rootOfNode.id) === parseInt(node.id) && parseInt(rootOfNode.id) === parseInt(idOfStep))
+                        hasOnlyOneBlock = true;
                 }
             });
-            return numberOfBlocks <= 1;
+            return hasOnlyOneBlock;
+        }
+
+        function stepHasNoMethodBlocksAtall(idOfStep) {
+            let stepHasNoBlocks = false;
+            let stepObject = getNodeObject(idOfStep);
+            if ('label' in stepObject) {
+                if ((stepObject.label).includes("<<"))
+                    stepHasNoBlocks = true;
+            }
+            return stepHasNoBlocks;
         }
 
         function getHighestStepLevel() {
@@ -887,7 +731,7 @@
                         tasks.splice(index, 1);
                 });
 
-                if (stepHasLessThanTwoBlocks(rootNodeIdOfMethodBlock)) {
+                if (stepHasOnlyOneBlock(rootNodeIdOfMethodBlock)) {
                     //Then get the last methodBlock
                     let lastMethodBlock = null;
                     let newLevelOftheLastMethodBlock = null;
@@ -918,6 +762,232 @@
 
         function refreshedNodeValue() {
             return temporaryNode;
+        }
+
+        function checkAndAddMethodBlocksToStep(node) { //This node is the processType actually
+            showNodePopup(nodePopup);
+            nodePopup.attr("data-nodeId", node.id);
+            let localRootNode = getLocalRootNodeObject(node.id); //The localRootNode is root node of graph
+
+            if (node.shape === 'diamond') {
+                hideShowMethodBlocksOfStep.css("display", "block");
+                hideShowMethodBlocksOfStep.on("click", function (e) {
+                    e.stopImmediatePropagation();
+                    node = refreshedNodeValue();
+                    if (node.isHidden)
+                        showAllSteps(node.id);
+                    else
+                        hideAllSteps(node.id);
+                    closeNodePopup(nodePopup);
+                });
+            }
+
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('method_construction') }}',
+                data: {
+                    request_type: 'get_method_blocks',
+                    process_type: 'label' in node ?
+                        (node.label).replace(">>", "").replace("<<", "") : node.title,
+                    graph_name: localRootNode.graphName,
+                },
+                success: function (response) {
+                    $("#spinner-2").css("display", "none");
+                    let obj = JSON.parse(JSON.stringify(response));
+
+                    let methodBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
+                              <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
+                               data-outputArtifacts="${outputArtifacts}" data-tools="${tools}" data-id="${id}">
+                                    <input class="form-check-input" type="checkbox" value="" id="method-block-${id}">
+                                    <label class="form-check-label" for="method-block-${id}">
+                                        <a target="_blank" href="/method/building/block/${id}">${name}</a>
+                                    </label>
+                              </div>
+                            `;
+                    obj.data.forEach(function (item, index) {
+
+                        if (!stepAlreadyHasThisMethodBlock(item.id, node.id)) {
+                            $("#method-blocks-box").append(methodBlockDiv(
+                                item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
+                            ));
+                        }
+                    });
+
+
+                    $('#method-blocks-box input[type=checkbox]').on("click", function () {
+
+                        let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+
+                        if (totalBlocks > 0)
+                            $("#add-these-blocks").prop("disabled", false);
+                        else
+                            $("#add-these-blocks").prop("disabled", true);
+                    });
+
+                    temporaryNode = node;
+
+                    $("#add-these-blocks").on("click", function (e) {
+
+                        e.stopImmediatePropagation();
+                        let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+
+                        node = temporaryNode;
+                        let nodeLabel = 'label' in node ?
+                            node.label.replace("<<", "").replace(">>", "") : node.title;
+
+                        let rootNodeOfMethodBlock = JSON.stringify(node);
+
+                        $('#method-blocks-box input[type="checkbox"]:checked').each(function (index) {
+
+                            let roles = $(this).parent().attr("data-roles").split(",");
+                            let tools = $(this).parent().attr("data-tools").split(",");
+
+                            if (totalBlocks === 1 && stepHasNoMethodBlocksAtall(node.id)) {
+
+                                node.label = ($(this).next('label').text()).trim();
+                                node.color = "#bababa";
+                                node.type = "methodBlock";
+                                node.inputArtifacts = ($(this).parent().attr("data-inputArtifacts")).split(",");
+                                node.outputArtifacts = $(this).parent().attr("data-outputArtifacts").split(",");
+                                node.tableId = $(this).parent().attr("data-id");
+                                node.rootNode = rootNodeOfMethodBlock;
+                                roles.forEach(function (role, index) {
+                                    node[role] = null;
+                                });
+                                tools.forEach(function (tool, index) {
+                                    node[tool] = null;
+                                });
+                                tasks.push(node);
+
+                            } else if (totalBlocks >= 1 && stepHasOnlyOneBlock(node.id)) {
+
+                                let level = getLevelForMethodBlock(node, nodeLabel);
+
+                                //first handle the original sitting block
+                                let newIdForTheSittingMethodBlock = Date.now();
+                                nodes.forEach(function (item, index) {
+                                    if (parseInt(item.id) === parseInt(node.id)) {
+                                        item.id = newIdForTheSittingMethodBlock;
+                                        nodes.push(node);
+                                    }
+                                });
+                                let redEdgeFromSittingMethodBlock = {
+                                    from: node.id, to: newIdForTheSittingMethodBlock, arrows: "from", color: "red"
+                                };
+
+                                //Then handle the block being reach through .each function
+                                let methodBlock = {
+                                    id: Date.now() + index,
+                                    shape: 'box',
+                                    type: 'methodBlock',
+                                    processType: nodeLabel,
+                                    color: "#bababa",
+                                    margin: 8,
+                                    level: level,
+                                    label: ($(this).next('label').text()).trim(),
+                                    rootNode: rootNodeOfMethodBlock,
+                                    tableId: $(this).parent().attr("data-id"),
+                                    inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
+                                    outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
+                                };
+                                roles.forEach(function (role, index) {
+                                    methodBlock[role] = null;
+                                });
+                                tools.forEach(function (tool, index) {
+                                    methodBlock[tool] = null;
+                                });
+
+                                tasks.push(methodBlock);
+                                nodes.push(methodBlock);
+
+                                let edgeFromMethodBlockToProcessType = {
+                                    id: Date.now() + index,
+                                    from: node.id,
+                                    to: methodBlock.id,
+                                    arrows: "from",
+                                    color: "red"
+                                }
+
+                                edges.push(edgeFromMethodBlockToProcessType);
+
+                            } else {
+
+                                let level = getLevelForMethodBlock(node, nodeLabel);
+
+                                let methodBlock = {
+                                    id: Date.now() + index,
+                                    shape: 'box',
+                                    type: 'methodBlock',
+                                    processType: nodeLabel,
+                                    color: "#bababa",
+                                    margin: 8,
+                                    level: level,
+                                    label: ($(this).next('label').text()).trim(),
+                                    rootNode: rootNodeOfMethodBlock,
+                                    tableId: $(this).parent().attr("data-id"),
+                                    inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
+                                    outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
+                                };
+
+                                roles.forEach(function (role, index) {
+                                    methodBlock[role] = null;
+                                });
+                                tools.forEach(function (tool, index) {
+                                    methodBlock[tool] = null;
+                                });
+
+                                tasks.push(methodBlock);
+                                nodes.push(methodBlock);
+
+                                node = refreshedNodeValue();
+
+                                let edgeFromMethodBlockToProcessType = {
+                                    id: Date.now() + index,
+                                    from: node.id,
+                                    to: methodBlock.id,
+                                    arrows: "from",
+                                    color: "red"
+                                }
+
+                                edges.push(edgeFromMethodBlockToProcessType);
+                            }
+
+                            if ((totalBlocks > 1 || (totalBlocks === 1 && stepHasOnlyOneBlock(node.id))) && node.shape !== 'diamond') {
+                                node.title = nodeLabel;
+                                if ('label' in node)
+                                    delete node.label;
+                                node.shape = "diamond";
+                                node.color = "#bababa";
+                            }
+                        });
+
+                        /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
+                        initializeGraph(true);
+                        closeNodePopup(nodePopup);
+                    });
+
+                }
+            });
+        }
+
+        function getLevelForMethodBlock(node, nodeLabel) {
+            /* Determine the level of each method block */
+            let level = getHighestStepLevel() + 1;
+
+            if (tasks.length === 0) {
+                level = getHighestStepLevel() + 2;
+
+            } else {
+                console.log(tasks);
+                tasks.forEach(function (task, index) {
+                    let rootNode = JSON.parse(task.rootNode);
+
+                    if (task.processType === nodeLabel && parseInt(rootNode.id) === parseInt(node.id)) {
+                        level = task.level;
+                    }
+                });
+            }
+            return level;
         }
 
     </script>
