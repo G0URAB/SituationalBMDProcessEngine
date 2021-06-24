@@ -479,7 +479,6 @@
                 initializeGraph(true);
             }
 
-            /*console.log(nodes, edges, tasks);*/
             closeNodePopup(methodBlockPopup);
         });
 
@@ -677,7 +676,7 @@
             return methodBlockExistInStep;
         }
 
-        function stepHasOnlyOneBlock(idOfStep) {
+        function OneMethodBlockSittingOnTopOfStep(idOfStep) {
             let hasOnlyOneBlock = false;
             nodes.forEach(function (node, index) {
                 if ('rootNode' in node) {
@@ -731,7 +730,7 @@
                         tasks.splice(index, 1);
                 });
 
-                if (stepHasOnlyOneBlock(rootNodeIdOfMethodBlock)) {
+                if (stepHasOnlyOneBlockWithAnEdge(rootNodeIdOfMethodBlock)) {
                     //Then get the last methodBlock
                     let lastMethodBlock = null;
                     let newLevelOftheLastMethodBlock = null;
@@ -758,6 +757,16 @@
 
                 initializeGraph(true);
             }
+        }
+
+        function stepHasOnlyOneBlockWithAnEdge(idOfStep) {
+            let numberOfBlocks = 0;
+            edges.forEach(function (edge, index) {
+                if (parseInt(edge.from) === idOfStep && edge.color === "red" && edge.arrows === "from") {
+                    numberOfBlocks++;
+                }
+            });
+            return numberOfBlocks <= 1;
         }
 
         function refreshedNodeValue() {
@@ -859,7 +868,7 @@
                                 });
                                 tasks.push(node);
 
-                            } else if (totalBlocks >= 1 && stepHasOnlyOneBlock(node.id)) {
+                            } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
                                 let level = getLevelForMethodBlock(node, nodeLabel);
 
@@ -952,7 +961,7 @@
                                 edges.push(edgeFromMethodBlockToProcessType);
                             }
 
-                            if ((totalBlocks > 1 || (totalBlocks === 1 && stepHasOnlyOneBlock(node.id))) && node.shape !== 'diamond') {
+                            if ((totalBlocks > 1 || (totalBlocks === 1 && OneMethodBlockSittingOnTopOfStep(node.id))) && node.shape !== 'diamond') {
                                 node.title = nodeLabel;
                                 if ('label' in node)
                                     delete node.label;
@@ -978,7 +987,6 @@
                 level = getHighestStepLevel() + 2;
 
             } else {
-                console.log(tasks);
                 tasks.forEach(function (task, index) {
                     let rootNode = JSON.parse(task.rootNode);
 
