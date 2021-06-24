@@ -80,8 +80,8 @@
                     Hide/Show step's method blocks
                 </button>
 
-                <button type="button" class="btn btn-secondary" id="add-these-blocks">Add above method blocks to the
-                    step
+                <button type="button" class="btn btn-dark" id="add-these-blocks">
+                    Add above method blocks to the step
                 </button>
             </div>
         </div>
@@ -154,8 +154,11 @@
 
             {# Footer #}
             <div class="modal-footer">
-                <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">Remove Method
-                    Block
+                <button class="btn btn-info" type="button" style="display: none;" id="add-more-method-blocks">Add More
+                    Method Blocks
+                </button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">
+                    Remove Method Block
                 </button>
                 <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
             </div>
@@ -350,6 +353,17 @@
                 } else if ((node.shape === 'box' || node.shape === 'diamond') && node.type === "processType") {
                     checkAndAddMethodBlocksToStep(node);
                 } else if (node.type === 'methodBlock') {
+                    let addMethodBlocksButtonInsideMethodBlock = $("#add-more-method-blocks");
+                    if (OneMethodBlockSittingOnTopOfStep(node.id)) {
+                        addMethodBlocksButtonInsideMethodBlock.css("display", "block");
+                        addMethodBlocksButtonInsideMethodBlock.on("click", function () {
+                            let rootProcessTypeNode = JSON.parse(node.rootNode);
+                            checkAndAddMethodBlocksToStep(rootProcessTypeNode);
+                            closeNodePopup(methodBlockPopup);
+                        });
+                    } else {
+                        addMethodBlocksButtonInsideMethodBlock.css("display", "none");
+                    }
 
                     let artifactHTML = (artifactType, artifact, nodeId) => `
                                <div class="d-flex flex-row flex-wrap border rounded mb-2 justify-content-between">
@@ -673,6 +687,12 @@
                         methodBlockExistInStep = true;
                 }
             });
+            if (OneMethodBlockSittingOnTopOfStep(idOfStep))
+            {
+                let methodBlockObject = getNodeObject(idOfStep);
+                if(parseInt(methodBlockObject.tableId) === parseInt(tableIdOfMethodBlock))
+                    methodBlockExistInStep = true;
+            }
             return methodBlockExistInStep;
         }
 
@@ -851,6 +871,14 @@
                             let roles = $(this).parent().attr("data-roles").split(",");
                             let tools = $(this).parent().attr("data-tools").split(",");
 
+                            if ((totalBlocks > 1 && node.shape !== 'diamond') || (totalBlocks === 1 && OneMethodBlockSittingOnTopOfStep(node.id))) {
+                                node.title = nodeLabel;
+                                if ('label' in node)
+                                    delete node.label;
+                                node.shape = "diamond";
+                                node.color = "#bababa";
+                            }
+
                             if (totalBlocks === 1 && stepHasNoMethodBlocksAtall(node.id)) {
 
                                 node.label = ($(this).next('label').text()).trim();
@@ -866,22 +894,36 @@
                                 tools.forEach(function (tool, index) {
                                     node[tool] = null;
                                 });
-                                tasks.push(node);
 
                             } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
-                                let level = getLevelForMethodBlock(node, nodeLabel);
+                                let level = getHighestStepLevel() + 1;
 
                                 //first handle the original sitting block
-                                let newIdForTheSittingMethodBlock = Date.now();
+                                let newIdForTheSittingMethodBlock = Date.now()-200;
+                                let sittingBlock = null;
+                                let rootNodeOfMethod = node;
+
+                                rootNodeOfMethod.title = nodeLabel;
+                                if ('label' in rootNodeOfMethod)
+                                    delete rootNodeOfMethod.label;
+                                rootNodeOfMethod.shape = "diamond";
+                                rootNodeOfMethod.color = "#bababa";
+
                                 nodes.forEach(function (item, index) {
                                     if (parseInt(item.id) === parseInt(node.id)) {
-                                        item.id = newIdForTheSittingMethodBlock;
-                                        nodes.push(node);
+                                        sittingBlock = item;
+                                        sittingBlock.id = newIdForTheSittingMethodBlock;
+                                        sittingBlock.level = level;
+                                        nodes.splice(index,1);
                                     }
                                 });
+
+                                nodes.push(rootNodeOfMethod);
+                                nodes.push(sittingBlock);
+
                                 let redEdgeFromSittingMethodBlock = {
-                                    from: node.id, to: newIdForTheSittingMethodBlock, arrows: "from", color: "red"
+                                    from: rootNodeOfMethod.id, to: newIdForTheSittingMethodBlock, arrows: "from", color: "red"
                                 };
 
                                 //Then handle the block being reach through .each function
@@ -899,6 +941,7 @@
                                     inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
                                     outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
                                 };
+
                                 roles.forEach(function (role, index) {
                                     methodBlock[role] = null;
                                 });
@@ -911,17 +954,18 @@
 
                                 let edgeFromMethodBlockToProcessType = {
                                     id: Date.now() + index,
-                                    from: node.id,
+                                    from: rootNodeOfMethod.id,
                                     to: methodBlock.id,
                                     arrows: "from",
                                     color: "red"
                                 }
 
+                                edges.push(redEdgeFromSittingMethodBlock);
                                 edges.push(edgeFromMethodBlockToProcessType);
 
                             } else {
 
-                                let level = getLevelForMethodBlock(node, nodeLabel);
+                                let level = OneMethodBlockSittingOnTopOfStep(node.id) ? getHighestStepLevel() + 1 : getLevelForMethodBlock(node, nodeLabel);
 
                                 let methodBlock = {
                                     id: Date.now() + index,
@@ -959,14 +1003,6 @@
                                 }
 
                                 edges.push(edgeFromMethodBlockToProcessType);
-                            }
-
-                            if ((totalBlocks > 1 || (totalBlocks === 1 && OneMethodBlockSittingOnTopOfStep(node.id))) && node.shape !== 'diamond') {
-                                node.title = nodeLabel;
-                                if ('label' in node)
-                                    delete node.label;
-                                node.shape = "diamond";
-                                node.color = "#bababa";
                             }
                         });
 
