@@ -100,7 +100,7 @@
     </div>
 
     {# Modal 2 #}
-    <div id="node-popup-2" style="position: fixed;top: 8%; left:10%;display: none; width: 40%;" role="document">
+    <div id="node-popup-2" style="position: fixed;top: 8%; left:10%;display: none; width: 70%;" role="document">
         <div class="modal-content">
             <div class="modal-header bg-dark">
                 <div class="input-group mb-3">
@@ -821,7 +821,7 @@
             showNodePopup(nodePopup);
             nodePopup.attr("data-nodeId", node.id);
             let localRootNode = getLocalRootNodeObject(node.id); //The localRootNode is root node of graph
-
+            temporaryNode = node;
             if (node.shape === 'diamond') {
                 hideShowMethodBlocksOfStep.css("display", "block");
                 hideShowMethodBlocksOfStep.on("click", function (e) {
