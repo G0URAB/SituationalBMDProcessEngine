@@ -569,18 +569,14 @@
 
         function hideAllSteps(rootNodeId) {
 
-            /*getNodeObject(rootNodeId).color = "brown";*/
             getNodeObject(rootNodeId).isHidden = true;
             edges.forEach(function (edge, index) {
                 if (edge.from === rootNodeId && edge.color === "red") {
                     let node = getNodeObject(edge.to);
-                    node.hidden = true;
-
-                    //Check if the above nodeObject has tree or not
-                    edges.forEach(function (edge, index) {
-                        if (parseInt(edge.from) === parseInt(node.id) && edge.color === "red")
-                            getNodeObject(edge.to).hidden = true;
-                    });
+                    if (node) {
+                        node.hidden = true;
+                        hideAllSteps(parseInt(node.id));
+                    }
                 }
             });
             totalHiddenTrees++;
@@ -593,13 +589,10 @@
             edges.forEach(function (edge, index) {
                 if (edge.from === rootNodeId && edge.color === "red") {
                     let node = getNodeObject(edge.to);
-                    node.hidden = false;
-
-                    //Check if the above nodeObject has tree or not
-                    edges.forEach(function (edge, index) {
-                        if (parseInt(edge.from) === parseInt(node.id) && edge.color === "red")
-                            getNodeObject(edge.to).hidden = false;
-                    });
+                    if (node) {
+                        node.hidden = false;
+                        showAllSteps(parseInt(node.id));
+                    }
                 }
             });
             totalHiddenTrees--;
@@ -618,24 +611,35 @@
                 node.oldId = node.id;
                 if (node.shape === 'circle') {
                     node.title = "Double click to collapse/expand";
-                    node.isHidden = false;
                     node.graphName = nameOfTheLocalGraph;
+                    node.rootNode = JSON.stringify(parentNode);
                 }
 
                 if (node.shape === 'box') {
                     node.type = "processType";
-                    node.isHidden = false;
                     node.rootNode = JSON.stringify(rootNodeOfChildGraph);
                 }
 
+                node.isHidden = false;
 
-                node.id = totalNodeLength + 1;
+                if (hierarchicalLevel === 2 && parseInt(node.id) === parseInt(rootNodeOfChildGraph.id)) {
+                    rootNodeOfChildGraph.id = parentNode.id;
+                    nodes.forEach(function (item, index) {
+                        if (parseInt(item.id) === parseInt(parentNode.id))
+                            nodes.splice(index, 1);
+                    });
+                } else
+                    node.id = Date.now() + index;
+
                 node.margin = parseInt(node.margin);
-                if (node === rootNodeOfChildGraph)
+
+                if (node === rootNodeOfChildGraph && hierarchicalLevel === 1)
                     node.level = parseInt(parentNode.level) + 2;
+                else if (node === rootNodeOfChildGraph && hierarchicalLevel === 2)
+                    node.level = getHighestStepLevel() + 2;
                 else
                     node.level = parseInt(rootNodeOfChildGraph.level) + parseInt(node.level);
-                totalNodeLength++;
+
                 nodes.push(node);
             });
 
@@ -649,11 +653,16 @@
                 edges.push(edge);
             });
 
+            /*Remove the old ids from the nodes. Otherwise they will be a problem during future edge comparison*/
+
             /*
             Add the last edge from root node of the child graph
             to the parent node.
              */
-            edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
+            if (hierarchicalLevel === 1)
+                edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
+
+            console.log(nodes, edges);
             if (totalHiddenTrees === 0)
                 initializeGraph(true);
             else
