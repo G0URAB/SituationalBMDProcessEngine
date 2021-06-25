@@ -59,7 +59,7 @@
          style="position: fixed;top: 8%; left:10%;display: none; width: 500px;" id="node-popup" data-nodeId="">
         <div class="modal-content">
             <div class="modal-header">
-                <label for="modal-process-type"><b>Select methods for this step</b></label>
+                <label for="modal-process-type"><b>Select methods or BMD graphs for this step</b></label>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
                     <span aria-hidden="true">&times;</span>
                 </button>
@@ -71,7 +71,19 @@
                         <strong>Loading...</strong>
                         <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
                     </div>
-                    {#-------------------Method Blocks Come Here -------------------------#}
+
+                    <h6><u><b>Recommended Method Blocks</b></u></h6>
+                    <div id="recommended-methods">
+
+                    </div>
+
+                    <hr>
+
+                    <h6><u><b>Recommended Graphs</b></u></h6>
+                    <div id="recommended-graphs">
+
+                    </div>
+
                 </div>
             </div>
             <div class="modal-footer"
@@ -108,7 +120,7 @@
 
     {# Modal 3 : Popup For Method Blocks #}
     <div id="method-block-popup" tabindex="-1"
-         style="position: fixed;top: 8%; left:10%;display: none; width: 60%; background: #a4cbf8"
+         style="position: fixed;top: 8%; left:10%;display: none; width: 500px; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
         <div class="modal-content">
             {# Header #}
@@ -358,20 +370,20 @@
                         addMethodBlocksButtonInsideMethodBlock.css("display", "block");
                         addMethodBlocksButtonInsideMethodBlock.on("click", function () {
                             let rootProcessTypeNode = JSON.parse(node.rootNode);
-                            checkAndAddMethodBlocksToStep(rootProcessTypeNode);
                             closeNodePopup(methodBlockPopup);
+                            checkAndAddMethodBlocksToStep(rootProcessTypeNode);
                         });
                     } else {
                         addMethodBlocksButtonInsideMethodBlock.css("display", "none");
                     }
 
                     let artifactHTML = (artifactType, artifact, nodeId) => `
-                               <div class="d-flex flex-row flex-wrap border rounded mb-2 justify-content-between">
-                                  <span style="width: 40%; display: flex; flex-direction: column; justify-content: center;
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+                                  <span style="width: 98%; display: flex; flex-direction: column; justify-content: center;
                                     color: #010668; margin-left:1%;">
                                       ${artifact}
                                   </span>
-                                  <button class="remove-artifact btn btn-warning ml-3"
+                                  <button class="remove-artifact btn btn-warning ml-3 d-none"
                                    data-id="${nodeId}" data-artifactType="${artifactType}">
                                         Remove ${artifact}
                                   </button>
@@ -380,13 +392,13 @@
 
                     let toBeFilledUpRole = (key, nodeId) => `
                                <div class="to-be-filled-role d-flex flex-row flex-wrap mb-3">
-                                   <div class="input-group" style="width: 70%;">
+                                   <div class="input-group" style="width: 99%;">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text">${key}</span>
                                         </div>
                                         <input type="text" class="form-control" placeholder="Provide a name for ${key}" required>
                                    </div>
-                                   <button class="remove-to-be-filled-role btn btn-warning" data-id="${nodeId}" data-role="${key}">
+                                   <button class="remove-to-be-filled-role btn btn-warning d-none" data-id="${nodeId}" data-role="${key}">
                                         Remove ${key}
                                    </button>
                                </div>
@@ -394,7 +406,7 @@
 
                     let toBeFilledUpTool = (toolType, selectId, nodeId) => `
                                <div class="to-be-filled-tool d-flex flex-row flex-wrap mb-3 justify-content-between">
-                                    <div style="display: flex; flex-direction: row; width: 66%;">
+                                    <div style="display: flex; flex-direction: row; width: 90%;">
                                           <div class="input-group-prepend">
                                             <label class="input-group-text"><b>Tool Type: &nbsp</b> ${toolType} </label>
                                           </div>
@@ -403,7 +415,7 @@
 
                                           </select>
                                     </div>
-                                   <button class="remove-to-be-filled-tool btn btn-warning"
+                                   <button class="remove-to-be-filled-tool btn btn-warning d-none"
                                         data-id="${nodeId}" data-toolType="${toolType}">Remove ${toolType}
                                    </button>
                                </div>
@@ -529,7 +541,8 @@
             $(".container-fluid").children().not(divToClose).css("opacity", "1");
 
             if (divToClose === nodePopup) {
-                $("#method-blocks-box").children().not("#spinner-2").remove();
+                $("#recommended-graphs").children().remove();
+                $("#recommended-methods").children().remove();
             }
         }
 
@@ -537,9 +550,6 @@
 
             if (divToShow === nodePopup) {
                 $("#spinner-2").css("display", "block");
-                $('#method-blocks-box input[type="checkbox"]').each(function () {
-                    $(this).parent().remove();
-                });
                 $("#add-these-blocks").prop("disabled", true);
             }
 
@@ -836,7 +846,7 @@
                     obj.data.forEach(function (item, index) {
 
                         if (!stepAlreadyHasThisMethodBlock(item.id, node.id)) {
-                            $("#method-blocks-box").append(methodBlockDiv(
+                            $("#recommended-methods").append(methodBlockDiv(
                                 item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
                             ));
                         }
@@ -894,6 +904,7 @@
                                 tools.forEach(function (tool, index) {
                                     node[tool] = null;
                                 });
+                                tasks.push(node);
 
                             } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
@@ -1009,6 +1020,7 @@
                         /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
                         initializeGraph(true);
                         closeNodePopup(nodePopup);
+                        console.log(tasks);
                     });
 
                 }
