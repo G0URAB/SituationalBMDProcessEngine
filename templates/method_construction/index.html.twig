@@ -534,6 +534,19 @@
             }
         });
 
+        $("#remove-local-graph").on("click", function (e) {
+            e.stopImmediatePropagation();
+            let nodeId = parseInt($(this).parent().attr("data-nodeId"));
+            let node = getNodeObject(nodeId);
+            let rootNode = JSON.parse(node.rootNode);
+            console.log(rootNode);
+            if (parseInt(rootNode.id) === 1)
+                removeLocalGraph(node, 1);
+            else
+                removeLocalGraph(node, 2);
+            closeNodePopup(graphRootNodePopup);
+        });
+
         /*-----------------------------Helper Functions ----------------------------------*/
 
         function setRootNodeName() {
@@ -649,8 +662,11 @@
                 if (hierarchicalLevel === 2 && parseInt(node.id) === parseInt(rootNodeOfChildGraph.id)) {
                     rootNodeOfChildGraph.id = parentNode.id;
                     nodes.forEach(function (item, index) {
-                        if (parseInt(item.id) === parseInt(parentNode.id))
+                        if (parseInt(item.id) === parseInt(parentNode.id)){
+                            parentNode.originalIndex = index;
+                            node.rootNode = JSON.stringify(parentNode);
                             nodes.splice(index, 1);
+                        }
                     });
                 } else
                     node.id = Date.now() + index;
@@ -1121,7 +1137,6 @@
                         /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
                         initializeGraph(true);
                         closeNodePopup(nodePopup);
-                        console.log(tasks);
                     });
 
                 }
@@ -1145,6 +1160,41 @@
                 });
             }
             return level;
+        }
+
+        function removeLocalGraph(rootNode, graphHierarchy) {
+            let rootNodeOfRootNode = JSON.parse(rootNode.rootNode);
+            for (let i = edges.length - 1; i >= 0; --i) {
+                if (parseInt(edges[i].from) === parseInt(rootNode.id) && edges[i].arrows === "from") {
+
+                    //Check the child nodes and delete their blue edges
+                    let childNode = getNodeObject(parseInt(edges[i].to));
+                    if(childNode){
+                        for (let v = edges.length - 1; v >= 0; --v) {
+                            if (parseInt(edges[v].from) === parseInt(childNode.id) && edges[v].arrows === "to") {
+                                edges.splice(v, 1);  //Blue edges
+                            }
+                            nodes.forEach(function (node, index) {
+                                if (node === childNode) {
+                                    nodes.splice(index, 1);
+                                }
+                            });
+                        }
+                    }
+
+                    edges.splice(i, 1);  // Red edges
+                }
+            }
+            nodes.forEach(function (node, index) {
+                if (node === rootNode)
+                    nodes.splice(index, 1);
+            });
+            if (graphHierarchy===2){
+                nodes.splice(rootNodeOfRootNode.originalIndex, 0, rootNodeOfRootNode);
+            }
+
+            console.log(nodes);
+            initializeGraph(true);
         }
 
     </script>
