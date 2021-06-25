@@ -54,7 +54,7 @@
         </div>
     </div>
 
-    {# Modal 1 #}
+    {# Modal 1 : For recommending situational graphs and method-blocks for a processType in any step #}
     <div class="modal-dialog" role="document"
          style="position: fixed;top: 8%; left:10%;display: none; width: 500px;" id="node-popup" data-nodeId="">
         <div class="modal-content">
@@ -99,7 +99,7 @@
         </div>
     </div>
 
-    {# Modal 2 #}
+    {# Modal 2: For setting name for the assembled situational method #}
     <div id="node-popup-2" style="position: fixed;top: 8%; left:10%;display: none; width: 70%;" role="document">
         <div class="modal-content">
             <div class="modal-header bg-dark">
@@ -118,7 +118,7 @@
         </div>
     </div>
 
-    {# Modal 3 : Popup For Method Blocks #}
+    {# Modal 3 : Popup For Method Block View #}
     <div id="method-block-popup" tabindex="-1"
          style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
@@ -179,6 +179,21 @@
     </div>
 
 
+    {# Modal 4: control panel for root nodes of any BMD graph #}
+    <div id="graph-root-node-popup" style="position: fixed;top: 25%; left:10%;display: none; width: 428px;"
+         role="document">
+        <div class="modal-content">
+            <div class="modal-header bg-info d-flex flex-row justify-content-between" data-nodeId="">
+                <button id="hide-show-local-graph" class="btn btn-warning">Hide/Show Child Nodes</button>
+                <button id="remove-local-graph" class="btn btn-danger">Remove Graph</button>
+                <button type="button" class="close bg-danger" data-dismiss="modal" aria-label="Close"
+                        style="height: 70px;">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
@@ -207,6 +222,7 @@
         let nodePopup = $("#node-popup");
         let nodePopup2 = $("#node-popup-2")
         let methodBlockPopup = $("#method-block-popup");
+        let graphRootNodePopup = $("#graph-root-node-popup");
         let processTypeInModal = $("#modal-process-type");
         let level = $("#level");
         let situationalMethods = $("#situational-methods");
@@ -357,11 +373,8 @@
                 } else if (node.id === 1) {
                     showNodePopup(nodePopup2);
                 } else if (node.id !== 1 && (node.shape === 'circle')) {
-                    if (node.isHidden)
-                        showAllSteps(nodeId);
-                    else
-                        hideAllSteps(nodeId);
-                    return;
+                    graphRootNodePopup.find(".modal-header").attr("data-nodeId", node.id);
+                    showNodePopup(graphRootNodePopup);
                 } else if ((node.shape === 'box' || node.shape === 'diamond') && node.type === "processType") {
                     checkAndAddMethodBlocksToStep(node);
                 } else if (node.type === 'methodBlock') {
@@ -509,6 +522,17 @@
             closeNodePopup(methodBlockPopup);
         });
 
+        $("#hide-show-local-graph").on("click", function (e) {
+            let nodeId = parseInt($(this).parent().attr("data-nodeId"));
+            let node = getNodeObject(nodeId);
+            if (node) {
+                if (node.isHidden)
+                    showAllSteps(nodeId);
+                else
+                    hideAllSteps(nodeId);
+                closeNodePopup(graphRootNodePopup);
+            }
+        });
 
         /*-----------------------------Helper Functions ----------------------------------*/
 
