@@ -64,13 +64,7 @@ class MethodConstructionController extends AbstractController
                         }
                     }
                     if ($countOfQueriedFactors == $countFound) {
-                        $obj = new stdClass;
-                        $obj->id = $graph->getId();
-                        $obj->name = $graph->getName();
-                        $obj->nodes = $graph->getNodes();
-                        $obj->edges = $graph->getEdges();
-                        $obj->situationalFactors = $graph->getImplodedSituationalFactors();
-                        $matchingGraphs[] = $obj;
+                        $matchingGraphs[] = $this->getBMDGraphObject($graph);
                     }
 
                 }
@@ -88,6 +82,7 @@ class MethodConstructionController extends AbstractController
             ]);
 
             $situationSpecificMethodBuildingBlocks = [];
+            $situationSpecificBMDGraphs = [];
 
             foreach ($processType->getProcesses() as $process) {
 
@@ -112,7 +107,17 @@ class MethodConstructionController extends AbstractController
                 }
             }
 
-            return new JsonResponse(['data' => $situationSpecificMethodBuildingBlocks]);
+            $graphsWithParentProcessType = $this->getDoctrine()->getRepository(BmdGraph::class)->findBy([
+                'parentProcessKind' => $processType
+            ]);
+            if ($graphsWithParentProcessType) {
+                foreach ($graphsWithParentProcessType as $probableSituationSpecificGraph) {
+                    if ($this->checkIfMethodBlockIsSituationSpecific($probableSituationSpecificGraph, $bmdGraph) && $probableSituationSpecificGraph->getId() !== $bmdGraph->getId())
+                        $situationSpecificBMDGraphs[] = $this->getBMDGraphObject($probableSituationSpecificGraph);
+                }
+            }
+
+            return new JsonResponse(['blocks' => $situationSpecificMethodBuildingBlocks, 'graphs' => $situationSpecificBMDGraphs]);
         }
 
         return new Response("Invalid request", 400);
@@ -206,6 +211,18 @@ class MethodConstructionController extends AbstractController
         $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
         $obj->roles = explode(", ", $methodBlock->implodedRoles());
         $obj->tools = explode(", ", $methodBlock->getImplodedTools());
+
+        return $obj;
+    }
+
+    public function getBMDGraphObject($graph)
+    {
+        $obj = new stdClass;
+        $obj->id = $graph->getId();
+        $obj->name = $graph->getName();
+        $obj->nodes = $graph->getNodes();
+        $obj->edges = $graph->getEdges();
+        $obj->situationalFactors = $graph->getImplodedSituationalFactors();
 
         return $obj;
     }

@@ -93,7 +93,7 @@
                 </button>
 
                 <button type="button" class="btn btn-dark" id="add-these-blocks">
-                    Add above method blocks to the step
+                    Add
                 </button>
             </div>
         </div>
@@ -120,9 +120,9 @@
 
     {# Modal 3 : Popup For Method Blocks #}
     <div id="method-block-popup" tabindex="-1"
-         style="position: fixed;top: 8%; left:10%;display: none; width: 500px; background: #a4cbf8"
+         style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
-        <div class="modal-content">
+        <div class="modal-content" style="max-height: 560px; overflow: auto;">
             {# Header #}
             <div class="modal-header">
                 <h5 class="modal-title" id="name-of-method-block"> {#Name of block comes here#}</h5>
@@ -274,7 +274,7 @@
                                 situationalMethods.parent().find(".text-primary").remove();
                                 let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
                                 let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
-                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"));
+                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
                             });
 
                         });
@@ -368,7 +368,8 @@
                     let addMethodBlocksButtonInsideMethodBlock = $("#add-more-method-blocks");
                     if (OneMethodBlockSittingOnTopOfStep(node.id)) {
                         addMethodBlocksButtonInsideMethodBlock.css("display", "block");
-                        addMethodBlocksButtonInsideMethodBlock.on("click", function () {
+                        addMethodBlocksButtonInsideMethodBlock.on("click", function (e) {
+                            e.stopImmediatePropagation();
                             let rootProcessTypeNode = JSON.parse(node.rootNode);
                             closeNodePopup(methodBlockPopup);
                             checkAndAddMethodBlocksToStep(rootProcessTypeNode);
@@ -541,8 +542,11 @@
             $(".container-fluid").children().not(divToClose).css("opacity", "1");
 
             if (divToClose === nodePopup) {
-                $("#recommended-graphs").children().remove();
-                $("#recommended-methods").children().remove();
+
+                $("#recommended-graphs, #recommended-methods").css({
+                    'pointer-events': 'auto',
+                    'opacity': '1'
+                });
             }
         }
 
@@ -551,6 +555,8 @@
             if (divToShow === nodePopup) {
                 $("#spinner-2").css("display", "block");
                 $("#add-these-blocks").prop("disabled", true);
+                $("#recommended-graphs").children().remove();
+                $("#recommended-methods").children().remove();
             }
 
             $(".container-fluid").children().not(divToShow).css({
@@ -603,7 +609,7 @@
                 initializeGraph(false);
         }
 
-        function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode, nameOfTheLocalGraph) {
+        function processChildGraphAndConnectToParentNode(childNodes, childEdges, parentNode, nameOfTheLocalGraph, hierarchicalLevel) {
 
             let totalNodeLength = nodes.length;
             let rootNodeOfChildGraph = childNodes[0];
@@ -697,10 +703,9 @@
                         methodBlockExistInStep = true;
                 }
             });
-            if (OneMethodBlockSittingOnTopOfStep(idOfStep))
-            {
+            if (OneMethodBlockSittingOnTopOfStep(idOfStep)) {
                 let methodBlockObject = getNodeObject(idOfStep);
-                if(parseInt(methodBlockObject.tableId) === parseInt(tableIdOfMethodBlock))
+                if (parseInt(methodBlockObject.tableId) === parseInt(tableIdOfMethodBlock))
                     methodBlockExistInStep = true;
             }
             return methodBlockExistInStep;
@@ -834,33 +839,84 @@
                     $("#spinner-2").css("display", "none");
                     let obj = JSON.parse(JSON.stringify(response));
 
-                    let methodBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
+                    let recommendedBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
                               <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
                                data-outputArtifacts="${outputArtifacts}" data-tools="${tools}" data-id="${id}">
-                                    <input class="form-check-input" type="checkbox" value="" id="method-block-${id}">
+                                    <input class="form-check-input" type="checkbox" value="" id="recommended-method-block-${id}">
                                     <label class="form-check-label" for="method-block-${id}">
                                         <a target="_blank" href="/method/building/block/${id}">${name}</a>
                                     </label>
                               </div>
                             `;
-                    obj.data.forEach(function (item, index) {
+                    let recommendedGraphDiv = (id, nodesFromDatabase, edgesFromDatabase, nameOfRecommendedGraph) => `
+                              <div class="form-check" data-name='${nameOfRecommendedGraph}' data-nodes='${nodesFromDatabase}' data-edges='${edgesFromDatabase}'>
+                                    <input class="form-check-input" type="checkbox" value="" id="recommended-graph-${id}">
+                                    <label class="form-check-label" for="recommended-graph-${id}">
+                                        <a target="_blank" href="/bmd/graph/show/${id}">${nameOfRecommendedGraph}</a>
+                                    </label>
+                              </div>
+                            `;
+                    obj.blocks.forEach(function (block, index) {
 
-                        if (!stepAlreadyHasThisMethodBlock(item.id, node.id)) {
-                            $("#recommended-methods").append(methodBlockDiv(
-                                item.id, item.name, item.inputArtifacts, item.outputArtifacts, item.roles, item.tools
+                        if (!stepAlreadyHasThisMethodBlock(block.id, node.id)) {
+                            $("#recommended-methods").append(recommendedBlockDiv(
+                                block.id, block.name, block.inputArtifacts, block.outputArtifacts, block.roles, block.tools
                             ));
                         }
                     });
 
+                    obj.graphs.forEach(function (graph, index) {
+                        $("#recommended-graphs").append(recommendedGraphDiv(
+                            graph.id, graph.nodes, graph.edges, graph.name
+                        ));
+                    });
 
-                    $('#method-blocks-box input[type=checkbox]').on("click", function () {
+                    let totalSelectedBlocks = 0;
+                    let totalSelectedGraphs = 0;
 
-                        let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+                    //When recommended methodBlocks are used, disable the recommended graphs and vice-versa
+                    $('#recommended-methods input[type=checkbox]').on("click", function () {
 
-                        if (totalBlocks > 0)
+                        totalSelectedBlocks = $('#recommended-methods input[type="checkbox"]:checked').length;
+                        if (totalSelectedBlocks > 0) {
                             $("#add-these-blocks").prop("disabled", false);
-                        else
+                            $("#recommended-graphs").css({
+                                'pointer-events': 'none',
+                                'opacity': '0.5'
+                            });
+                        } else {
                             $("#add-these-blocks").prop("disabled", true);
+                            $("#recommended-graphs").css({
+                                'pointer-events': 'auto',
+                                'opacity': '1'
+                            });
+                        }
+                    });
+
+                    //If the step has method blocks then graphs can not be used
+                    if (!stepHasNoMethodBlocksAtall(node.id)) {
+                        $("#recommended-graphs").css({
+                            'pointer-events': 'none',
+                            'opacity': '0.5'
+                        });
+                    }
+
+                    $('#recommended-graphs input[type=checkbox]').on("click", function () {
+
+                        totalSelectedGraphs = $('#recommended-graphs input[type="checkbox"]:checked').length;
+                        if (totalSelectedGraphs > 0) {
+                            $("#add-these-blocks").prop("disabled", false);
+                            $("#recommended-methods").css({
+                                'pointer-events': 'none',
+                                'opacity': '0.5'
+                            });
+                        } else {
+                            $("#add-these-blocks").prop("disabled", true);
+                            $("#recommended-methods").css({
+                                'pointer-events': 'auto',
+                                'opacity': '1'
+                            });
+                        }
                     });
 
                     temporaryNode = node;
@@ -868,7 +924,7 @@
                     $("#add-these-blocks").on("click", function (e) {
 
                         e.stopImmediatePropagation();
-                        let totalBlocks = $('#method-blocks-box input[type="checkbox"]:checked').length;
+                        let totalBlocks = $('#recommended-methods input[type="checkbox"]:checked').length;
 
                         node = temporaryNode;
                         let nodeLabel = 'label' in node ?
@@ -876,7 +932,8 @@
 
                         let rootNodeOfMethodBlock = JSON.stringify(node);
 
-                        $('#method-blocks-box input[type="checkbox"]:checked').each(function (index) {
+                        //If method blocks have been selected
+                        $('#recommended-methods input[type="checkbox"]:checked').each(function (index) {
 
                             let roles = $(this).parent().attr("data-roles").split(",");
                             let tools = $(this).parent().attr("data-tools").split(",");
@@ -911,7 +968,7 @@
                                 let level = getHighestStepLevel() + 1;
 
                                 //first handle the original sitting block
-                                let newIdForTheSittingMethodBlock = Date.now()-200;
+                                let newIdForTheSittingMethodBlock = Date.now() - 200;
                                 let sittingBlock = null;
                                 let rootNodeOfMethod = node;
 
@@ -926,7 +983,7 @@
                                         sittingBlock = item;
                                         sittingBlock.id = newIdForTheSittingMethodBlock;
                                         sittingBlock.level = level;
-                                        nodes.splice(index,1);
+                                        nodes.splice(index, 1);
                                     }
                                 });
 
@@ -934,7 +991,10 @@
                                 nodes.push(sittingBlock);
 
                                 let redEdgeFromSittingMethodBlock = {
-                                    from: rootNodeOfMethod.id, to: newIdForTheSittingMethodBlock, arrows: "from", color: "red"
+                                    from: rootNodeOfMethod.id,
+                                    to: newIdForTheSittingMethodBlock,
+                                    arrows: "from",
+                                    color: "red"
                                 };
 
                                 //Then handle the block being reach through .each function
@@ -1015,6 +1075,14 @@
 
                                 edges.push(edgeFromMethodBlockToProcessType);
                             }
+                        });
+
+                        //If graphs have been selected
+                        $('#recommended-graphs input[type="checkbox"]:checked').each(function (index) {
+                            let nodesInDatabase = JSON.parse($(this).parent().attr("data-nodes"));
+                            let edgesInDatabase = JSON.parse($(this).parent().attr("data-edges"));
+                            let nameOfRecommendedGraph = $(this).parent().attr("data-name");
+                            processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, node, nameOfRecommendedGraph, 2);
                         });
 
                         /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
