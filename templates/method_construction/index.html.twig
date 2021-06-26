@@ -44,8 +44,9 @@
     {# Construct situational Method #}
     <div class="mt-5 d-flex flex-column ">
         <h3 class="m-auto"> Construct Situational Method</h3>
-        <div style="width: 90%; height:800px; border: 1px solid black; border-radius: 2%; margin:auto">
-            <h6 class=" mt-4 text-center w-100 text-success"><i>Select BMD Graphs to Construct a situational
+        <div style="width: 96%; height:800px; border: 1px solid black; border-radius: 2%; margin:auto">
+            <h6 class=" mt-4 text-center w-100 text-success" id="notification-2"><i>Select BMD Graphs to Construct a
+                    situational
                     method. </i></h6>
             <div id="situational-methods"
                  style="width: 100%; height: 93%; display: flex; flex-direction: row; align-items: flex-start">
@@ -287,16 +288,18 @@
                             $(".select-graph").on("click", function (e) {
                                 e.stopImmediatePropagation();
                                 /*if (nameOfRootNode.val().length > 5) {*/
-                                    bmdGraphsBeingUsed.push($(this).data("name"));
-                                    $(this).prop("disabled", true);
-                                    situationalMethods.parent().find(".text-primary").remove();
-                                    let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
-                                    let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
-                                    processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
-                               /* } else {
-                                    alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
-                                    return false;
-                                }*/
+                                bmdGraphsBeingUsed.push($(this).data("name"));
+                                $(this).prop("disabled", true);
+                                $("#notification-2").css("display", "none");
+                                $("#situational-methods").css("height", "100%");
+                                situationalMethods.parent().find(".text-primary").remove();
+                                let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
+                                let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
+                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
+                                /* } else {
+                                     alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
+                                     return false;
+                                 }*/
                             });
 
                         });
@@ -510,25 +513,33 @@
             let methodBlockId = methodBlockPopup.attr("data-nodeId");
             let methodBlockObject = getNodeObject(parseInt(methodBlockId));
             let rootOfMethodBlock = JSON.parse(methodBlockObject.rootNode);
-            if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id)) //When methodblock not in place of processtype
+
+            //When methodblock not in place of processtype
+            if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id))
                 removeMethodBlock(parseInt(methodBlockId), parseInt(rootOfMethodBlock.id));
-            else { //When methodblock sitting on top of process type
+            else {
+                //When methodblock sitting on top of the step
+                let indexOfStep = null;
+
                 nodes.forEach(function (node, index) {
-                    if (parseInt(node.id) === parseInt(methodBlockId))
+                    if (parseInt(node.id) === parseInt(methodBlockId)) {
+                        indexOfStep = index;
                         nodes.splice(index, 1);
+                    }
+
                 });
                 tasks.forEach(function (task, index) {
                     if (parseInt(task.id) === parseInt(methodBlockId))
                         tasks.splice(index, 1);
                 });
 
-                if(rootOfMethodBlock.shape==="diamond")
-                {
-                    rootOfMethodBlock.shape="box";
-                    rootOfMethodBlock.label = "<<"+ rootOfMethodBlock.title + ">>";
+                if (rootOfMethodBlock.shape === "diamond") {
+                    rootOfMethodBlock.shape = "box";
+                    rootOfMethodBlock.label = "<<" + rootOfMethodBlock.title + ">>";
                     delete rootOfMethodBlock.title;
+                    console.log("This part needs to be debugged!");
                 }
-                nodes.splice(rootOfMethodBlock.originalIndex, 0, rootOfMethodBlock);
+                nodes.splice(indexOfStep, 0, rootOfMethodBlock);
                 /*nodes.push(rootOfMethodBlock);*/
                 initializeGraph(true);
             }
@@ -691,7 +702,7 @@
                 if (node === rootNodeOfChildGraph && hierarchicalLevel === 1)
                     node.level = parseInt(parentNode.level) + 2;
                 else if (node === rootNodeOfChildGraph && hierarchicalLevel === 2)
-                    node.level = getHighestStepLevel() + 2;
+                    node.level = getHighestStepLevel() + 1;
                 else
                     node.level = parseInt(rootNodeOfChildGraph.level) + parseInt(node.level);
 
@@ -852,9 +863,8 @@
                             rootRemoved = true;
                         }
                         //Also remove the sitting node on step
-                        else if (parseInt(node.id) === parseInt(lastMethodBlock.id))
-                        {
-                            nodes.splice(index,1);
+                        else if (parseInt(node.id) === parseInt(lastMethodBlock.id)) {
+                            nodes.splice(index, 1);
                         }
                     });
                     if (rootRemoved) {
@@ -886,7 +896,7 @@
         function checkAndAddMethodBlocksToStep(node) { //This node is the processType actually
 
             showNodePopup(nodePopup);
-            $("#add-these-blocks").attr("data-node",node);
+            $("#add-these-blocks").attr("data-node", node);
 
             let localSession = methodRecommendationCounter;
 
@@ -1014,21 +1024,13 @@
                             let nodeLabel = 'label' in node ?
                                 node.label.replace("<<", "").replace(">>", "") : node.title;
 
-                            let rootNodeOfMethodBlock = JSON.stringify(node);
 
                             //If method blocks have been selected
                             $('#recommended-methods input[type="checkbox"]:checked').each(function (index) {
 
                                 let roles = $(this).parent().attr("data-roles").split(",");
                                 let tools = $(this).parent().attr("data-tools").split(",");
-
-                                if ((totalBlocks > 1 && node.shape !== 'diamond') || (totalBlocks === 1 && OneMethodBlockSittingOnTopOfStep(node.id))) {
-                                    node.title = nodeLabel;
-                                    if ('label' in node)
-                                        delete node.label;
-                                    node.shape = "diamond";
-                                    node.color = "#bababa";
-                                }
+                                let rootNodeOfMethodBlock = JSON.stringify(node);
 
                                 if (totalBlocks === 1 && stepHasNoMethodBlocksAtall(node.id)) {
 
@@ -1046,33 +1048,38 @@
                                         node[tool] = null;
                                     });
                                     tasks.push(node);
+                                    console.log(node, rootNodeOfMethodBlock);
 
-                                }
-                                else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
+                                } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
                                     let level = getHighestStepLevel() + 1;
 
                                     //first handle the original sitting block
                                     let newIdForTheSittingMethodBlock = Date.now() - 200;
-                                    let sittingBlock = null;
-                                    let rootNodeOfMethod = node;
+                                    let sittingBlock = node;
+                                    let rootNodeOfMethod = JSON.parse(node.rootNode);
+                                    let newIndexForRootNodeOfMethod = null;
 
-                                    rootNodeOfMethod.title = nodeLabel;
-                                    if ('label' in rootNodeOfMethod)
+                                    console.log(node, rootNodeOfMethod);
+
+                                    if ('label' in rootNodeOfMethod) {
+                                        rootNodeOfMethod.title = (rootNodeOfMethod.label).replace("<<", "").replace(">>", "");
                                         delete rootNodeOfMethod.label;
+                                    }
                                     rootNodeOfMethod.shape = "diamond";
                                     rootNodeOfMethod.color = "#bababa";
 
                                     nodes.forEach(function (item, index) {
                                         if (parseInt(item.id) === parseInt(node.id)) {
-                                            sittingBlock = item;
-                                            sittingBlock.id = newIdForTheSittingMethodBlock;
-                                            sittingBlock.level = level;
+                                            newIndexForRootNodeOfMethod = index;
                                             nodes.splice(index, 1);
                                         }
                                     });
 
-                                    nodes.push(rootNodeOfMethod);
+                                    sittingBlock.id = newIdForTheSittingMethodBlock;
+                                    sittingBlock.level = level;
+
+                                    nodes.splice(newIndexForRootNodeOfMethod, 0, rootNodeOfMethod);
                                     nodes.push(sittingBlock);
 
                                     let redEdgeFromSittingMethodBlock = {
@@ -1081,6 +1088,7 @@
                                         arrows: "from",
                                         color: "red"
                                     };
+                                    edges.push(redEdgeFromSittingMethodBlock);
 
                                     //Then handle the block being reach through .each function
                                     let methodBlock = {
@@ -1109,14 +1117,12 @@
                                     nodes.push(methodBlock);
 
                                     let edgeFromMethodBlockToProcessType = {
-                                        id: Date.now() + index,
                                         from: rootNodeOfMethod.id,
                                         to: methodBlock.id,
                                         arrows: "from",
                                         color: "red"
                                     }
 
-                                    edges.push(redEdgeFromSittingMethodBlock);
                                     edges.push(edgeFromMethodBlockToProcessType);
 
                                 } else {
@@ -1183,18 +1189,14 @@
             /* Determine the level of each method block */
             let level = getHighestStepLevel() + 1;
 
-            if (tasks.length === 0) {
-                level = getHighestStepLevel() + 2;
+            tasks.forEach(function (task, index) {
+                let rootNode = JSON.parse(task.rootNode);
 
-            } else {
-                tasks.forEach(function (task, index) {
-                    let rootNode = JSON.parse(task.rootNode);
+                if (task.processType === nodeLabel && parseInt(rootNode.id) === parseInt(node.id)) {
+                    level = task.level;
+                }
+            });
 
-                    if (task.processType === nodeLabel && parseInt(rootNode.id) === parseInt(node.id)) {
-                        level = task.level;
-                    }
-                });
-            }
             return level;
         }
 

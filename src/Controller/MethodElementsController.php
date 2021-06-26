@@ -90,7 +90,7 @@ class MethodElementsController extends AbstractController
         }
 
         //Notify when there are no processTypes
-        if (empty($this->processKinds)) {
+        if (empty($dataService->getAllProcessTypes())) {
             $message = "There are no process types. Please create at least one!!";
             $this->addFlash("danger", $message);
         }
