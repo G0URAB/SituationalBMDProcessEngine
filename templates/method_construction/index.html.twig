@@ -539,7 +539,7 @@
             let nodeId = parseInt($(this).parent().attr("data-nodeId"));
             let node = getNodeObject(nodeId);
             let rootNode = JSON.parse(node.rootNode);
-            console.log(rootNode);
+
             if (parseInt(rootNode.id) === 1)
                 removeLocalGraph(node, 1);
             else
@@ -1200,8 +1200,17 @@
             if (graphHierarchy === 2 && childCounter > 0) {
                 nodes.splice(rootNodeOfRootNode.originalIndex, 0, rootNodeOfRootNode);
             }
+            if (graphHierarchy === 1) {
+                $(".select-graph").each(function () {
+                    bmdGraphsBeingUsed.forEach(function (graphName, index) {
+                        if('graphName' in rootNode && rootNode.graphName===graphName)
+                            bmdGraphsBeingUsed.splice(index,1);
+                    });
+                    if (!bmdGraphsBeingUsed.includes($(this).data("name")))
+                        $(this).prop("disabled", false);
+                });
+            }
 
-            console.log(nodes);
             initializeGraph(true);
         }
 
