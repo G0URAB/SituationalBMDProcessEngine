@@ -387,11 +387,16 @@
                 } else if ((node.shape === 'box' || node.shape === 'diamond') && node.type === "processType") {
                     checkAndAddMethodBlocksToStep(node);
                 } else if (node.type === 'methodBlock') {
+
                     let addMethodBlocksButtonInsideMethodBlock = $("#add-more-method-blocks");
                     if (OneMethodBlockSittingOnTopOfStep(node.id)) {
+
                         addMethodBlocksButtonInsideMethodBlock.css("display", "block");
                         addMethodBlocksButtonInsideMethodBlock.on("click", function (e) {
                             e.stopImmediatePropagation();
+
+                            let node = getNodeObject(parseInt($("#method-block-popup").attr("data-nodeId")));
+
                             let rootProcessTypeNode = JSON.parse(node.rootNode);
                             closeNodePopup(methodBlockPopup);
                             checkAndAddMethodBlocksToStep(rootProcessTypeNode);
@@ -1048,7 +1053,6 @@
                                         node[tool] = null;
                                     });
                                     tasks.push(node);
-                                    console.log(node, rootNodeOfMethodBlock);
 
                                 } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
@@ -1060,14 +1064,7 @@
                                     let rootNodeOfMethod = JSON.parse(node.rootNode);
                                     let newIndexForRootNodeOfMethod = null;
 
-                                    console.log(node, rootNodeOfMethod);
-
-                                    if ('label' in rootNodeOfMethod) {
-                                        rootNodeOfMethod.title = (rootNodeOfMethod.label).replace("<<", "").replace(">>", "");
-                                        delete rootNodeOfMethod.label;
-                                    }
-                                    rootNodeOfMethod.shape = "diamond";
-                                    rootNodeOfMethod.color = "#bababa";
+                                    rootNodeOfMethod = convertBoxStepToDiamondStep(rootNodeOfMethod);
 
                                     nodes.forEach(function (item, index) {
                                         if (parseInt(item.id) === parseInt(node.id)) {
@@ -1151,10 +1148,10 @@
                                         methodBlock[tool] = null;
                                     });
 
+                                    node = convertBoxStepToDiamondStep(node);
+
                                     tasks.push(methodBlock);
                                     nodes.push(methodBlock);
-
-                                    node = refreshedNodeValue();
 
                                     let edgeFromMethodBlockToProcessType = {
                                         id: Date.now() + index,
@@ -1248,8 +1245,19 @@
                         $(this).prop("disabled", false);
                 });
             }
-
             initializeGraph(true);
+        }
+
+        function convertBoxStepToDiamondStep(rootNodeOfMethod)
+        {
+            if ('label' in rootNodeOfMethod) {
+                rootNodeOfMethod.title = (rootNodeOfMethod.label).replace("<<", "").replace(">>", "");
+                delete rootNodeOfMethod.label;
+            }
+            rootNodeOfMethod.shape = "diamond";
+            rootNodeOfMethod.color = "#bababa";
+
+            return rootNodeOfMethod;
         }
 
     </script>
