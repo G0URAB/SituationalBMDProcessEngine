@@ -57,7 +57,7 @@
     {# Modal 1 : For recommending situational graphs and method-blocks for a processType in any step #}
     <div class="modal-dialog" role="document"
          style="position: fixed;top: 8%; left:10%;display: none; width: 500px;" id="node-popup" data-nodeId="">
-        <div class="modal-content">
+        <div class="modal-content" style="background: #a2cea0">
             <div class="modal-header">
                 <label for="modal-process-type"><b>Select methods or BMD graphs for this step</b></label>
                 <button type="button" class="close" data-dismiss="modal" aria-label="Close">
@@ -92,7 +92,7 @@
                     Hide/Show step's method blocks
                 </button>
 
-                <button type="button" class="btn btn-dark" id="add-these-blocks">
+                <button type="button" class="btn btn-dark" id="add-these-blocks" data-nodeId="">
                     Add
                 </button>
             </div>
@@ -108,7 +108,7 @@
                         <span class="input-group-text" id="root-node">Name of your situational method</span>
                     </div>
                     <input type="text" class="form-control"
-                           placeholder="Elephant Trading Business" aria-label="Username"
+                           placeholder="Elephant Trading Platform" aria-label="Username"
                            aria-describedby="basic-addon1" id="name-of-root-node">
                 </div>
                 <button type="button" class="close bg-danger" data-dismiss="modal" aria-label="Close">
@@ -264,7 +264,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '{{ path('method_construction') }}',
+                url: '{{ path('construct_situational_method') }}',
                 data: {
                     request_type: 'get_graphs',
                     situationalFactors: situationalFactors,
@@ -286,12 +286,17 @@
                             /* On Select a particular graph */
                             $(".select-graph").on("click", function (e) {
                                 e.stopImmediatePropagation();
-                                bmdGraphsBeingUsed.push($(this).data("name"));
-                                $(this).prop("disabled", true);
-                                situationalMethods.parent().find(".text-primary").remove();
-                                let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
-                                let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
-                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
+                                /*if (nameOfRootNode.val().length > 5) {*/
+                                    bmdGraphsBeingUsed.push($(this).data("name"));
+                                    $(this).prop("disabled", true);
+                                    situationalMethods.parent().find(".text-primary").remove();
+                                    let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
+                                    let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
+                                    processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
+                               /* } else {
+                                    alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
+                                    return false;
+                                }*/
                             });
 
                         });
@@ -516,7 +521,15 @@
                     if (parseInt(task.id) === parseInt(methodBlockId))
                         tasks.splice(index, 1);
                 });
-                nodes.push(rootOfMethodBlock);
+
+                if(rootOfMethodBlock.shape==="diamond")
+                {
+                    rootOfMethodBlock.shape="box";
+                    rootOfMethodBlock.label = "<<"+ rootOfMethodBlock.title + ">>";
+                    delete rootOfMethodBlock.title;
+                }
+                nodes.splice(rootOfMethodBlock.originalIndex, 0, rootOfMethodBlock);
+                /*nodes.push(rootOfMethodBlock);*/
                 initializeGraph(true);
             }
 
@@ -704,7 +717,6 @@
             if (hierarchicalLevel === 1)
                 edges.push({'arrows': 'from', 'to': rootNodeOfChildGraph.id, 'from': parentNode.id, color: 'red'});
 
-            console.log(nodes, edges);
             if (totalHiddenTrees === 0)
                 initializeGraph(true);
             else
@@ -828,14 +840,26 @@
 
                     });
                     let rootRemoved = false;
+                    let originalIndexOfRoot = null;
                     nodes.forEach(function (node, index) {
+                        //Code to remove rootNode and collect its data
                         if (parseInt(node.id) === parseInt(rootNodeIdOfMethodBlock)) {
                             newLevelOftheLastMethodBlock = node.level;
+                            originalIndexOfRoot = index;
+                            node.originalIndex = index;
+                            lastMethodBlock.rootNode = JSON.stringify(node);
                             nodes.splice(index, 1);
                             rootRemoved = true;
                         }
+                        //Also remove the sitting node on step
+                        else if (parseInt(node.id) === parseInt(lastMethodBlock.id))
+                        {
+                            nodes.splice(index,1);
+                        }
                     });
                     if (rootRemoved) {
+                        //Reenter the lastMethodBlock into the place of step
+                        nodes.splice(originalIndexOfRoot, 0, lastMethodBlock);
                         lastMethodBlock.id = rootNodeIdOfMethodBlock;
                         lastMethodBlock.level = newLevelOftheLastMethodBlock;
                     }
@@ -862,6 +886,7 @@
         function checkAndAddMethodBlocksToStep(node) { //This node is the processType actually
 
             showNodePopup(nodePopup);
+            $("#add-these-blocks").attr("data-node",node);
 
             let localSession = methodRecommendationCounter;
 
@@ -883,7 +908,7 @@
 
             $.ajax({
                 type: 'POST',
-                url: '{{ path('method_construction') }}',
+                url: '{{ path('construct_situational_method') }}',
                 data: {
                     request_type: 'get_method_blocks',
                     process_type: 'label' in node ?
@@ -897,7 +922,7 @@
                         $("#spinner-2").css("display", "none");
 
                         let obj = JSON.parse(JSON.stringify(response));
-                        
+
                         let recommendedBlockDiv = (id, name, inputArtifacts, outputArtifacts, roles, tools) => `
                               <div class="form-check" data-roles="${roles}" data-inputArtifacts="${inputArtifacts}"
                                data-outputArtifacts="${outputArtifacts}" data-tools="${tools}" data-id="${id}">
@@ -978,14 +1003,14 @@
                             }
                         });
 
-                        temporaryNode = node;
 
                         $("#add-these-blocks").on("click", function (e) {
 
                             e.stopImmediatePropagation();
                             let totalBlocks = $('#recommended-methods input[type="checkbox"]:checked').length;
 
-                            node = temporaryNode;
+                            let node = getNodeObject(parseInt(nodePopup.attr("data-nodeId")));
+
                             let nodeLabel = 'label' in node ?
                                 node.label.replace("<<", "").replace(">>", "") : node.title;
 
@@ -1022,7 +1047,8 @@
                                     });
                                     tasks.push(node);
 
-                                } else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
+                                }
+                                else if (totalBlocks >= 1 && OneMethodBlockSittingOnTopOfStep(node.id)) {
 
                                     let level = getHighestStepLevel() + 1;
 
@@ -1143,7 +1169,7 @@
                                 let nameOfRecommendedGraph = $(this).parent().attr("data-name");
                                 processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, node, nameOfRecommendedGraph, 2);
                             });
-
+                            console.log(tasks);
                             /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
                             initializeGraph(true);
                             closeNodePopup(nodePopup);

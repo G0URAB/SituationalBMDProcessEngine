@@ -3,8 +3,6 @@
 namespace App\Controller;
 
 use App\Entity\BmdGraph;
-use App\Entity\ProcessKind;
-use App\Entity\SituationalFactor;
 use App\Form\BmdGraphType;
 use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;

@@ -6,17 +6,12 @@ use App\Entity\BmdGraph;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
-use App\Entity\SituationalFactor;
-
-use App\Form\BmdGraphType;
 use App\Service\DataService;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
-use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
-use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 
 
@@ -24,11 +19,12 @@ class MethodConstructionController extends AbstractController
 {
 
     /**
-     * @Route("/method/construction", name="method_construction")
+     * @Route("/construct/situational_method", name="construct_situational_method")
      * @param Request $request
+     * @param DataService $dataService
      * @return Response
      */
-    public function index(Request $request, DataService $dataService): Response
+    public function constructSituationalMethod(Request $request, DataService $dataService): Response
     {
         if (!$request->isXmlHttpRequest()) {
 
@@ -123,56 +119,6 @@ class MethodConstructionController extends AbstractController
         return new Response("Invalid request", 400);
     }
 
-    /**
-     * @Route("/construct/method/{id?}", name="construct_method")
-     * @param Request $request
-     * @param SessionInterface $session
-     * @param DataService $formHelperService
-     * @param $id
-     * @return Response
-     */
-    public function construct(Request $request, SessionInterface $session, DataService $formHelperService, $id): Response
-    {
-        $submittedToken = $request->request->get('token');
-
-        $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->find($id);
-        $form = $this->createForm(BmdGraphType::class, $bmdGraph, ['situationalChoices' => $formHelperService->getSituationalChoices()]);
-
-        $tools = [];
-        $roles = [];
-        foreach ($formHelperService->getAllTools() as $tool)
-            $tools [$tool->getType()] = $tool->getImplodedVariants();
-        foreach ($formHelperService->getAllRoles() as $role)
-            $roles [] = $role->getName();
-
-        $form->handleRequest($request);
-
-        if ($form->isSubmitted() && $form->isValid()) {
-            if (!$this->isCsrfTokenValid('bmd-graph', $submittedToken)) {
-                $form->addError(new FormError("Looks like this form has been hacked!!"));
-                return $this->render('bmd_graphs/update.html.twig', [
-                    'processTypes' => $formHelperService->getAllProcessTypes(),
-                    'situationalFactors' => $formHelperService->getSituationalChoices(),
-                    'form' => $form->createView()
-                ]);
-            }
-
-            $bmdGraph = $formHelperService->processBMDGraph($bmdGraph, $session->get("nodes"), $session->get("edges"));
-
-            $entityManager = $this->getDoctrine()->getManager();
-            $entityManager->persist($bmdGraph);
-            $entityManager->flush();
-            return $this->redirectToRoute("bmd_graphs");
-        }
-
-        return $this->render("method_construction/construct.html.twig", [
-            'processTypes' => $formHelperService->getAllProcessTypes(),
-            'form' => $form->createView(),
-            'graph' => $bmdGraph,
-            'tools' => $tools,
-            'roles' => $roles,
-        ]);
-    }
 
     public function checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)
     {
@@ -225,6 +171,16 @@ class MethodConstructionController extends AbstractController
         $obj->situationalFactors = $graph->getImplodedSituationalFactors();
 
         return $obj;
+    }
+
+
+    /**
+     * @Route("/handle/situational_method/construction", name="handle_situational_method_construction_request")
+     * @param Request $request
+     */
+    public function handleSituationalMethodCreationRequest(Request $request)
+    {
+
     }
 
 }
