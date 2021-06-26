@@ -662,7 +662,7 @@
                 if (hierarchicalLevel === 2 && parseInt(node.id) === parseInt(rootNodeOfChildGraph.id)) {
                     rootNodeOfChildGraph.id = parentNode.id;
                     nodes.forEach(function (item, index) {
-                        if (parseInt(item.id) === parseInt(parentNode.id)){
+                        if (parseInt(item.id) === parseInt(parentNode.id)) {
                             parentNode.originalIndex = index;
                             node.rootNode = JSON.stringify(parentNode);
                             nodes.splice(index, 1);
@@ -1164,32 +1164,40 @@
 
         function removeLocalGraph(rootNode, graphHierarchy) {
             let rootNodeOfRootNode = JSON.parse(rootNode.rootNode);
+            let childCounter = 0;
             for (let i = edges.length - 1; i >= 0; --i) {
                 if (parseInt(edges[i].from) === parseInt(rootNode.id) && edges[i].arrows === "from") {
 
                     //Check the child nodes and delete their blue edges
                     let childNode = getNodeObject(parseInt(edges[i].to));
-                    if(childNode){
+                    if (childNode) {
                         for (let v = edges.length - 1; v >= 0; --v) {
-                            if (parseInt(edges[v].from) === parseInt(childNode.id) && edges[v].arrows === "to") {
-                                edges.splice(v, 1);  //Blue edges
-                            }
-                            nodes.forEach(function (node, index) {
-                                if (node === childNode) {
-                                    nodes.splice(index, 1);
+                            if (edges[v]) {
+                                if (parseInt(edges[v].from) === parseInt(childNode.id) && edges[v].arrows === "to") {
+                                    edges.splice(v, 1);  //Blue edges
                                 }
-                            });
+                            }
                         }
+                        if (graphHierarchy === 1) {
+                            removeLocalGraph(childNode, 3);
+                        }
+                        nodes.forEach(function (node, index) {
+                            if (node === childNode) {
+                                nodes.splice(index, 1);
+                            }
+                        });
+
                     }
 
                     edges.splice(i, 1);  // Red edges
+                    childCounter++;
                 }
             }
             nodes.forEach(function (node, index) {
                 if (node === rootNode)
                     nodes.splice(index, 1);
             });
-            if (graphHierarchy===2){
+            if (graphHierarchy === 2 && childCounter > 0) {
                 nodes.splice(rootNodeOfRootNode.originalIndex, 0, rootNodeOfRootNode);
             }
 
