@@ -1208,32 +1208,36 @@
             let diamondStepsAndTheirMaxHeight = [];
 
             let toggledLevelToReturn = null;
-
+            console.log(nodes, edges, step, rootOfStep);
             edges.forEach(function (edge, index) {
                 if (parseInt(edge.from) === parseInt(rootOfStep.id) && edge.arrows === "from") {
+                    console.log(edge);
                     let memberStep = getNodeObject(parseInt(edge.to));
-                    let maxHeightOfTheStep = null;
+                    if (memberStep) {
+                        let maxHeightOfTheStep = null;
 
-                    if (memberStep.shape === "diamond" || memberStep.shape === "box")
-                        maxHeightOfTheStep = parseInt(memberStep.level);
+                        if (memberStep.shape === "diamond" || memberStep.shape === "box")
+                            maxHeightOfTheStep = parseInt(memberStep.level);
 
-                    if (maxHeightOfTheStep > highestStepInLocalGraph)
-                        highestStepInLocalGraph = maxHeightOfTheStep;
+                        if (maxHeightOfTheStep > highestStepInLocalGraph)
+                            highestStepInLocalGraph = maxHeightOfTheStep;
 
-                    //Check children's level (if otherStep's shape is diamond)
-                    if (memberStep.shape === "diamond") {
-                        edges.forEach(function (edge, index) {
-                            if (parseInt(edge.from) === memberStep.id && edge.arrows === "from") {
-                                let childMethodBlock = getNodeObject(parseInt(edge.to));
-                                maxHeightOfTheStep = parseInt(childMethodBlock.level);
-                                if (parseInt(childMethodBlock.level) > highestStepInLocalGraph) {
-                                    highestStepInLocalGraph = parseInt(childMethodBlock.level);
+                        //Check children's level (if otherStep's shape is diamond)
+                        if (memberStep.shape === "diamond") {
+                            edges.forEach(function (edge, index) {
+                                if (parseInt(edge.from) === memberStep.id && edge.arrows === "from") {
+                                    let childMethodBlock = getNodeObject(parseInt(edge.to));
+                                    maxHeightOfTheStep = parseInt(childMethodBlock.level);
+                                    if (parseInt(childMethodBlock.level) > highestStepInLocalGraph) {
+                                        highestStepInLocalGraph = parseInt(childMethodBlock.level);
+                                    }
                                 }
-                            }
-                        });
-                        diamondStepsAndTheirMaxHeight.push({id: memberStep.id, maxHeight: maxHeightOfTheStep});
-                        totalDiamondSteps++;
+                            });
+                            diamondStepsAndTheirMaxHeight.push({id: memberStep.id, maxHeight: maxHeightOfTheStep});
+                            totalDiamondSteps++;
+                        }
                     }
+
                 }
             });
 
@@ -1246,8 +1250,8 @@
                 console.log('height:' + (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight);
 
                 toggledLevelToReturn = (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight;
-                if(levelToggleCounter===5)
-                    levelToggleCounter=0;
+                if (levelToggleCounter === 5)
+                    levelToggleCounter = 0;
                 else
                     levelToggleCounter++;
             } else {
@@ -1323,7 +1327,7 @@
             for (let i = 0; i < 200; i++) {
                 if ((4 * i + 4) === stepIndex) {
                     return 0;
-                } else if (4 * i +3 === stepIndex) {
+                } else if (4 * i + 3 === stepIndex) {
                     return 1;
                 } else if (4 * i + 5 === stepIndex) {
                     return 2;
