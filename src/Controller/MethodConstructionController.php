@@ -6,6 +6,8 @@ use App\Entity\BmdGraph;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
+use App\Entity\SituationalMethod;
+use App\Entity\Task;
 use App\Service\DataService;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -70,7 +72,7 @@ class MethodConstructionController extends AbstractController
 
         if ($request->get("request_type") == "get_method_blocks") {
             $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->findOneBy([
-                'name' => $request->get("graph_name")
+                'name' => $request->get("root_graph_name")
             ]);
 
             $processType = $this->getDoctrine()->getRepository(ProcessKind::class)->findOneBy([
@@ -86,8 +88,11 @@ class MethodConstructionController extends AbstractController
                     'process' => $process
                 ]);
 
-                if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph))
-                    $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
+                if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)) {
+                    if ($methodBlock)
+                        $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
+                }
+
             }
 
             //Also check which other processes can also be used in this process type
@@ -108,7 +113,10 @@ class MethodConstructionController extends AbstractController
             ]);
             if ($graphsWithParentProcessType) {
                 foreach ($graphsWithParentProcessType as $probableSituationSpecificGraph) {
-                    if ($this->checkIfMethodBlockIsSituationSpecific($probableSituationSpecificGraph, $bmdGraph) && $probableSituationSpecificGraph->getId() !== $bmdGraph->getId())
+                    if ($this->checkIfMethodBlockIsSituationSpecific($probableSituationSpecificGraph, $bmdGraph)
+                        && $probableSituationSpecificGraph->getId() !== $bmdGraph->getId()
+                        && $request->get("calling_graph_name") != $probableSituationSpecificGraph->getName())
+
                         $situationSpecificBMDGraphs[] = $this->getBMDGraphObject($probableSituationSpecificGraph);
                 }
             }
@@ -123,6 +131,9 @@ class MethodConstructionController extends AbstractController
     public function checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)
     {
         $methodBlockIsSituationSpecific = false;
+
+        if (in_array("All Situations", (array)$bmdGraph->getSituationalFactors()))
+            return true;
 
         if ($methodBlock) {
 
@@ -177,10 +188,82 @@ class MethodConstructionController extends AbstractController
     /**
      * @Route("/handle/situational_method/construction", name="handle_situational_method_construction_request")
      * @param Request $request
+     * @return JsonResponse|Response
      */
-    public function handleSituationalMethodCreationRequest(Request $request)
+    public function handleSituationalMethodCreationRequest(Request $request, DataService $dataService)
     {
+        if ($request->isXmlHttpRequest()) {
+            $nodes = $request->get("nodes");
+            $edges = $request->get("edges");
+            $tasks = $request->get("tasks");
+            $nameOfSituationalMethod = $request->get("name_of_situational_method");
+            $nameOfPlatformOwner = $request->get("platform_owner_name");
+            $phoneOfPlatformOwner = $request->get("platform_owner_phone");
+            $addressOfPlatformOwner = $request->get("platform_owner_address");
 
+            $allRoles = [];
+            foreach ($dataService->getAllRoles() as $role)
+                array_push($allRoles, $role->getName());
+
+            $allToolTypes = [];
+            foreach ($dataService->getAllTools() as $tool)
+                array_push($allToolTypes, $tool->getType());
+
+            /*dd($nodes, $edges, $tasks, $nameOfSituationalMethod, $nameOfPlatformOwner, $phoneOfPlatformOwner, $addressOfPlatformOwner );*/
+            $newSituationalMethod = new SituationalMethod();
+            $newSituationalMethod->setName($nameOfSituationalMethod);
+            $newSituationalMethod->setPlatformOwnerName($nameOfPlatformOwner);
+            $newSituationalMethod->setPlatformOwnerPhone($phoneOfPlatformOwner);
+            $newSituationalMethod->setPlatformOwnerAddress($addressOfPlatformOwner);
+            $newSituationalMethod->setJsonNodes($nodes);
+            $newSituationalMethod->setJsonEdges($edges);
+
+            $entityManager = $this->getDoctrine()->getManager();
+
+            foreach ($tasks as $task) {
+                $inputArtifacts = [];
+                $outputArtifacts = [];
+                $roles = [];
+                $tools = [];
+
+                $taskEntity = new Task();
+                $taskEntity->setStatus(Task::TO_DO);
+                $taskEntity->setName($task['label']);
+
+                foreach ($task['inputArtifacts'] as $inputArtifact)
+                    $inputArtifacts[$inputArtifact] = null; //Null means empty file now
+
+                foreach ($task['outputArtifacts'] as $outputArtifact)
+                    $outputArtifacts[$outputArtifact] = null; //Null means empty file now
+
+                $taskEntity->setInputArtifacts($inputArtifacts);
+                $taskEntity->setOutputArtifacts($outputArtifacts);
+
+                foreach ($task as $key => $value) {
+                    if (in_array($key, $allRoles))
+                        $roles[$key] = null; //Null means, no use has been assigned for this role yet
+
+                    if (in_array($key, $allToolTypes))
+                        $tools[$key] = null; //Null means, no tool has been selected for this tool type
+                }
+
+                $taskEntity->setRoles($roles);
+                $taskEntity->setTools($tools);
+
+                $task['tableId'] = $taskEntity->getId();
+
+                $newSituationalMethod->addTask($taskEntity);
+                $entityManager->persist($taskEntity);
+            }
+
+            $newSituationalMethod->setJsonTasks($tasks);
+            $entityManager->persist($newSituationalMethod);
+            $entityManager->flush();
+
+            return new JsonResponse(['status' => "okay", "msg" => "Situational Method Saved!!"]);
+        }
+
+        return new Response("Invalid Request", 400);
     }
 
 }

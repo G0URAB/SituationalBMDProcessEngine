@@ -27,9 +27,10 @@
     <div class="mt-4 d-flex flex-column " style="width: 90%; margin:auto;">
         <h3> Situation Specific BMD Graphs </h3>
         <div id="graphs" class="d-flex flex-row flex-wrap border border-secondary rounded p-3"
-             style="max-height: 400px; overflow: auto; background: #5747a4">
-            <h6 class="text-center w-100 text-white"><i>Select situational factors to find situation-specific BMD
-                    Graphs </i></h6>
+             style="max-height: 500px; overflow: auto; background: #5747a4">
+            <h6 class="text-center w-100 text-white">
+                <i>Select situational factors to find situation-specific BMD Graphs </i>
+            </h6>
 
             <div id="spinner" style="display: none;">
                 <div class="d-flex align-items-center text-white">
@@ -44,7 +45,7 @@
     {# Construct situational Method #}
     <div class="mt-5 d-flex flex-column ">
         <h3 class="m-auto"> Construct Situational Method</h3>
-        <div style="width: 96%; height:800px; border: 1px solid black; border-radius: 2%; margin:auto">
+        <div style="width: 96%; height:870px; border: 1px solid black; border-radius: 2%; margin:auto">
             <h6 class=" mt-4 text-center w-100 text-success" id="notification-2"><i>Select BMD Graphs to Construct a
                     situational
                     method. </i></h6>
@@ -53,6 +54,35 @@
 
             </div>
         </div>
+    </div>
+
+    {# Save Situational Method #}
+    <div class="w-100 d-flex flex-column justify-content-start mt-2">
+        <div class="d-flex flex-row">
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Name of the platform owner</span>
+                </div>
+                <input type="text" class="form-control" placeholder="Elon Musk" aria-label="Username"
+                       id="platform-owner-name">
+            </div>
+            <div class="input-group mb-3">
+                <div class="input-group-prepend">
+                    <span class="input-group-text">Phone number of platform owner</span>
+                </div>
+                <input type="number" class="form-control" placeholder="12312345" aria-label="Username"
+                       id="platform-owner-phone-number">
+            </div>
+        </div>
+        <div class="input-group mb-3">
+            <div class="input-group-prepend">
+                <span class="input-group-text">Address of platform owner</span>
+            </div>
+            <input type="text" class="form-control" placeholder="Ludwigstraße 45, Paderborn 33098" aria-label="Username"
+                   id="platform-owner-address">
+        </div>
+
+        <button type="button" class="btn btn-success" id="save-situational-method">Save Situational Method</button>
     </div>
 
     {# Modal 1 : For recommending situational graphs and method-blocks for a processType in any step #}
@@ -288,19 +318,19 @@
                             /* On Select a particular graph */
                             $(".select-graph").on("click", function (e) {
                                 e.stopImmediatePropagation();
-                                /*if (nameOfRootNode.val().length > 5) {*/
-                                bmdGraphsBeingUsed.push($(this).data("name"));
-                                $(this).prop("disabled", true);
-                                $("#notification-2").css("display", "none");
-                                $("#situational-methods").css("height", "100%");
-                                situationalMethods.parent().find(".text-primary").remove();
-                                let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
-                                let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
-                                processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
-                                /* } else {
-                                     alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
-                                     return false;
-                                 }*/
+                                if (nameOfRootNode.val().length > 5) {
+                                    bmdGraphsBeingUsed.push($(this).data("name"));
+                                    $(this).prop("disabled", true);
+                                    $("#notification-2").css("display", "none");
+                                    $("#situational-methods").css("height", "100%");
+                                    situationalMethods.parent().find(".text-primary").remove();
+                                    let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
+                                    let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
+                                    processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
+                                } else {
+                                    alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
+                                    return false;
+                                }
                             });
 
                         });
@@ -578,6 +608,54 @@
             closeNodePopup(graphRootNodePopup);
         });
 
+        $("#save-situational-method").on("click", function () {
+
+            if (nodes.length === 1) {
+                alert("The situational method is empty! Nothing save :-)");
+            } else {
+                //Check if all steps with processTypes have been filled with methodblocks;
+                let allStepsHaveBeenFilled = true;
+                for (let i = 0; i < nodes.length - 1; i++) {
+
+                    if (nodes[i].shape === "box" && nodes[i].type === "processType") {
+                        allStepsHaveBeenFilled = false;
+                        alert(nodes[i].label + " in '" + getLocalRootNodeObject(nodes[i].id).label + "' needs to be filled with at least one method block!");
+                        break;
+                    }
+                }
+                if (!allStepsHaveBeenFilled)
+                    return;
+
+                if (($("#platform-owner-name").val()).length < 5) {
+                    alert("Please provide name of the platform owner!!");
+                    return;
+                } else if (($("#platform-owner-phone-number").val()).length < 7) {
+                    alert("Please provide a valid phone number for the platform owner!");
+                    return;
+                } else if (($("#platform-owner-address").val()).length < 7) {
+                    alert("Please provide a valid address for the platform owner!");
+                    return;
+                }
+                console.log("Eureka!!");
+
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ path('handle_situational_method_construction_request') }}',
+                    data: {
+                        nodes: nodes,
+                        edges: edges,
+                        tasks: tasks,
+                        name_of_situational_method: nameOfRootNode.val(),
+                        platform_owner_name: $("#platform-owner-name").val(),
+                        platform_owner_phone: $("#platform-owner-phone-number").val(),
+                        platform_owner_address: $("#platform-owner-address").val(),
+                    },
+                    success: function (response) {
+                    }
+                });
+            }
+        });
+
         /*-----------------------------Helper Functions ----------------------------------*/
 
         function setRootNodeName() {
@@ -590,6 +668,7 @@
             let rootNode = nodes[0];
             rootNode.label = rootNodeName;
             alert("Root node's name was set!!");
+            closeNodePopup(nodePopup2);
             initializeGraph(true);
         }
 
@@ -909,7 +988,9 @@
             let localSession = methodRecommendationCounter;
 
             nodePopup.attr("data-nodeId", node.id);
-            let localRootNode = getLocalRootNodeObject(node.id); //The localRootNode is root node of graph
+            let localRootNode = (getLocalRootNodeObject((getLocalRootNodeObject(node.id)).id)).id === 1 ?
+                getLocalRootNodeObject(node.id) : getLocalRootNodeObject((getLocalRootNodeObject(node.id)).id); //The localRootNode is root node of graph
+
             temporaryNode = node;
             if (node.shape === 'diamond') {
                 hideShowMethodBlocksOfStep.css("display", "block");
@@ -931,7 +1012,8 @@
                     request_type: 'get_method_blocks',
                     process_type: 'label' in node ?
                         (node.label).replace(">>", "").replace("<<", "") : node.title,
-                    graph_name: localRootNode.graphName,
+                    root_graph_name: localRootNode.graphName,
+                    calling_graph_name: (getLocalRootNodeObject((getLocalRootNodeObject(node.id)).id)).id !== 1 ? getLocalRootNodeObject(node.id).graphName : ''
                 },
                 success: function (response) {
 
@@ -1208,10 +1290,10 @@
             let diamondStepsAndTheirMaxHeight = [];
 
             let toggledLevelToReturn = null;
-            console.log(nodes, edges, step, rootOfStep);
+
             edges.forEach(function (edge, index) {
                 if (parseInt(edge.from) === parseInt(rootOfStep.id) && edge.arrows === "from") {
-                    console.log(edge);
+
                     let memberStep = getNodeObject(parseInt(edge.to));
                     if (memberStep) {
                         let maxHeightOfTheStep = null;
@@ -1243,14 +1325,10 @@
 
             //Now do the calculation: If the step is fourth or above then use the level of an early distant step
 
-            if (totalDiamondSteps > 4) {
-                console.log(diamondStepsAndTheirMaxHeight);
-                console.log('indexOfstep:' + levelToggleCounter);
-                console.log("customized index:" + levelToggleCounter);
-                console.log('height:' + (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight);
+            if (totalDiamondSteps > 3) {
 
                 toggledLevelToReturn = (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight;
-                if (levelToggleCounter === 5)
+                if (levelToggleCounter === 4)
                     levelToggleCounter = 0;
                 else
                     levelToggleCounter++;
