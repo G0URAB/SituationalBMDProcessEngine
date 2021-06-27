@@ -7,8 +7,8 @@
     {# Situational Checkboxes #}
     <div id="situational-factor-box">
         <h3 class="text-center mt-3">Situational Factors</h3>
-        <div class="d-flex flex-row justify-content-between p-1 flex-wrap border border-dark rounded m-auto"
-             style="width: 90%;">
+        <div class="d-flex flex-row justify-content-between p-1 flex-wrap rounded m-auto"
+             style="width: 90%; background: #cfcee3">
             {% for factor in situationalFactors %}
                 <div class="d-flex flex-column m-2">
                     <h6><u>{{ factor.name }}</u></h6>
@@ -27,12 +27,12 @@
     <div class="mt-4 d-flex flex-column " style="width: 90%; margin:auto;">
         <h3> Situation Specific BMD Graphs </h3>
         <div id="graphs" class="d-flex flex-row flex-wrap border border-secondary rounded p-3"
-             style="max-height: 400px; overflow: auto;">
-            <h6 class="text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
+             style="max-height: 400px; overflow: auto; background: #5747a4">
+            <h6 class="text-center w-100 text-white"><i>Select situational factors to find situation-specific BMD
                     Graphs </i></h6>
 
             <div id="spinner" style="display: none;">
-                <div class="d-flex align-items-center">
+                <div class="d-flex align-items-center text-white">
                     <strong>Loading...</strong>
                     <div class="spinner-border ml-auto" role="status" aria-hidden="true"></div>
                 </div>
