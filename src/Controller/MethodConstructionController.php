@@ -8,6 +8,7 @@ use App\Entity\Process;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalMethod;
 use App\Entity\Task;
+use App\Repository\TaskRepository;
 use App\Service\DataService;
 use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -190,7 +191,7 @@ class MethodConstructionController extends AbstractController
      * @param Request $request
      * @return JsonResponse|Response
      */
-    public function handleSituationalMethodCreationRequest(Request $request, DataService $dataService)
+    public function handleSituationalMethodCreationRequest(Request $request, DataService $dataService, TaskRepository $taskRepository)
     {
         if ($request->isXmlHttpRequest()) {
             $nodes = $request->get("nodes");
@@ -215,8 +216,8 @@ class MethodConstructionController extends AbstractController
             $newSituationalMethod->setPlatformOwnerName($nameOfPlatformOwner);
             $newSituationalMethod->setPlatformOwnerPhone($phoneOfPlatformOwner);
             $newSituationalMethod->setPlatformOwnerAddress($addressOfPlatformOwner);
-            $newSituationalMethod->setJsonNodes($nodes);
-            $newSituationalMethod->setJsonEdges($edges);
+            $newSituationalMethod->setJsonNodes(json_encode($nodes));
+            $newSituationalMethod->setJsonEdges(json_encode($edges));
 
             $entityManager = $this->getDoctrine()->getManager();
 
@@ -230,11 +231,11 @@ class MethodConstructionController extends AbstractController
                 $taskEntity->setStatus(Task::TO_DO);
                 $taskEntity->setName($task['label']);
 
-                foreach ($task['inputArtifacts'] as $inputArtifact)
-                    $inputArtifacts[$inputArtifact] = null; //Null means empty file now
+                foreach ($task['inputArtifacts'] as $key=>$value)
+                    $inputArtifacts[$value] = null; //Null means empty file now
 
-                foreach ($task['outputArtifacts'] as $outputArtifact)
-                    $outputArtifacts[$outputArtifact] = null; //Null means empty file now
+                foreach ($task['outputArtifacts'] as $key=>$value)
+                    $outputArtifacts[$value] = null; //Null means empty file now
 
                 $taskEntity->setInputArtifacts($inputArtifacts);
                 $taskEntity->setOutputArtifacts($outputArtifacts);
@@ -250,13 +251,13 @@ class MethodConstructionController extends AbstractController
                 $taskEntity->setRoles($roles);
                 $taskEntity->setTools($tools);
 
-                $task['tableId'] = $taskEntity->getId();
+                $task['tableId'] = count($taskRepository->findLastRecord())==0? 1: ($taskRepository->findLastRecord())[0]->getId() + 1;;
 
                 $newSituationalMethod->addTask($taskEntity);
                 $entityManager->persist($taskEntity);
             }
 
-            $newSituationalMethod->setJsonTasks($tasks);
+            $newSituationalMethod->setJsonTasks(json_encode($tasks));
             $entityManager->persist($newSituationalMethod);
             $entityManager->flush();
 

@@ -47,4 +47,18 @@ class TaskRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findLastRecord(): array
+    {
+        $entityManager = $this->getEntityManager();
+
+        $query = $entityManager->createQuery(
+            'SELECT task
+            FROM App\Entity\Task task
+            ORDER BY task.id DESC'
+        )->setMaxResults(1);
+
+        // returns an array of Product objects
+        return $query->getResult();
+    }
 }
