@@ -3,12 +3,16 @@
 namespace App\Service;
 
 use App\Entity\Artifact;
+use App\Entity\BmdGraph;
+use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
 use App\Entity\Role;
 use App\Entity\SituationalFactor;
+use App\Entity\SituationalMethod;
 use App\Entity\Tool;
 use Doctrine\ORM\EntityManagerInterface;
+use stdClass;
 
 
 class DataService
@@ -23,7 +27,7 @@ class DataService
     private $artifacts;
     private $tools;
     private $situationalFactors;
-    private $builder;
+    private $situationalMethods;
 
     public function __construct(EntityManagerInterface $em)
     {
@@ -34,6 +38,7 @@ class DataService
         $this->processKinds = $em->getRepository(ProcessKind::class)->findAll();
         $this->tools = $em->getRepository(Tool::class)->findAll();
         $this->situationalFactors = $em->getRepository(SituationalFactor::class)->findAll();
+        $this->situationalMethods = $em->getRepository(SituationalMethod::class)->findAll();
     }
 
     public function getAllProcessTypes()
@@ -66,7 +71,12 @@ class DataService
         return $this->artifacts;
     }
 
-    public function getSituationalChoices()
+    public function getAllSituationalMethods()
+    {
+        return $this->situationalMethods;
+    }
+
+    public function getSituationalChoices(): array
     {
         $situationalFactors = $this->entityManager->getRepository(SituationalFactor::class)->findAll();
 
@@ -119,5 +129,62 @@ class DataService
         $bmdGraph->setEdges(json_encode($edges));
 
         return $bmdGraph;
+    }
+
+
+    public function checkIfMethodBlockIsSituationSpecific(MethodBuildingBlock $methodBlock, BmdGraph $bmdGraph): bool
+    {
+        $methodBlockIsSituationSpecific = false;
+
+        if (in_array("All Situations", (array)$bmdGraph->getSituationalFactors()))
+            return true;
+
+        if ($methodBlock) {
+
+            $matchedSituationalFactors = 0;
+            $totalSituationalFactors = 0;
+
+            foreach ($methodBlock->getSituationalFactors() as $factor) {
+                if (in_array($factor, $bmdGraph->getSituationalFactors()))
+                    $matchedSituationalFactors++;
+                $totalSituationalFactors++;
+            }
+
+            /*
+             * If percentage of situational factors are more than or equal to 50% then recommend the method block.
+             * If the method block can be used in all situation, then recommend it as well.
+             */
+            $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
+            if ($percentageOfSituationalApplicability >= 50 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
+                $methodBlockIsSituationSpecific = true;
+            }
+        }
+
+        return $methodBlockIsSituationSpecific;
+    }
+
+    public function getMethodBlockObject(MethodBuildingBlock $methodBlock): stdClass
+    {
+        $obj = new stdClass;
+        $obj->id = $methodBlock->getId();
+        $obj->name = $methodBlock->getProcess()->getName();
+        $obj->inputArtifacts = $methodBlock->getInputArtifacts();
+        $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
+        $obj->roles = explode(", ", $methodBlock->implodedRoles());
+        $obj->tools = explode(", ", $methodBlock->getImplodedTools());
+
+        return $obj;
+    }
+
+    public function getBMDGraphObject(BmdGraph $graph): stdClass
+    {
+        $obj = new stdClass;
+        $obj->id = $graph->getId();
+        $obj->name = $graph->getName();
+        $obj->nodes = $graph->getNodes();
+        $obj->edges = $graph->getEdges();
+        $obj->situationalFactors = $graph->getImplodedSituationalFactors();
+
+        return $obj;
     }
 }

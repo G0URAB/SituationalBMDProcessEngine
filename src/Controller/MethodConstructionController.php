@@ -22,7 +22,20 @@ class MethodConstructionController extends AbstractController
 {
 
     /**
-     * @Route("/construct/situational_method", name="construct_situational_method")
+     * @Route("/situational_methods", name="situational_methods")
+     * @param Request $request
+     * @param DataService $dataService
+     * @return Response
+     */
+    public function situationalMethods(Request $request, DataService $dataService): Response
+    {
+        return $this->render("method_construction/index.html.twig",[
+            'situationalMethods'=>$dataService->getAllSituationalMethods()
+        ]);
+    }
+
+    /**
+     * @Route("/situational_method/create", name="construct_situational_method")
      * @param Request $request
      * @param DataService $dataService
      * @return Response
@@ -40,7 +53,7 @@ class MethodConstructionController extends AbstractController
             foreach ($dataService->getAllRoles() as $role)
                 $roles [] = $role->getName();
 
-            return $this->render('method_construction/index.html.twig', [
+            return $this->render('method_construction/construct.html.twig', [
                 'situationalFactors' => $situationalFactors,
                 'tools' => $tools,
                 'roles' => $roles,
@@ -63,7 +76,7 @@ class MethodConstructionController extends AbstractController
                         }
                     }
                     if ($countOfQueriedFactors == $countFound) {
-                        $matchingGraphs[] = $this->getBMDGraphObject($graph);
+                        $matchingGraphs[] = $dataService->getBMDGraphObject($graph);
                     }
 
                 }
@@ -89,9 +102,9 @@ class MethodConstructionController extends AbstractController
                     'process' => $process
                 ]);
 
-                if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)) {
+                if ($dataService->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)) {
                     if ($methodBlock)
-                        $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
+                        $situationSpecificMethodBuildingBlocks[] = $dataService->getMethodBlockObject($methodBlock);
                 }
 
             }
@@ -104,8 +117,8 @@ class MethodConstructionController extends AbstractController
                         'process' => $process
                     ]);
 
-                    if ($this->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph))
-                        $situationSpecificMethodBuildingBlocks[] = $this->getMethodBlockObject($methodBlock);
+                    if ($dataService->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph))
+                        $situationSpecificMethodBuildingBlocks[] = $dataService->getMethodBlockObject($methodBlock);
                 }
             }
 
@@ -114,11 +127,11 @@ class MethodConstructionController extends AbstractController
             ]);
             if ($graphsWithParentProcessType) {
                 foreach ($graphsWithParentProcessType as $probableSituationSpecificGraph) {
-                    if ($this->checkIfMethodBlockIsSituationSpecific($probableSituationSpecificGraph, $bmdGraph)
+                    if ($dataService->checkIfMethodBlockIsSituationSpecific($probableSituationSpecificGraph, $bmdGraph)
                         && $probableSituationSpecificGraph->getId() !== $bmdGraph->getId()
                         && $request->get("calling_graph_name") != $probableSituationSpecificGraph->getName())
 
-                        $situationSpecificBMDGraphs[] = $this->getBMDGraphObject($probableSituationSpecificGraph);
+                        $situationSpecificBMDGraphs[] = $dataService->getBMDGraphObject($probableSituationSpecificGraph);
                 }
             }
 
@@ -129,66 +142,11 @@ class MethodConstructionController extends AbstractController
     }
 
 
-    public function checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)
-    {
-        $methodBlockIsSituationSpecific = false;
-
-        if (in_array("All Situations", (array)$bmdGraph->getSituationalFactors()))
-            return true;
-
-        if ($methodBlock) {
-
-            $matchedSituationalFactors = 0;
-            $totalSituationalFactors = 0;
-
-            foreach ($methodBlock->getSituationalFactors() as $factor) {
-                if (in_array($factor, $bmdGraph->getSituationalFactors()))
-                    $matchedSituationalFactors++;
-                $totalSituationalFactors++;
-            }
-
-            /*
-             * If percentage of situational factors are more than or equal to 50% then recommend the method block.
-             * If the method block can be used in all situation, then recommend it as well.
-             */
-            $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
-            if ($percentageOfSituationalApplicability >= 50 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
-                $methodBlockIsSituationSpecific = true;
-            }
-        }
-
-        return $methodBlockIsSituationSpecific;
-    }
-
-    public function getMethodBlockObject($methodBlock)
-    {
-        $obj = new stdClass;
-        $obj->id = $methodBlock->getId();
-        $obj->name = $methodBlock->getProcess()->getName();
-        $obj->inputArtifacts = $methodBlock->getInputArtifacts();
-        $obj->outputArtifacts = $methodBlock->getOutputArtifacts();
-        $obj->roles = explode(", ", $methodBlock->implodedRoles());
-        $obj->tools = explode(", ", $methodBlock->getImplodedTools());
-
-        return $obj;
-    }
-
-    public function getBMDGraphObject($graph)
-    {
-        $obj = new stdClass;
-        $obj->id = $graph->getId();
-        $obj->name = $graph->getName();
-        $obj->nodes = $graph->getNodes();
-        $obj->edges = $graph->getEdges();
-        $obj->situationalFactors = $graph->getImplodedSituationalFactors();
-
-        return $obj;
-    }
-
-
     /**
      * @Route("/handle/situational_method/construction", name="handle_situational_method_construction_request")
      * @param Request $request
+     * @param DataService $dataService
+     * @param TaskRepository $taskRepository
      * @return JsonResponse|Response
      */
     public function handleSituationalMethodCreationRequest(Request $request, DataService $dataService, TaskRepository $taskRepository)
