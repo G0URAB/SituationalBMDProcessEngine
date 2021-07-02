@@ -10,6 +10,7 @@ use App\Entity\ProcessKind;
 use App\Entity\Role;
 use App\Entity\SituationalFactor;
 use App\Entity\SituationalMethod;
+use App\Entity\Task;
 use App\Entity\Tool;
 use Doctrine\ORM\EntityManagerInterface;
 use stdClass;
@@ -132,7 +133,7 @@ class DataService
     }
 
 
-    public function checkIfMethodBlockIsSituationSpecific(MethodBuildingBlock $methodBlock, BmdGraph $bmdGraph): bool
+    public function checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph): bool
     {
         $methodBlockIsSituationSpecific = false;
 
@@ -186,5 +187,48 @@ class DataService
         $obj->situationalFactors = $graph->getImplodedSituationalFactors();
 
         return $obj;
+    }
+
+    public function processTasks($tasks, $situationalMethod, $allRoles, $allToolTypes)
+    {
+        $tasksWithMoreDetails = [];
+        foreach ($tasks as $task) {
+            $inputArtifacts = [];
+            $outputArtifacts = [];
+            $roles = [];
+            $tools = [];
+
+            $taskEntity = new Task();
+            $taskEntity->setStatus(Task::TO_DO);
+            $taskEntity->setName($task['label']);
+
+            foreach ($task['inputArtifacts'] as $key => $value)
+                $inputArtifacts[$value] = null; //Null means empty file now
+
+            foreach ($task['outputArtifacts'] as $key => $value)
+                $outputArtifacts[$value] = null; //Null means empty file now
+
+            $taskEntity->setInputArtifacts($inputArtifacts);
+            $taskEntity->setOutputArtifacts($outputArtifacts);
+
+            foreach ($task as $key => $value) {
+                if (in_array($key, $allRoles))
+                    $roles[$key] = null; //Null means, no use has been assigned for this role yet
+
+                if (in_array($key, $allToolTypes))
+                    $tools[$key] = null; //Null means, no tool has been selected for this tool type
+            }
+
+            $taskEntity->setRoles($roles);
+            $taskEntity->setTools($tools);
+
+            $this->entityManager->persist($taskEntity);
+            $this->entityManager->flush();
+
+            $task['taskId'] = $taskEntity->getId();
+            $situationalMethod->addTask($taskEntity);
+            array_push($tasksWithMoreDetails, $task);
+        }
+        return $tasksWithMoreDetails;
     }
 }

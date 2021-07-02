@@ -29,8 +29,8 @@ class MethodConstructionController extends AbstractController
      */
     public function situationalMethods(Request $request, DataService $dataService): Response
     {
-        return $this->render("method_construction/index.html.twig",[
-            'situationalMethods'=>$dataService->getAllSituationalMethods()
+        return $this->render("method_construction/index.html.twig", [
+            'situationalMethods' => $dataService->getAllSituationalMethods()
         ]);
     }
 
@@ -85,6 +85,10 @@ class MethodConstructionController extends AbstractController
         }
 
         if ($request->get("request_type") == "get_method_blocks") {
+
+            /**
+             * @var BmdGraph $bmdGraph
+             */
             $bmdGraph = $this->getDoctrine()->getRepository(BmdGraph::class)->findOneBy([
                 'name' => $request->get("root_graph_name")
             ]);
@@ -98,6 +102,9 @@ class MethodConstructionController extends AbstractController
 
             foreach ($processType->getProcesses() as $process) {
 
+                /**
+                 * @var MethodBuildingBlock $methodBlock
+                 */
                 $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findOneBy([
                     'process' => $process
                 ]);
@@ -143,15 +150,16 @@ class MethodConstructionController extends AbstractController
 
 
     /**
-     * @Route("/handle/situational_method/construction", name="handle_situational_method_construction_request")
+     * @Route("/handle/situational_method/request", name="handle_situational_method_request")
      * @param Request $request
      * @param DataService $dataService
      * @param TaskRepository $taskRepository
      * @return JsonResponse|Response
      */
-    public function handleSituationalMethodCreationRequest(Request $request, DataService $dataService, TaskRepository $taskRepository)
+    public function handleSituationalMethodRequest(Request $request, DataService $dataService, TaskRepository $taskRepository)
     {
         if ($request->isXmlHttpRequest()) {
+
             $nodes = $request->get("nodes");
             $edges = $request->get("edges");
             $tasks = $request->get("tasks");
@@ -159,6 +167,10 @@ class MethodConstructionController extends AbstractController
             $nameOfPlatformOwner = $request->get("platform_owner_name");
             $phoneOfPlatformOwner = $request->get("platform_owner_phone");
             $addressOfPlatformOwner = $request->get("platform_owner_address");
+            $emailOfPlatformOwner = $request->get("platform_owner_email");
+            $bmdGraphsBeingUsed = $request->get("bmd_graphs_being_used");
+
+            $entityManager = $this->getDoctrine()->getManager();
 
             $allRoles = [];
             foreach ($dataService->getAllRoles() as $role)
@@ -168,55 +180,82 @@ class MethodConstructionController extends AbstractController
             foreach ($dataService->getAllTools() as $tool)
                 array_push($allToolTypes, $tool->getType());
 
-            /*dd($nodes, $edges, $tasks, $nameOfSituationalMethod, $nameOfPlatformOwner, $phoneOfPlatformOwner, $addressOfPlatformOwner );*/
-            $newSituationalMethod = new SituationalMethod();
-            $newSituationalMethod->setName($nameOfSituationalMethod);
-            $newSituationalMethod->setPlatformOwnerName($nameOfPlatformOwner);
-            $newSituationalMethod->setPlatformOwnerPhone($phoneOfPlatformOwner);
-            $newSituationalMethod->setPlatformOwnerAddress($addressOfPlatformOwner);
-            $newSituationalMethod->setJsonNodes(json_encode($nodes));
-            $newSituationalMethod->setJsonEdges(json_encode($edges));
+            $situationalMethod = null;
 
-            $entityManager = $this->getDoctrine()->getManager();
-
-            foreach ($tasks as $task) {
-                $inputArtifacts = [];
-                $outputArtifacts = [];
-                $roles = [];
-                $tools = [];
-
-                $taskEntity = new Task();
-                $taskEntity->setStatus(Task::TO_DO);
-                $taskEntity->setName($task['label']);
-
-                foreach ($task['inputArtifacts'] as $key=>$value)
-                    $inputArtifacts[$value] = null; //Null means empty file now
-
-                foreach ($task['outputArtifacts'] as $key=>$value)
-                    $outputArtifacts[$value] = null; //Null means empty file now
-
-                $taskEntity->setInputArtifacts($inputArtifacts);
-                $taskEntity->setOutputArtifacts($outputArtifacts);
-
-                foreach ($task as $key => $value) {
-                    if (in_array($key, $allRoles))
-                        $roles[$key] = null; //Null means, no use has been assigned for this role yet
-
-                    if (in_array($key, $allToolTypes))
-                        $tools[$key] = null; //Null means, no tool has been selected for this tool type
-                }
-
-                $taskEntity->setRoles($roles);
-                $taskEntity->setTools($tools);
-
-                $task['tableId'] = count($taskRepository->findLastRecord())==0? 1: ($taskRepository->findLastRecord())[0]->getId() + 1;;
-
-                $newSituationalMethod->addTask($taskEntity);
-                $entityManager->persist($taskEntity);
+            if ($request->get("type") == "new_situational_method") {
+                $situationalMethod = new SituationalMethod();
+            } else {
+                $situationalMethod = $entityManager->getRepository(SituationalMethod::class)->find($request->get("id"));
             }
 
-            $newSituationalMethod->setJsonTasks(json_encode($tasks));
-            $entityManager->persist($newSituationalMethod);
+            $situationalMethod->setName($nameOfSituationalMethod);
+            $situationalMethod->setPlatformOwnerName($nameOfPlatformOwner);
+            $situationalMethod->setPlatformOwnerPhone($phoneOfPlatformOwner);
+            $situationalMethod->setPlatformOwnerAddress($addressOfPlatformOwner);
+            $situationalMethod->setPlatformOwnerEmail($emailOfPlatformOwner);
+            $situationalMethod->setBmdGraphsBeingUsed($bmdGraphsBeingUsed);
+            $situationalMethod->setJsonNodes(json_encode($nodes));
+            $situationalMethod->setJsonEdges(json_encode($edges));
+
+            $tasksWithMoreDetails = [];
+
+            if ($request->get("type") == "new_situational_method") {
+                $entityManager->persist($situationalMethod);
+
+                $tasksWithMoreDetails = $dataService->processTasks($tasks, $situationalMethod, $allRoles, $allToolTypes);
+
+            }
+
+            if ($request->get("type") == "edit_situational_method") {
+                $oldTaskFrontendIds = [];
+                $newTaskFrontendIds = [];
+
+                $tasksToRemove = [];
+                $tasksToAdd = [];
+
+                foreach (json_decode($situationalMethod->getJsonTasks()) as $oldTask) {
+                    //id is frontend-id and task id is backend-id
+                    $oldTaskFrontendIds[$oldTask->taskId] = $oldTask->id;
+                }
+
+
+                foreach ($tasks as $task) {
+                    $newTaskFrontendIds[$task['id']] = $task;
+                }
+
+                foreach ($oldTaskFrontendIds as $taskId => $oldTaskFrontendId) {
+                    $taskExist = false;
+                    foreach ($newTaskFrontendIds as $newTaskFrontendId => $task) {
+                        if ($newTaskFrontendId == $oldTaskFrontendId)
+                            $taskExist = true;
+                    }
+                    if (!$taskExist)
+                        $tasksToRemove[$taskId] = $oldTaskFrontendId;
+                }
+
+                foreach ($newTaskFrontendIds as $newTaskFrontendId => $newTask) {
+                    $thisIsANewTask = true;
+                    /*if(!in_array($newTaskId, $oldTaskFrontendIds))
+                        array_push($tasksToAdd, $newTask);*/
+                    foreach ($oldTaskFrontendIds as $tableId => $frontendId) {
+                        if ($frontendId == $newTaskFrontendId)
+                            $thisIsANewTask = false;
+                    }
+                    if ($thisIsANewTask)
+                        array_push($tasksToAdd, $newTask);
+                }
+
+                dd($newTaskFrontendIds, $oldTaskFrontendIds, $tasksToAdd);
+                foreach ($tasksToRemove as $taskBackendId => $taskFrontendId) {
+                    $task = $entityManager->getRepository(Task::class)->find($taskBackendId);
+                    $situationalMethod->removeTask($task);
+                    $entityManager->remove($task);
+                }
+
+                $tasksWithMoreDetails = $dataService->processTasks($tasksToAdd, $situationalMethod, $allRoles, $allToolTypes);
+            }
+
+            $situationalMethod->setJsonTasks(json_encode($tasksWithMoreDetails));
             $entityManager->flush();
 
             return new JsonResponse(['status' => "okay", "msg" => "Situational Method Saved!!"]);
@@ -225,4 +264,23 @@ class MethodConstructionController extends AbstractController
         return new Response("Invalid Request", 400);
     }
 
+
+    /**
+     * @Route("/situational_method/{id}/modify", name="modify_situational_method")
+     * @param Request $request
+     * @param DataService $dataService
+     * @param int $id
+     * @return Response
+     */
+    public function modifySituationalMethod(Request $request, DataService $dataService, int $id): Response
+    {
+        $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+
+        return $this->render("method_construction/modify.html.twig", [
+            'situationalMethod' => $situationalMethod,
+            'situationalFactors' => $dataService->getAllSituationalFactors(),
+            'tools' => $dataService->getAllTools(),
+            'roles' => $dataService->getAllRoles(),
+        ]);
+    }
 }

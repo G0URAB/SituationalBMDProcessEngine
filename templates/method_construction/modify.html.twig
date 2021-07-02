@@ -1,6 +1,6 @@
 {% extends 'base_fluid.html.twig' %}
 
-{% block title %}Situational Method Construction{% endblock %}
+{% block title %}Situational Method Modification{% endblock %}
 
 {% block body %}
 
@@ -50,7 +50,9 @@
                     situational
                     method. </i></h6>
             <div id="situational-methods"
-                 style="width: 100%; height: 93%; display: flex; flex-direction: row; align-items: flex-start">
+                 style="width: 100%; height: 93%; display: flex; flex-direction: row; align-items: flex-start"
+                 data-nodes="{{ situationalMethod.jsonNodes }}" data-edges="{{ situationalMethod.jsonEdges }}"
+                 data-tasks="{{ situationalMethod.jsonTasks }}">
 
             </div>
         </div>
@@ -64,14 +66,14 @@
                     <span class="input-group-text">Name of the platform owner</span>
                 </div>
                 <input type="text" class="form-control" placeholder="Elon Musk" aria-label="Username"
-                       id="platform-owner-name">
+                       id="platform-owner-name" value="{{ situationalMethod.platformOwnerName }}">
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text">Phone number of platform owner</span>
                 </div>
                 <input type="number" class="form-control" placeholder="12312345" aria-label="Username"
-                       id="platform-owner-phone-number">
+                       id="platform-owner-phone-number" value="{{ situationalMethod.platformOwnerPhone }}">
             </div>
         </div>
         <div class="d-flex flex-row">
@@ -80,15 +82,15 @@
                     <span class="input-group-text">Address of platform owner</span>
                 </div>
                 <input type="text" class="form-control" placeholder="Ludwigstraße 45, Paderborn 33098"
-                       aria-label="Username"
-                       id="platform-owner-address">
+                       aria-label="Username" id="platform-owner-address"
+                       value="{{ situationalMethod.platformOwnerAddress }}">
             </div>
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
                     <span class="input-group-text">Email of platform owner</span>
                 </div>
                 <input type="email" class="form-control" placeholder="elon@spaceX.com" aria-label="Username"
-                       id="platform-owner-email">
+                       id="platform-owner-email" value="{{ situationalMethod.platformOwnerEmail }}">
             </div>
         </div>
 
@@ -242,22 +244,33 @@
     <script>
 
 
-        // create an array with nodes
-        let nodes = [
-            {
-                id: 1,
-                label: 'Name of your situational method',
-                level: '0',
-                shape: 'circle',
-                color: '#bababa',
-                margin: 8,
-                title: "Double Click to change name"
-            },
-        ];
-
-        let recordOfOldAndNewNodes = [];
-
+        let nodes = [];
         let edges = [];
+        let tasks = [];
+        let nodesFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("nodes")));
+        let edgesFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("edges")));
+        let tasksFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("tasks")));
+
+        nodesFromDatabase.forEach(function (item, index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            nodes.push(item);
+        });
+
+        edgesFromDatabase.forEach(function (item, index) {
+            item.from = parseInt(item.from);
+            item.to = parseInt(item.to);
+            edges.push(item);
+        });
+
+        tasksFromDatabase.forEach(function (item, index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            tasks.push(item);
+        });
+
         let network = null;
         let body = $("body");
         let nodePopup = $("#node-popup");
@@ -272,8 +285,8 @@
         nameOfRootNode.val("");
 
         let nodePopupToRefer = null;
-        let bmdGraphsBeingUsed = [];
-        let tasks = [];
+        let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
+        console.log(nodes, edges, tasks, bmdGraphsBeingUsed);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -283,7 +296,7 @@
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
-           <div class="jumbotron m-2" style="width: 32%;min-width: 400px;">
+           <div class="jumbotron m-2" style="width: 32%; min-width: 400px;">
                 <h4 style="max-height: 20%; min-height: 20%; overflow: auto"><b>Name:</b> ${name}</h4>
                 <p class="lead"><b>Description:</b>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
                 <hr class="my-4">
@@ -334,9 +347,9 @@
                                     $("#notification-2").css("display", "none");
                                     $("#situational-methods").css("height", "100%");
                                     situationalMethods.parent().find(".text-primary").remove();
-                                    let nodesOfGraph = JSON.parse($(this).attr("data-nodes"));
-                                    let edgesOfGraph = JSON.parse($(this).attr("data-edges"));
-                                    processChildGraphAndConnectToParentNode(nodesOfGraph, edgesOfGraph, nodes[0], $(this).data("name"), 1);
+                                    let nodesInDatabase = JSON.parse($(this).attr("data-nodes"));
+                                    let edgesInDatabase = JSON.parse($(this).attr("data-edges"));
+                                    processChildGraphAndConnectToParentNode(nodesInDatabase, edgesInDatabase, nodes[0], $(this).data("name"), 1);
                                 } else {
                                     alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
                                     return false;
@@ -667,7 +680,8 @@
                         platform_owner_address: $("#platform-owner-address").val(),
                         platform_owner_email: $("#platform-owner-email").val(),
                         bmd_graphs_being_used: bmdGraphsBeingUsed,
-                        type: 'new_situational_method'
+                        type: 'edit_situational_method',
+                        id: "{{ situationalMethod.id }}"
                     },
                     success: function (response) {
                     }
@@ -747,6 +761,7 @@
                 }
             });
             totalHiddenTrees++;
+            console.log(totalHiddenTrees);
             initializeGraph(false);
         }
 
@@ -763,9 +778,11 @@
                 }
             });
             totalHiddenTrees--;
-            if (totalHiddenTrees === 0)
+
+            if (totalHiddenTrees === 0) {
+                console.log(totalHiddenTrees);
                 initializeGraph(true);
-            else
+            } else
                 initializeGraph(false);
         }
 
@@ -1016,10 +1033,11 @@
                 hideShowMethodBlocksOfStep.on("click", function (e) {
                     e.stopImmediatePropagation();
                     node = refreshedNodeValue();
-                    if (node.isHidden)
+                    if (node.isHidden === true) {
                         showAllSteps(node.id);
-                    else
+                    } else {
                         hideAllSteps(node.id);
+                    }
                     closeNodePopup(nodePopup);
                 });
             }

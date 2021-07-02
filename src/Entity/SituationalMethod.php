@@ -38,6 +38,11 @@ class SituationalMethod
      */
     private $platformOwnerAddress;
 
+    /**
+     * @ORM\Column(type="string", length=255)
+     */
+    private $platformOwnerEmail;
+
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\Task", mappedBy="situationalMethod", cascade={"persist","remove"})
@@ -60,10 +65,16 @@ class SituationalMethod
      */
     private $jsonTasks;
 
+    /**
+     * @ORM\Column(type="array", nullable=true)
+     */
+    private $bmdGraphsBeingUsed;
+
 
     public function __construct()
     {
         $this->tasks = new ArrayCollection();
+        $this->bmdGraphsBeingUsed = new ArrayCollection();
     }
 
 
@@ -207,6 +218,38 @@ class SituationalMethod
     public function setJsonTasks($jsonTasks): void
     {
         $this->jsonTasks = $jsonTasks;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getPlatformOwnerEmail()
+    {
+        return $this->platformOwnerEmail;
+    }
+
+    /**
+     * @param mixed $platformOwnerEmail
+     */
+    public function setPlatformOwnerEmail($platformOwnerEmail): void
+    {
+        $this->platformOwnerEmail = $platformOwnerEmail;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getBmdGraphsBeingUsed()
+    {
+        return $this->bmdGraphsBeingUsed->toArray();
+    }
+
+    /**
+     * @param mixed $bmdGraphsBeingUsed
+     */
+    public function setBmdGraphsBeingUsed(array $bmdGraphsBeingUsed)
+    {
+        $this->bmdGraphsBeingUsed = new ArrayCollection($bmdGraphsBeingUsed);
     }
 
 }

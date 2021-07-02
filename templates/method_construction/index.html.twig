@@ -5,90 +5,50 @@
 {% block body %}
 
     <style>
-        body{
+        body {
             background: rgba(0, 0, 0, 0.22);
         }
     </style>
 
-    <a target="_blank" href="{{ path('construct_situational_method') }}" class="mt-2 btn btn-success">Create a new situational method </a>
+    <a href="{{ path('construct_situational_method') }}" class="mt-2 btn btn-success">Create a new
+        situational method </a>
     <hr>
 
     <div class="d-flex flex-row flex-wrap">
 
-        <div class="m-2 p-3 rounded" style=" background: white; ">
-            <div class="container">
-                <h4><b><i style="color: #9f670b">Method Name: </i></b>Synthetic Platform</h4>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name of platform owner</span>
+        {% for method in situationalMethods %}
+            <div class="m-2 p-3 rounded" style=" background: white; width: 48%; min-width: 400px; ">
+                <div class="container">
+                    <h4><b><i style="color: #9f670b">Method Name: </i></b><a href="{{ path('modify_situational_method',{'id':method.id}) }}">{{ method.name }}</a></h4>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Name of platform owner</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Username" value="{{ method.platformOwnerName }}" disabled>
                     </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Phone number of platform owner</span>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Phone number</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Username" value="{{ method.platformOwnerPhone }}" disabled>
                     </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Address of platform owner</span>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Address</span>
+                        </div>
+                        <input type="text" class="form-control" aria-label="Username" value="{{ method.platformOwnerAddress }}" disabled>
                     </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
+                    <div class="input-group mb-3">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">Email</span>
+                        </div>
+                        <input type="email" class="form-control" aria-label="Username" value="{{ method.platformOwnerEmail }}" disabled>
+                    </div>
+                    <p><b><i>Respective enactment:</i></b> <a target="_blank" href="#" class="btn btn-primary">Link to
+                            enactment</a></p>
                 </div>
-                <p ><b><i>Respective enactment:</i></b> <a target="_blank" href="#" class="btn btn-primary">Link to enactment</a></p>
             </div>
-        </div>
-
-        <div class="m-2 p-3 rounded" style=" background: white; ">
-            <div class="container">
-                <h4><b><i style="color: #9f670b">Method Name: </i></b>Synthetic Platform</h4>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Phone number of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Address of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <p ><b><i>Respective enactment:</i></b> <a target="_blank" href="#" class="btn btn-primary">Link to enactment</a></p>
-            </div>
-        </div>
-
-        <div class="m-2 p-3 rounded" style=" background: white; ">
-            <div class="container">
-                <h4><b><i style="color: #9f670b">Method Name: </i></b>Synthetic Platform</h4>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Name of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Phone number of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <div class="input-group mb-3">
-                    <div class="input-group-prepend">
-                        <span class="input-group-text">Address of platform owner</span>
-                    </div>
-                    <input type="text" class="form-control" aria-label="Username" disabled>
-                </div>
-                <p ><b><i>Respective enactment:</i></b> <a target="_blank" href="#" class="btn btn-primary">Link to enactment</a></p>
-            </div>
-        </div>
+        {% endfor %}
 
     </div>
 

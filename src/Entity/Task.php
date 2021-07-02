@@ -50,7 +50,7 @@ class Task
     private $tools;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\SituationalMethod", inversedBy="tasks")
+     * @ORM\ManyToOne(targetEntity="App\Entity\SituationalMethod", inversedBy="tasks", cascade={"persist","remove"})
      */
     private $situationalMethod;
 
