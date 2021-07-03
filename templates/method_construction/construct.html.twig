@@ -1196,12 +1196,11 @@
                                         id: Date.now() + index,
                                         shape: 'box',
                                         type: 'methodBlock',
-                                        processType: nodeLabel,
                                         color: "#bababa",
                                         margin: 8,
                                         level: level,
                                         label: ($(this).next('label').text()).trim(),
-                                        rootNode: rootNodeOfMethodBlock,
+                                        rootNode: JSON.stringify(rootNodeOfMethod),
                                         tableId: $(this).parent().attr("data-id"),
                                         inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
                                         outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
@@ -1225,7 +1224,7 @@
                                     }
 
                                     edges.push(edgeFromMethodBlockToProcessType);
-
+                                    console.log(nodes,rootNodeOfMethodBlock,rootNodeOfMethod);
                                 } else {
 
                                     let level = getLevelWhenMultipleMethodBlocksAreInsertedIntoStep(node, nodeLabel);
@@ -1267,6 +1266,7 @@
 
                                     edges.push(edgeFromMethodBlockToProcessType);
                                 }
+
                             });
 
                             //If graphs have been selected
@@ -1336,6 +1336,7 @@
                             });
                             diamondStepsAndTheirMaxHeight.push({id: memberStep.id, maxHeight: maxHeightOfTheStep});
                             totalDiamondSteps++;
+
                         }
                     }
 
@@ -1345,9 +1346,8 @@
             //Now do the calculation: If the step is fourth or above then use the level of an early distant step
 
             if (totalDiamondSteps > 3) {
-
                 toggledLevelToReturn = (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight;
-                if (levelToggleCounter === 4)
+                if (levelToggleCounter === 3)
                     levelToggleCounter = 0;
                 else
                     levelToggleCounter++;

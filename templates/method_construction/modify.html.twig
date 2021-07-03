@@ -390,6 +390,7 @@
                     },
                     solver: 'hierarchicalRepulsion'
                 },
+
                 edges: {
                     length: 320// Longer edges between nodes.
 
@@ -1214,12 +1215,11 @@
                                         id: Date.now() + index,
                                         shape: 'box',
                                         type: 'methodBlock',
-                                        processType: nodeLabel,
                                         color: "#bababa",
                                         margin: 8,
                                         level: level,
                                         label: ($(this).next('label').text()).trim(),
-                                        rootNode: rootNodeOfMethodBlock,
+                                        rootNode: JSON.stringify(rootNodeOfMethod),
                                         tableId: $(this).parent().attr("data-id"),
                                         inputArtifacts: $(this).parent().attr("data-inputArtifacts").split(","),
                                         outputArtifacts: $(this).parent().attr("data-outputArtifacts").split(",")
@@ -1365,7 +1365,7 @@
             if (totalDiamondSteps > 3) {
 
                 toggledLevelToReturn = (diamondStepsAndTheirMaxHeight[levelToggleCounter]).maxHeight;
-                if (levelToggleCounter === 4)
+                if (levelToggleCounter === 3)
                     levelToggleCounter = 0;
                 else
                     levelToggleCounter++;
