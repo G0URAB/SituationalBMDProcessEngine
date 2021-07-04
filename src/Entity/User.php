@@ -31,10 +31,6 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      */
     private $EmployeeName;
 
-    /**
-     * @ORM\Column(type="string", length=180, unique=true)
-     */
-    private $organizationName;
 
     /**
      * @ORM\Column(type="json")
@@ -46,6 +42,12 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(type="string")
      */
     private $password;
+
+    /**
+     * @ORM\Column(type="integer", length=180, options={"default" : 0})
+     */
+    private $passwordResetCounter=0;
+
 
     public function getId(): ?int
     {
@@ -144,19 +146,26 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $this->EmployeeName = $EmployeeName;
     }
 
+
     /**
      * @return mixed
      */
-    public function getOrganizationName()
+    public function getPasswordResetCounter()
     {
-        return $this->organizationName;
+        return $this->passwordResetCounter;
     }
 
     /**
-     * @param mixed $organizationName
+     * @param mixed $passwordResetCounter
      */
-    public function setOrganizationName($organizationName): void
+    public function setPasswordResetCounter($passwordResetCounter): void
     {
-        $this->organizationName = $organizationName;
+        $this->passwordResetCounter = $passwordResetCounter;
+    }
+
+    public function getImplodedRoles()
+    {
+        $roles = $this->roles;
+        return implode(", ",$roles);
     }
 }

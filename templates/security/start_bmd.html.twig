@@ -14,17 +14,15 @@
 
 <div class="container mt-5">
 
-    {% if firstUser %}
-        <div>
-            <h2> You are the owner of this organization</h2>
-            <p>
-                You will have authority to add method engineers, project managers, project team members and platform
-                owners.
-                Project team members can also be added or removed by a project manager.
-            </p>
-        </div>
+    <div>
+        <h2> You are the owner of this organization</h2>
+        <p>
+            You will have authority to add method engineers, project managers, project team members and platform
+            owners.
+            Project team members can also be added or removed by a project manager.
+        </p>
+    </div>
 
-    {% endif %}
 
     {{ form_start(form) }}
 

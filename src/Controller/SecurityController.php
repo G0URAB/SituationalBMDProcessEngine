@@ -2,6 +2,7 @@
 
 namespace App\Controller;
 
+use App\Entity\User;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -11,6 +12,8 @@ class SecurityController extends AbstractController
 {
     /**
      * @Route("/login", name="app_login")
+     * @param AuthenticationUtils $authenticationUtilsfla
+     * @return Response
      */
     public function login(AuthenticationUtils $authenticationUtils): Response
     {
@@ -18,12 +21,18 @@ class SecurityController extends AbstractController
         //     return $this->redirectToRoute('target_path');
         // }
 
-        // get the login error if there is one
+        // get the login exception if there is one
         $error = $authenticationUtils->getLastAuthenticationError();
         // last username entered by the user
         $lastUsername = $authenticationUtils->getLastUsername();
 
-        return $this->render('security/login.html.twig', ['last_username' => $lastUsername, 'error' => $error]);
+        $totalUsers = $this->getDoctrine()->getRepository(User::class)->findAll();
+
+        return $this->render('security/login.html.twig', [
+            'last_username' => $lastUsername,
+            'error' => $error,
+            'organisationHasBeenCreated' => count($totalUsers)>0
+        ]);
     }
 
     /**

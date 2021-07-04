@@ -15,17 +15,18 @@
 </html>
 
 <body>
-    {% for label, messages in app.flashes %}
-        {% for message in messages %}
-            <div class="alert alert-{{ label }}">
-                {{ message }}
-            </div>
-        {% endfor %}
+{% for label, messages in app.flashes %}
+    {% for message in messages %}
+        <div class="alert alert-{{ label }}">
+            {{ message }}
+        </div>
     {% endfor %}
+{% endfor %}
 
-   <h2 class="mt-5 text-center text-success">Situation Specific Development of Business Models</h2>
-   <hr>
+<h2 class="mt-5 text-center text-success">Situation Specific Development of Business Models</h2>
+<hr>
 
+{% if organisationHasBeenCreated %}
     <div class="container mt-3">
         <form method="post" autocomplete="off">
             {% if error %}
@@ -43,7 +44,8 @@
             <input type="email" value="{{ last_username }}" name="email" id="inputEmail" class="form-control"
                    autocomplete="off" required autofocus>
             <label for="inputPassword">Password</label>
-            <input type="password" name="password" id="inputPassword" class="form-control" autocomplete="current-password"
+            <input type="password" name="password" id="inputPassword" class="form-control"
+                   autocomplete="current-password"
                    required>
 
             <input type="hidden" name="_csrf_token"
@@ -67,11 +69,11 @@
         </form>
     </div>
 
-
-   <div class="container mt-5">
-       <div class=" d-flex flex-row justify-content-center">
-           <a class="btn btn-warning" href="{{ path('register') }}">Create an organization</a>
-       </div>
-   </div>
-
+{% else %}
+    <div class="container mt-5">
+        <div class=" d-flex flex-row justify-content-center">
+            <a class="btn btn-warning" href="{{ path('register') }}">Start Situation Specific Business Model Development</a>
+        </div>
+    </div>
+{% endif %}
 </body>

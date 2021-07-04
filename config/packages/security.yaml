@@ -36,12 +36,15 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
-        #- { path: ^/index, roles: ROLE_USER }
-        #- { path: ^/situational_method, roles: ROLE_METHOD_ENGINEER }
-        #- { path: ^/method_elements, roles: ROLE_METHOD_ENGINEER }
-        #- { path: ^/method/building/blocks, roles: ROLE_METHOD_ENGINEER }
-        #- { path: ^/bmd/graph, roles: ROLE_METHOD_ENGINEER }
+        - { path: ^/index, roles: ROLE_USER }
+        - { path: ^/situational_methods, roles: [ ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER ] }
+        - { path: ^/situational_method/show, roles: [ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER] }
+        - { path: ^/situational_method/modify, roles: ROLE_METHOD_ENGINEER }
+        - { path: ^/method_elements, roles: ROLE_METHOD_ENGINEER }
+        - { path: ^/method/building/block, roles: ROLE_METHOD_ENGINEER }
+        - { path: ^/bmd/graph, roles: ROLE_METHOD_ENGINEER }
 
     role_hierarchy:
         ROLE_PROJECT_MANAGER: [ROLE_PROJECT_TEAM_MEMBER, ROLE_USER]
-        ROLE_SUPER_ADMIN: [ROLE_METHOD_ENGINEER, ROLE_PROJECT_MANAGER, ROLE_USER]
+        ROLE_PROJECT_TEAM_MEMBER: [ROLE_SALES_EXECUTIVE, ROLE_SALES_MANAGER, ROLE_SALES_VP, ROLE_MARKETING_EXECUTIVE, ROLE_MARKETING_MANAGER, ROLE_MARKETING_VP, ROLE_WEB_DEVELOPER ]
+        ROLE_SUPER_ADMIN: [ROLE_METHOD_ENGINEER, ROLE_PROJECT_MANAGER, ROLE_PROJECT_TEAM_MEMBER, ROLE_USER]

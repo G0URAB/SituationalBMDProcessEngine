@@ -40,6 +40,7 @@ class DataService
         $this->tools = $em->getRepository(Tool::class)->findAll();
         $this->situationalFactors = $em->getRepository(SituationalFactor::class)->findAll();
         $this->situationalMethods = $em->getRepository(SituationalMethod::class)->findAll();
+
     }
 
     public function getAllProcessTypes()
@@ -231,4 +232,5 @@ class DataService
         }
         return $tasksWithMoreDetails;
     }
+
 }

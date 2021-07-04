@@ -42,7 +42,7 @@
                     </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link" href="#">
+                    <a class="nav-link {% if 'team' in app.request.uri %}active{% endif %}" href="{{ path('show_team_members') }}">
                         Team Management
                     </a>
                 </li>

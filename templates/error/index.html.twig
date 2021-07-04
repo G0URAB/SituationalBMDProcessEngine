@@ -1,0 +1,10 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} {{ 'Error '~exception['code'] }} {% endblock %}
+
+{% block body %}
+    <div class="d-flex flex-row justify-content-center mt-5">
+        <h4>{{ exception['message'] }}</h4>
+    </div>
+
+{% endblock %}
