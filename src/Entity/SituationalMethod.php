@@ -70,6 +70,11 @@ class SituationalMethod
      */
     private $bmdGraphsBeingUsed;
 
+    /**
+     * @ORM\Column(type="text", nullable=true)
+     */
+    private $graphsAndTheirSituationalFactors;
+
 
     public function __construct()
     {
@@ -252,4 +257,19 @@ class SituationalMethod
         $this->bmdGraphsBeingUsed = new ArrayCollection($bmdGraphsBeingUsed);
     }
 
+    /**
+     * @return mixed
+     */
+    public function getGraphsAndTheirSituationalFactors()
+    {
+        return $this->graphsAndTheirSituationalFactors;
+    }
+
+    /**
+     * @param mixed $graphsAndTheirSituationalFactors
+     */
+    public function setGraphsAndTheirSituationalFactors($graphsAndTheirSituationalFactors)
+    {
+        $this->graphsAndTheirSituationalFactors = $graphsAndTheirSituationalFactors;
+    }
 }

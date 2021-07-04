@@ -1,0 +1,191 @@
+{% extends 'base_fluid.html.twig' %}
+{% block title %}View Situational Method{% endblock %}
+
+
+{% block body %}
+    <div class="w-100 mb-3 mt-3 d-flex flex-row justify-content-center">
+        <div class="d-flex flex-row justify-content-between flex-wrap w-50">
+
+        </div>
+    </div>
+
+    <div style="position: absolute; left:1%; right:1%;
+         height: 82%; border:1px solid black; border-radius: 4px; display: flex; flex-direction: row;">
+
+        <div id="mynetwork" style="width: 80%; height: 100%;" data-nodes="{{ situationalMethod.jsonNodes }}"
+             data-edges="{{ situationalMethod.jsonEdges }}">
+        </div>
+
+        <div style="width: 30%; height: 100%; overflow: auto">
+            <div class="card h-100">
+                <div class="card-body bg-light">
+                    <h5 class="card-title">{{ situationalMethod.name }}</h5>
+                    {#{{ dump(graphsAndSituationalFactors) }}#}
+
+                    {% for item in graphsAndSituationalFactors %}
+                        <div class="card-text">
+                            <p>{{ loop.index }}. {{ item.graphName }} has been selected for situational factors:</p>
+                            <ul>
+                                {% for factor in item.factors %}
+                                    <li>{{ factor }}</li>
+
+                                {% endfor %}
+                            </ul>
+                        </div>
+                    {% endfor %}
+                </div>
+            </div>
+        </div>
+
+    </div>
+
+
+{% endblock %}
+
+{% block javascripts %}
+
+    {{ parent() }}
+
+    <script>
+        let nodes = [];
+        let edges = [];
+        let totalHiddenTrees = 0;
+
+        let nodesFromDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("nodes")));
+        let edgesFromDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("edges")));
+
+        nodesFromDatabase.forEach(function (item, index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            nodes.push(item);
+        });
+
+        edgesFromDatabase.forEach(function (item, index) {
+            item.from = parseInt(item.from);
+            item.to = parseInt(item.to);
+            edges.push(item);
+        });
+
+        initializeGraph(true);
+
+        function initializeGraph(physicsStatus) {
+            // create a network
+            let container = document.getElementById('mynetwork');
+
+            // provide the data in the vis format
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+            let options = {
+                physics: {
+                    enabled: physicsStatus,
+                    hierarchicalRepulsion: {
+                        centralGravity: 0.0,
+                        springLength: 300,
+                        springConstant: 0.01,
+                        nodeDistance: 300,
+                        damping: 0.09
+                    },
+                    solver: 'hierarchicalRepulsion'
+                },
+
+                edges: {
+                    length: 320// Longer edges between nodes.
+
+                },
+                layout: {
+                    hierarchical: {
+                        direction: "UD",
+                        nodeSpacing: 350,
+                    },
+                },
+                nodes: {
+                    size: 35,
+                    font: {
+                        size: 20,
+                        color: '#000000'
+                    },
+                    widthConstraint: {
+                        maximum: 300
+                    },
+                    /*fixed: {
+                        x: true,
+                        y: true
+                    },*/
+                },
+            };
+
+            // initialize your network!
+            network = new vis.Network(container, data, options);
+            checkEvents();
+        }
+
+        function checkEvents() {
+
+            network.on("doubleClick", function (params) {
+
+                params.event = "[original event]";
+                let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
+                let nodeId = parsedObject.nodes[0];
+
+                let node = getNodeObject(nodeId);
+
+                if (node.id === 1 || node.shape === 'circle' || node.shape==='diamond') {
+                    if (node.isHidden===true)
+                        showAllSteps(node.id);
+                    else
+                        hideAllSteps(node.id);
+                }
+            });
+        }
+
+        function hideAllSteps(rootNodeId) {
+
+            getNodeObject(rootNodeId).isHidden = true;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    if (node) {
+                        node.hidden = true;
+                        hideAllSteps(parseInt(node.id));
+                    }
+                }
+            });
+
+            totalHiddenTrees++;
+            initializeGraph(false);
+        }
+
+        function showAllSteps(rootNodeId) {
+            /*getNodeObject(rootNodeId).color = "#bababa";*/
+            getNodeObject(rootNodeId).isHidden = false;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    if (node) {
+                        node.hidden = false;
+                        showAllSteps(parseInt(node.id));
+                    }
+                }
+            });
+
+            totalHiddenTrees--;
+            if (totalHiddenTrees === 0)
+                initializeGraph(true);
+            else
+                initializeGraph(false);
+        }
+
+        function getNodeObject(nodeId) {
+            let node = null;
+            nodes.forEach(function (item, index) {
+                if (item.id === nodeId)
+                    node = item;
+            });
+            return node;
+        }
+    </script>
+
+{% endblock %}

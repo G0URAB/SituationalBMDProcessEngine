@@ -79,7 +79,7 @@
                 <div class="input-group-prepend">
                     <span class="input-group-text">Address of platform owner</span>
                 </div>
-                <input type="text" class="form-control" placeholder="Ludwigstraße 45, Paderborn 33098"
+                <input type="text" class="form-control" placeholder="New York"
                        aria-label="Username"
                        id="platform-owner-address">
             </div>
@@ -282,6 +282,8 @@
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
 
+        let graphsAndTheirSituationalFactors = [];
+
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
            <div class="jumbotron m-2" style="width: 32%;min-width: 400px;">
                 <h4 style="max-height: 20%; min-height: 20%; overflow: auto"><b>Name:</b> ${name}</h4>
@@ -337,6 +339,14 @@
                                     let nodesOfGraph = JSON.parse($(this).attr("data-nodes"));
                                     let edgesOfGraph = JSON.parse($(this).attr("data-edges"));
                                     processChildGraphAndConnectToParentNode(nodesOfGraph, edgesOfGraph, nodes[0], $(this).data("name"), 1);
+
+                                    //Next add situational factor
+                                    let graphsAndTheirSituationalFactor = {
+                                        graphName: $(this).data("name"),
+                                        rootNodeLabel : nodesOfGraph[0].label,
+                                        factors: situationalFactors
+                                    }
+                                    graphsAndTheirSituationalFactors.push(graphsAndTheirSituationalFactor);
                                 } else {
                                     alert("Please, first give a valid name for the root node of your situational method!! Double click on the circle below to do that!");
                                     return false;
@@ -611,8 +621,13 @@
             let node = getNodeObject(nodeId);
             let rootNode = JSON.parse(node.rootNode);
 
-            if (parseInt(rootNode.id) === 1)
+            if (parseInt(rootNode.id) === 1){
                 removeLocalGraph(node, 1);
+                graphsAndTheirSituationalFactors.forEach(function (item,index) {
+                    if(item.rootNodeLabel===node.label)
+                        graphsAndTheirSituationalFactors.splice(index,1);
+                });
+            }
             else
                 removeLocalGraph(node, 2);
             closeNodePopup(graphRootNodePopup);
@@ -652,8 +667,6 @@
                     return;
                 }
 
-                console.log("Eureka!!");
-
                 $.ajax({
                     type: 'POST',
                     url: '{{ path('handle_situational_method_request') }}',
@@ -667,6 +680,7 @@
                         platform_owner_address: $("#platform-owner-address").val(),
                         platform_owner_email: $("#platform-owner-email").val(),
                         bmd_graphs_being_used: bmdGraphsBeingUsed,
+                        graphs_and_their_factors: graphsAndTheirSituationalFactors,
                         type: 'new_situational_method'
                     },
                     success: function (response) {
@@ -1224,7 +1238,6 @@
                                     }
 
                                     edges.push(edgeFromMethodBlockToProcessType);
-                                    console.log(nodes,rootNodeOfMethodBlock,rootNodeOfMethod);
                                 } else {
 
                                     let level = getLevelWhenMultipleMethodBlocksAreInsertedIntoStep(node, nodeLabel);

@@ -8,9 +8,20 @@ use Symfony\Component\Routing\Annotation\Route;
 
 class MethodBaseController extends AbstractController
 {
+    /**
+     * @Route("/", name="root_path")
+     */
+    public function root(): Response
+    {
+        if($this->getUser())
+            return $this->redirectToRoute('method_base');
+        else
+            return $this->redirectToRoute('app_login');
+    }
+
 
     /**
-     * @Route("/", name="method_base")
+     * @Route("/index", name="method_base")
      */
     public function methodBase(): Response
     {

@@ -29,7 +29,7 @@ class MethodConstructionController extends AbstractController
      */
     public function situationalMethods(Request $request, DataService $dataService): Response
     {
-        return $this->render("method_construction/index.html.twig", [
+        return $this->render("situational_method/index.html.twig", [
             'situationalMethods' => $dataService->getAllSituationalMethods()
         ]);
     }
@@ -53,7 +53,7 @@ class MethodConstructionController extends AbstractController
             foreach ($dataService->getAllRoles() as $role)
                 $roles [] = $role->getName();
 
-            return $this->render('method_construction/construct.html.twig', [
+            return $this->render('situational_method/construct.html.twig', [
                 'situationalFactors' => $situationalFactors,
                 'tools' => $tools,
                 'roles' => $roles,
@@ -169,6 +169,7 @@ class MethodConstructionController extends AbstractController
             $addressOfPlatformOwner = $request->get("platform_owner_address");
             $emailOfPlatformOwner = $request->get("platform_owner_email");
             $bmdGraphsBeingUsed = $request->get("bmd_graphs_being_used");
+            $graphsAndTheirSituationalFactors = $request->get("graphs_and_their_factors");
 
             $entityManager = $this->getDoctrine()->getManager();
 
@@ -196,6 +197,7 @@ class MethodConstructionController extends AbstractController
             $situationalMethod->setBmdGraphsBeingUsed($bmdGraphsBeingUsed);
             $situationalMethod->setJsonNodes(json_encode($nodes));
             $situationalMethod->setJsonEdges(json_encode($edges));
+            $situationalMethod->setGraphsAndTheirSituationalFactors(json_encode($graphsAndTheirSituationalFactors));
 
             $tasksWithMoreDetails = [];
 
@@ -266,7 +268,7 @@ class MethodConstructionController extends AbstractController
 
 
     /**
-     * @Route("/situational_method/{id}/modify", name="modify_situational_method")
+     * @Route("/situational_method/modify/{id}", name="modify_situational_method")
      * @param Request $request
      * @param DataService $dataService
      * @param int $id
@@ -276,11 +278,28 @@ class MethodConstructionController extends AbstractController
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
-        return $this->render("method_construction/modify.html.twig", [
+        return $this->render("situational_method/modify.html.twig", [
             'situationalMethod' => $situationalMethod,
             'situationalFactors' => $dataService->getAllSituationalFactors(),
+            'graphsAndTheirSituationalFactors'=> $situationalMethod->getGraphsAndTheirSituationalFactors(),
             'tools' => $dataService->getAllTools(),
             'roles' => $dataService->getAllRoles(),
+        ]);
+    }
+
+    /**
+     * @Route("/situational_method/show/{id}", name="show_situational_method")
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
+    public function showSituationalMethod(Request $request, int $id): Response
+    {
+        $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+
+        return $this->render("situational_method/show.html.twig", [
+            'situationalMethod' => $situationalMethod,
+            'graphsAndSituationalFactors'=> json_decode($situationalMethod->getGraphsAndTheirSituationalFactors())
         ]);
     }
 }

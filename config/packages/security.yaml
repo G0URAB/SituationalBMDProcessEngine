@@ -1,16 +1,29 @@
 security:
+    encoders:
+        App\Entity\User:
+            algorithm: auto
+
     # https://symfony.com/doc/current/security/experimental_authenticators.html
     enable_authenticator_manager: true
     # https://symfony.com/doc/current/security.html#where-do-users-come-from-user-providers
     providers:
-        users_in_memory: { memory: null }
+        # used to reload user from session & other features (e.g. switch_user)
+        app_user_provider:
+            entity:
+                class: App\Entity\User
+                property: email
     firewalls:
         dev:
             pattern: ^/(_(profiler|wdt)|css|images|js)/
             security: false
         main:
             lazy: true
-            provider: users_in_memory
+            provider: app_user_provider
+            custom_authenticator: App\Security\LoginFormAuthenticator
+            logout:
+                path: app_logout
+                # where to redirect after logout
+                # target: app_any_route
 
             # activate different ways to authenticate
             # https://symfony.com/doc/current/security.html#firewalls-authentication
@@ -23,3 +36,12 @@ security:
     access_control:
         # - { path: ^/admin, roles: ROLE_ADMIN }
         # - { path: ^/profile, roles: ROLE_USER }
+        #- { path: ^/index, roles: ROLE_USER }
+        #- { path: ^/situational_method, roles: ROLE_METHOD_ENGINEER }
+        #- { path: ^/method_elements, roles: ROLE_METHOD_ENGINEER }
+        #- { path: ^/method/building/blocks, roles: ROLE_METHOD_ENGINEER }
+        #- { path: ^/bmd/graph, roles: ROLE_METHOD_ENGINEER }
+
+    role_hierarchy:
+        ROLE_PROJECT_MANAGER: [ROLE_PROJECT_TEAM_MEMBER, ROLE_USER]
+        ROLE_SUPER_ADMIN: [ROLE_METHOD_ENGINEER, ROLE_PROJECT_MANAGER, ROLE_USER]

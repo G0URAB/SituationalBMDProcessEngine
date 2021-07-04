@@ -35,10 +35,14 @@
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'method_elements' in app.request.uri
-                        or 'bmd/graph/show/'in app.request.uri or 'building/blocks' in app.request.uri %}active{% endif %}"
+                        or 'block' in app.request.uri
+                        or 'graph' in app.request.uri%}active{% endif %}"
                        href="{{ path('method_elements') }}">
                         Method Base
                     </a>
+                </li>
+                <li class="nav-item">
+                    <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
                 </li>
             </ul>
         </div>
