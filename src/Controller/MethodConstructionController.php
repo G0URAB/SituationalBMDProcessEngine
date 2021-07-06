@@ -29,7 +29,7 @@ class MethodConstructionController extends AbstractController
      */
     public function situationalMethods(Request $request, DataService $dataService): Response
     {
-        return $this->render("situational_method/index.html.twig", [
+        return $this->render("situational_method/methods.html.twig", [
             'situationalMethods' => $dataService->getAllSituationalMethods()
         ]);
     }
@@ -278,12 +278,19 @@ class MethodConstructionController extends AbstractController
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
+        $tools = [];
+        $roles = [];
+        foreach ($dataService->getAllTools() as $tool)
+            $tools [$tool->getType()] = $tool->getImplodedVariants();
+        foreach ($dataService->getAllRoles() as $role)
+            $roles [] = $role->getName();
+
         return $this->render("situational_method/modify.html.twig", [
             'situationalMethod' => $situationalMethod,
             'situationalFactors' => $dataService->getAllSituationalFactors(),
             'graphsAndTheirSituationalFactors'=> $situationalMethod->getGraphsAndTheirSituationalFactors(),
-            'tools' => $dataService->getAllTools(),
-            'roles' => $dataService->getAllRoles(),
+            'tools' => $tools,
+            'roles' => $roles,
         ]);
     }
 

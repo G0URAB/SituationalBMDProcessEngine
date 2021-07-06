@@ -1,0 +1,478 @@
+{% extends 'base_fluid.html.twig' %}
+
+{% block title %}Enactment{% endblock %}
+
+{% block body %}
+
+    {# Construct situational Method #}
+    <div class="mt-5 d-flex flex-column ">
+
+        <h3 class="m-auto"> Enactment of {{ situationalMethod.name }}</h3>
+
+        <div style="width: 96%; height:870px; margin:auto; display: flex;
+          flex-direction: row;">
+
+            <div id="situational-methods"
+                 style="width: 80%; height: 93%; border: 1px solid black; display: flex; flex-direction: row;
+                  align-items: flex-start; min-width: 340px;"
+                 data-nodes="{{ situationalMethod.jsonNodes }}" data-edges="{{ situationalMethod.jsonEdges }}"
+                 data-tasks="{{ situationalMethod.jsonTasks }}">
+
+            </div>
+
+            {# Hilfreiches Symbol #}
+            <div style="width: 20%; height: 93%;; border: 1px solid black; display:flex; flex-direction: column;
+             align-items: center; min-width: 260px;">
+
+                <h5 class="mt-3"><u>Helpful Information</u></h5>
+
+                <div style="width: 145px; height: 60px; background: red; border-radius: 5px; margin-top:15%;
+                    display: flex; flex-direction: column; justify-content: center; align-items: center;
+                     color: white; font-size: larger">
+                    <span><b>ToDo</b></span>
+                </div>
+
+                <div style="width: 145px; height: 60px; background: rgba(248,151,8,0.76); border-radius: 5px; margin-top:15%;
+                    display: flex; flex-direction: column; justify-content: center; align-items: center;
+                     color: #0c0c0c; font-size: larger">
+                    <span><b>Under Progress</b></span>
+                </div>
+
+                <div style="width: 145px; height: 60px; background: #54f856; border-radius: 5px; margin-top:15%;
+                    display: flex; flex-direction: column; justify-content: center; align-items: center;
+                     color: #000000; font-size: larger">
+                    <span><b>Finished</b></span>
+                </div>
+
+                <div style="width: 145px; height: 60px; background: #0796f8; border-radius: 5px; margin-top:15%;
+                    display: flex; flex-direction: column; justify-content: center; align-items: center;
+                     color: white; font-size: larger">
+                    <span><b>Canceled</b></span>
+                </div>
+
+                <div style="align-items: center;display: flex;">
+                    <span style="color: black; font-size: larger; margin-top:6%; "><b>Sub Task</b></span>
+                    <span style="color: red; font-size: xxx-large;"><b>&rarr;</b></span>
+                </div>
+
+                <div style="align-items: center;display: flex;">
+                    <span style="color: black; font-size: larger; margin-top:6%; "><b>Prerequisite</b></span>
+                    <span style="color: #0040ff; font-size: xxx-large;"><b>&rarr;</b></span>
+                </div>
+
+            </div>
+
+        </div>
+    </div>
+
+
+    {# Modal 3 : Popup For Method Block View #}
+    <div id="method-block-popup" tabindex="-1"
+         style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
+         role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
+        <div class="modal-content" style="max-height: 560px;">
+            {# Header #}
+            <div class="modal-header">
+                <h5 class="modal-title" id="name-of-method-block"> {# Name of block comes here #}</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+
+            {# Body #}
+            <div class="modal-body" style="overflow: auto">
+                {# input artifacts, output artifacts, roles and tools come here #}
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Input Artifacts</h5>
+                    <div class="input-artifacts">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Output Artifacts</h5>
+                    <div class="output-artifacts">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Roles</h5>
+                    <div class="roles">
+
+                    </div>
+                </div>
+
+                <div class="d-flex flex-column border rounded p-2 mt-2">
+                    <h5>Tools</h5>
+                    <div class="tools">
+
+                    </div>
+                </div>
+
+            </div>
+
+            {# Footer #}
+            <div class="modal-footer">
+                <button class="btn btn-info" type="button" style="display: none;" id="add-more-method-blocks">Add More
+                    Method Blocks
+                </button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">
+                    Remove Method Block
+                </button>
+                <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
+            </div>
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+
+
+        let nodes = [];
+        let edges = [];
+        let tasks = [];
+        let nodesFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("nodes")));
+        let edgesFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("edges")));
+        let tasksFromDatabase = JSON.parse(JSON.stringify($("#situational-methods").data("tasks")));
+
+        nodesFromDatabase.forEach(function (item, index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            nodes.push(item);
+        });
+
+        edgesFromDatabase.forEach(function (item, index) {
+            item.from = parseInt(item.from);
+            item.to = parseInt(item.to);
+            edges.push(item);
+        });
+
+        tasksFromDatabase.forEach(function (item, index) {
+            item.id = parseInt(item.id);
+            item.level = parseInt(item.level);
+            item.margin = parseInt(item.margin);
+            tasks.push(item);
+        });
+
+        let network = null;
+        let body = $("body");
+        let nodePopup = $("#node-popup");
+        let methodBlockPopup = $("#method-block-popup");
+        let graphRootNodePopup = $("#graph-root-node-popup");
+        let processTypeInModal = $("#modal-process-type");
+        let level = $("#level");
+        let situationalMethods = $("#situational-methods");
+        let nameOfRootNode = $("#name-of-root-node");
+        let hideShowMethodBlocksOfStep = $("#hide-step-method-blocks");
+        nameOfRootNode.val("");
+
+        let graphsAndTheirSituationalFactors = JSON.parse(("{{ situationalMethod.graphsAndTheirSituationalFactors }}").replace(/&quot;/ig, '"'));
+
+        let nodePopupToRefer = null;
+        let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
+        console.log(nodes, edges, tasks);
+        let totalHiddenTrees = 0;
+        let temporaryNode = null;
+        let methodRecommendationCounter = 0;
+        let levelToggleCounter = 0;
+
+        let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
+        let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
+
+        initializeGraph(true);
+
+        function initializeGraph(physicsStatus) {
+            // create a network
+            let container = document.getElementById('situational-methods');
+
+            // provide the data in the vis format
+            let data = {
+                nodes: nodes,
+                edges: edges
+            };
+            let options = {
+                physics: {
+                    enabled: physicsStatus,
+                    hierarchicalRepulsion: {
+                        centralGravity: 0.0,
+                        springLength: 300,
+                        springConstant: 0.01,
+                        nodeDistance: 300,
+                        damping: 0.09
+                    },
+                    solver: 'hierarchicalRepulsion'
+                },
+
+                edges: {
+                    length: 320// Longer edges between nodes.
+
+                },
+                layout: {
+                    hierarchical: {
+                        direction: "UD",
+                        nodeSpacing: 350,
+                    },
+                },
+                nodes: {
+                    size: 35,
+                    font: {
+                        size: 20,
+                        color: '#000000'
+                    },
+                    widthConstraint: {
+                        maximum: 300
+                    },
+                    /*fixed: {
+                        x: true,
+                        y: true
+                    },*/
+                },
+            };
+
+            // initialize your network!
+            network = new vis.Network(container, data, options);
+            checkEvents();
+        }
+
+        function checkEvents() {
+
+            network.on("doubleClick", function (params) {
+
+                params.event = "[original event]";
+                let parsedObject = JSON.parse(JSON.stringify(params, null, 4));
+                let nodeId = parsedObject.nodes[0];
+
+                let node = getNodeObject(nodeId);
+
+                if (node === null) {
+                    return;
+                } else if (node.id !== 1 && ((node.shape === 'circle') || node.shape === 'diamond')) {
+
+                    if (node.isHidden === true)
+                        showAllSteps(nodeId);
+                    else
+                        hideAllSteps(nodeId);
+
+                } else if (node.type === 'methodBlock') {
+
+                    let artifactHTML = (artifactType, artifact, nodeId) => `
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+                                  <span style="width: 98%; display: flex; flex-direction: column; justify-content: center;
+                                    color: #010668; margin-left:1%;">
+                                      ${artifact}
+                                  </span>
+                                  <button class="remove-artifact btn btn-warning ml-3 d-none"
+                                   data-id="${nodeId}" data-artifactType="${artifactType}">
+                                        Remove ${artifact}
+                                  </button>
+                               </div>
+                                `;
+
+                    let toBeFilledUpRole = (key, nodeId) => `
+                               <div class="to-be-filled-role d-flex flex-row flex-wrap mb-3">
+                                   <div class="input-group" style="width: 99%;">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text">${key}</span>
+                                        </div>
+                                        <input type="text" class="form-control" placeholder="Provide a name for ${key}" required>
+                                   </div>
+                                   <button class="remove-to-be-filled-role btn btn-warning d-none" data-id="${nodeId}" data-role="${key}">
+                                        Remove ${key}
+                                   </button>
+                               </div>
+                                `;
+
+                    let toBeFilledUpTool = (toolType, selectId, nodeId) => `
+                               <div class="to-be-filled-tool d-flex flex-row flex-wrap mb-3 justify-content-between">
+                                    <div style="display: flex; flex-direction: row; width: 90%;">
+                                          <div class="input-group-prepend">
+                                            <label class="input-group-text"><b>Tool Type: &nbsp</b> ${toolType} </label>
+                                          </div>
+                                          <select class="custom-select tool-select" id="${selectId}">
+                                            <option selected>Choose a tool..</option>
+
+                                          </select>
+                                    </div>
+                                   <button class="remove-to-be-filled-tool btn btn-warning d-none"
+                                        data-id="${nodeId}" data-toolType="${toolType}">Remove ${toolType}
+                                   </button>
+                               </div>
+                                `;
+
+                    nodePopupToRefer = methodBlockPopup;
+                    showNodePopup(methodBlockPopup);
+                    methodBlockPopup.attr("data-nodeId", node.id);
+
+                    //Clear previous contents from the dom
+                    $(".input-artifacts").children().remove();
+                    $(".output-artifacts").children().remove();
+                    $(".roles").children().remove();
+                    $(".tools").children().remove();
+
+                    $("#name-of-method-block").html("<b>Name of method block::</b> " + node.label);
+                    for (let [key, value] of Object.entries(node)) {
+                        if (key === 'inputArtifacts') {
+                            node[key].forEach(function (artifact, index) {
+                                if (artifact !== "")
+                                    methodBlockPopup.find(".input-artifacts").append(artifactHTML('inputArtifact', artifact, node.id));
+                            });
+                        }
+                        if (key === 'outputArtifacts') {
+                            node[key].forEach(function (artifact, index) {
+                                if (artifact !== "")
+                                    methodBlockPopup.find(".output-artifacts").append(artifactHTML('outputArtifact', artifact, node.id));
+                            });
+                        }
+                        if (roles.includes(key)) {
+                            methodBlockPopup.find(".roles").append(toBeFilledUpRole(key, node.id));
+                        }
+                        if (key in tools) {
+                            let selectId = key.replace(/ /g, '') + "-" + node.id;
+                            methodBlockPopup.find(".tools").append(toBeFilledUpTool(key, selectId, node.id));
+
+                            let toolsOptions = tools[key].split(",");
+                            toolsOptions.forEach(function (item, index) {
+                                $("#" + selectId).append(new Option(item, item));
+                            });
+
+                        }
+                    }
+                }
+
+                $(".close").on("click", function (e) {
+                    e.stopImmediatePropagation();
+                    closeNodePopup(nodePopupToRefer);
+                });
+            });
+        }
+
+
+        /*-----------------------------Helper Functions ----------------------------------*/
+
+        function getNodeObject(nodeId) {
+            let node = null;
+            nodes.forEach(function (item, index) {
+                if (item.id === nodeId)
+                    node = item;
+            });
+            return node;
+        }
+
+        function closeNodePopup(divToClose) {
+            divToClose.css("display", "none");
+            $(".container-fluid").children().not(divToClose).css({
+                "pointer-events": "auto",
+            });
+            $(".container-fluid").children().not(divToClose).css("opacity", "1");
+
+            if (divToClose === nodePopup) {
+
+                $("#recommended-graphs, #recommended-methods").css({
+                    'pointer-events': 'auto',
+                    'opacity': '1'
+                });
+            }
+        }
+
+        function showNodePopup(divToShow) {
+
+            if (divToShow === nodePopup) {
+                $("#spinner-2").css("display", "block");
+                $("#add-these-blocks").prop("disabled", true);
+                $("#recommended-graphs").children().remove();
+                $("#recommended-methods").children().remove();
+                methodRecommendationCounter++;
+            }
+
+            $(".container-fluid").children().not(divToShow).css({
+                "pointer-events": "none",
+                "opacity": "0.4"
+            });
+            divToShow.css("display", "block");
+            nodePopupToRefer = divToShow;
+        }
+
+        function hideAllSteps(rootNodeId) {
+
+            getNodeObject(rootNodeId).isHidden = true;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    if (node) {
+                        node.hidden = true;
+                        hideAllSteps(parseInt(node.id));
+                    }
+                }
+            });
+            totalHiddenTrees++;
+            initializeGraph(false);
+        }
+
+        function showAllSteps(rootNodeId) {
+            /*getNodeObject(rootNodeId).color = "#bababa";*/
+            getNodeObject(rootNodeId).isHidden = false;
+            edges.forEach(function (edge, index) {
+                if (edge.from === rootNodeId && edge.color === "red") {
+                    let node = getNodeObject(edge.to);
+                    if (node) {
+                        node.hidden = false;
+                        showAllSteps(parseInt(node.id));
+                    }
+                }
+            });
+            totalHiddenTrees--;
+
+            if (totalHiddenTrees === 0) {
+                initializeGraph(true);
+            } else
+                initializeGraph(false);
+        }
+
+
+        function getLocalRootNodeObject(nodeId) {
+
+            let localRootNodeObject = null;
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
+                    localRootNodeObject = getNodeObject(parseInt(edge.from));
+                }
+            });
+            return localRootNodeObject;
+        }
+
+        function checkIfLocalSupremeRootNodeReadyToBeExecuted(childNode) //This was previously a processType node
+        {
+            let localSupremeNode = getLocalRootNodeObject(childNode.id);
+
+            let allLocalChildren = [];
+            //Get all the edged nodes from child to local supreme and check if they are ready
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === 'from' && parseInt(edge.from) === parseInt(localSupremeNode.id) && edge.color === "red")
+                    allLocalChildren.push(getNodeObject(parseInt(edge.to)));
+            });
+
+            let allChildNodesAreActive = true;
+            allLocalChildren.forEach(function (childNode, index) {
+                if (childNode.color !== "#f86262")
+                    allChildNodesAreActive = false;
+            });
+
+            if (allChildNodesAreActive)
+                localSupremeNode.color = "#f86262";
+
+            initializeGraph(true);
+        }
+
+
+        function refreshedNodeValue() {
+            return temporaryNode;
+        }
+
+    </script>
+{% endblock %}

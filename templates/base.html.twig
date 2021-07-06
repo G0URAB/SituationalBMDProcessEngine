@@ -30,8 +30,8 @@
                        href="{{ path('situational_methods') }}">Situational Methods </a>
                 </li>
                 <li class="nav-item">
-                    <a class="nav-link {% if 'method_enactment' in app.request.uri %}active{% endif %}"
-                       href="#">Method Enactment </a>
+                    <a class="nav-link {% if 'enactment' in app.request.uri %}active{% endif %}"
+                       href="{{ path('enactments') }}">Method Enactment </a>
                 </li>
                 <li class="nav-item">
                     <a class="nav-link {% if 'method_elements' in app.request.uri

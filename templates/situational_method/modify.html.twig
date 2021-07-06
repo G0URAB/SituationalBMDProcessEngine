@@ -163,7 +163,7 @@
     <div id="method-block-popup" tabindex="-1"
          style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
-        <div class="modal-content" style="max-height: 560px; overflow: auto;">
+        <div class="modal-content" style="max-height: 560px;">
             {# Header #}
             <div class="modal-header">
                 <h5 class="modal-title" id="name-of-method-block"> {# Name of block comes here #}</h5>
@@ -173,7 +173,7 @@
             </div>
 
             {# Body #}
-            <div class="modal-body">
+            <div class="modal-body" style="overflow: auto">
                 {# input artifacts, output artifacts, roles and tools come here #}
                 <div class="d-flex flex-column border rounded p-2 mt-2">
                     <h5>Input Artifacts</h5>
@@ -283,11 +283,10 @@
         nameOfRootNode.val("");
 
         let graphsAndTheirSituationalFactors = JSON.parse(("{{ situationalMethod.graphsAndTheirSituationalFactors}}").replace(/&quot;/ig, '"'));
-        console.log(graphsAndTheirSituationalFactors);
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
-        console.log(nodes, edges, tasks, bmdGraphsBeingUsed);
+        //console.log(nodes, edges, tasks);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -295,6 +294,8 @@
 
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
+
+        console.log(tools, roles);
 
         let graphTemplate = (name, situationalFactors, nodes, edges) => `
            <div class="jumbotron m-2" style="width: 32%; min-width: 400px;">

@@ -16,7 +16,6 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
 use Symfony\Component\Routing\Annotation\Route;
-use Symfony\Component\Security\Core\Encoder\UserPasswordEncoderInterface;
 use Symfony\Component\Validator\Constraints\Length;
 use Symfony\Component\Validator\Constraints\NotBlank;
 
@@ -24,13 +23,11 @@ class TeamManagementController extends AbstractController
 {
     private $passwordHasher;
     private $entityManager;
-    private $passwordEncoder;
 
-    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager, UserPasswordEncoderInterface $passwordEncoder)
+    public function __construct(UserPasswordHasherInterface $passwordHasher, EntityManagerInterface $entityManager)
     {
         $this->passwordHasher = $passwordHasher;
         $this->entityManager = $entityManager;
-        $this->passwordEncoder = $passwordEncoder;
     }
 
     /**
@@ -194,11 +191,11 @@ class TeamManagementController extends AbstractController
         {
             $oldPassword = $form->getData()['oldPassword'];
             $newPassword = $form->getData()['newPassword'];
-            if(!$this->passwordEncoder->isPasswordValid($user, $oldPassword))
+            if(!$this->passwordHasher->isPasswordValid($user, $oldPassword))
               $form->addError(new FormError('Your old password is incorrect!'));
             else
             {
-                $user->setPassword($this->passwordEncoder->encodePassword(
+                $user->setPassword($this->passwordHasher->hashPassword(
                     $user,
                     $newPassword
                 ));
