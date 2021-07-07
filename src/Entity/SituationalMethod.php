@@ -45,12 +45,6 @@ class SituationalMethod
 
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Task", mappedBy="situationalMethod", cascade={"persist","remove"})
-     */
-    private $tasks;
-
-
-    /**
      * @ORM\Column(type="text", nullable=true)
      */
     private $jsonNodes;
@@ -78,7 +72,6 @@ class SituationalMethod
 
     public function __construct()
     {
-        $this->tasks = new ArrayCollection();
         $this->bmdGraphsBeingUsed = new ArrayCollection();
     }
 
@@ -148,34 +141,6 @@ class SituationalMethod
         $this->platformOwnerAddress = $platformOwnerAddress;
     }
 
-    public function getTasks()
-    {
-        return $this->tasks;
-    }
-
-    /**
-     * @param Task $task
-     */
-    public function addTask(Task $task)
-    {
-        if(!$this->tasks->contains($task))
-        {
-            $this->tasks[]= $task;
-            $task->setSituationalMethod($this);
-        }
-    }
-
-    /**
-     * @param Task $task
-     */
-    public function removeTask(Task $task)
-    {
-        if($this->tasks->contains($task))
-        {
-            $task->setSituationalMethod(null);
-            $this->tasks->removeElement($task);
-        }
-    }
 
     /**
      * @return mixed

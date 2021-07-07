@@ -47,4 +47,12 @@ class ArtifactRepository extends ServiceEntityRepository
         ;
     }
     */
+
+    public function findArtifactsInAscendingOrder()
+    {
+        return $this->createQueryBuilder('a')
+            ->orderBy('a.name', 'ASC')
+            ->getQuery()
+            ->getResult();
+    }
 }

@@ -317,6 +317,8 @@
                     let obj = JSON.parse(JSON.stringify(response));
                     $("#spinner").css("display", "none");
 
+                    $("#graphs").children().remove();
+
                     if (obj.graphs.length > 0) {
                         obj.graphs.forEach(function (item, index) {
                             let graph = graphTemplate(item.name, item.situationalFactors, item.nodes, item.edges);
@@ -355,7 +357,7 @@
 
                         });
                     } else {
-                        $("#graphs").append(`<h6 class="mt-4 text-center w-100 text-primary"><i>Select situational factors to find situation-specific BMD
+                        $("#graphs").append(`<h6 class="mt-4 text-center w-100 text-white"><i>Select situational factors to find situation-specific BMD
                     Graphs </i></h6>`);
                     }
 
@@ -684,6 +686,9 @@
                         type: 'new_situational_method'
                     },
                     success: function (response) {
+                        let obj = JSON.parse(JSON.stringify(response));
+                        if(obj.status==="okay")
+                            window.location = "{{ path('situational_methods') }}";
                     }
                 });
             }

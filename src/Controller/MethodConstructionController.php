@@ -7,10 +7,7 @@ use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalMethod;
-use App\Entity\Task;
-use App\Repository\TaskRepository;
 use App\Service\DataService;
-use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -153,10 +150,9 @@ class MethodConstructionController extends AbstractController
      * @Route("/handle/situational_method/request", name="handle_situational_method_request")
      * @param Request $request
      * @param DataService $dataService
-     * @param TaskRepository $taskRepository
      * @return JsonResponse|Response
      */
-    public function handleSituationalMethodRequest(Request $request, DataService $dataService, TaskRepository $taskRepository)
+    public function handleSituationalMethodRequest(Request $request, DataService $dataService)
     {
         if ($request->isXmlHttpRequest()) {
 
@@ -199,65 +195,12 @@ class MethodConstructionController extends AbstractController
             $situationalMethod->setJsonEdges(json_encode($edges));
             $situationalMethod->setGraphsAndTheirSituationalFactors(json_encode($graphsAndTheirSituationalFactors));
 
-            $tasksWithMoreDetails = [];
 
             if ($request->get("type") == "new_situational_method") {
                 $entityManager->persist($situationalMethod);
-
-                $tasksWithMoreDetails = $dataService->processTasks($tasks, $situationalMethod, $allRoles, $allToolTypes);
-
             }
 
-            if ($request->get("type") == "edit_situational_method") {
-                $oldTaskFrontendIds = [];
-                $newTaskFrontendIds = [];
-
-                $tasksToRemove = [];
-                $tasksToAdd = [];
-
-                foreach (json_decode($situationalMethod->getJsonTasks()) as $oldTask) {
-                    //id is frontend-id and task id is backend-id
-                    $oldTaskFrontendIds[$oldTask->taskId] = $oldTask->id;
-                }
-
-
-                foreach ($tasks as $task) {
-                    $newTaskFrontendIds[$task['id']] = $task;
-                }
-
-                foreach ($oldTaskFrontendIds as $taskId => $oldTaskFrontendId) {
-                    $taskExist = false;
-                    foreach ($newTaskFrontendIds as $newTaskFrontendId => $task) {
-                        if ($newTaskFrontendId == $oldTaskFrontendId)
-                            $taskExist = true;
-                    }
-                    if (!$taskExist)
-                        $tasksToRemove[$taskId] = $oldTaskFrontendId;
-                }
-
-                foreach ($newTaskFrontendIds as $newTaskFrontendId => $newTask) {
-                    $thisIsANewTask = true;
-                    /*if(!in_array($newTaskId, $oldTaskFrontendIds))
-                        array_push($tasksToAdd, $newTask);*/
-                    foreach ($oldTaskFrontendIds as $tableId => $frontendId) {
-                        if ($frontendId == $newTaskFrontendId)
-                            $thisIsANewTask = false;
-                    }
-                    if ($thisIsANewTask)
-                        array_push($tasksToAdd, $newTask);
-                }
-
-                dd($newTaskFrontendIds, $oldTaskFrontendIds, $tasksToAdd);
-                foreach ($tasksToRemove as $taskBackendId => $taskFrontendId) {
-                    $task = $entityManager->getRepository(Task::class)->find($taskBackendId);
-                    $situationalMethod->removeTask($task);
-                    $entityManager->remove($task);
-                }
-
-                $tasksWithMoreDetails = $dataService->processTasks($tasksToAdd, $situationalMethod, $allRoles, $allToolTypes);
-            }
-
-            $situationalMethod->setJsonTasks(json_encode($tasksWithMoreDetails));
+            $situationalMethod->setJsonTasks(json_encode($tasks));
             $entityManager->flush();
 
             return new JsonResponse(['status' => "okay", "msg" => "Situational Method Saved!!"]);

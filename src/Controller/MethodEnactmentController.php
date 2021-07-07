@@ -7,6 +7,7 @@ use App\Entity\Task;
 use App\Entity\User;
 use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
+use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
@@ -70,6 +71,7 @@ class MethodEnactmentController extends AbstractController
      * @Route("/task/update", name="task_update")
      * @param Request $request
      * @param SluggerInterface $slugger
+     * @return JsonResponse|Response
      */
     public function updateTask(Request $request, SluggerInterface $slugger)
     {
@@ -77,15 +79,7 @@ class MethodEnactmentController extends AbstractController
 
             $entityManager = $this->getDoctrine()->getManager();
 
-            if ($request->get('update_type') === 'update_artifact') {
-
-                $artifactName = $request->get("artifact_name");
-                $artifactType = $request->get("artifact_type");
-                $taskId = $request->get("task_id");
-
-
-                /* @var Task $task */
-                $task = $entityManager->getRepository(Task::class)->find($taskId);
+            if ($request->get('update_type') === 'upload_artifact') {
 
                 $file = $request->files->get('file_name');
 
@@ -105,17 +99,6 @@ class MethodEnactmentController extends AbstractController
                     // ... handle exception if something happens during file upload
                 }
 
-                if ($artifactType == "inputArtifact")
-                    $task->addInputArtifact([
-                        $artifactName => $newFilename
-                    ]);
-                else
-                    $task->addOutputArtifact([
-                        $artifactName => $newFilename
-                    ]);
-
-                $entityManager->flush();
-
                 return new JsonResponse(['status' => 'success', 'fileName' => $newFilename]);
             }
 
@@ -128,6 +111,19 @@ class MethodEnactmentController extends AbstractController
                 $entityManager->flush();
 
                 return new JsonResponse(['status' => 'success', 'msg' => 'Json tasks for the situational method updated']);
+            }
+
+            //Delete artifact
+            if($request->get('update_type')=="delete_artifact")
+            {
+                $method = $entityManager->getRepository(SituationalMethod::class)->find($request->get('method_id'));
+                $method->setJsonTasks(json_encode($request->get('tasks')));
+
+                $fileSystem = new Filesystem();
+                $fileSystem->remove($this->getParameter('kernel.project_dir')."/public/images/artifacts/".$request->get('fileName'));
+
+                $entityManager->flush();
+                return new JsonResponse(['status' => 'success', 'msg' => 'Artifact '.$request->get('fileName')." was removed."]);
             }
         }
         return new Response("Invalid request", 400);
