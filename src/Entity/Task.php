@@ -30,12 +30,12 @@ class Task
     private $name;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="array", nullable=true)
      */
     private $inputArtifacts;
 
     /**
-     * @ORM\Column(type="array")
+     * @ORM\Column(type="array", nullable=true)
      */
     private $outputArtifacts;
 
@@ -92,12 +92,22 @@ class Task
         return $this->inputArtifacts->toArray();
     }
 
-    /**
-     * @param array $inputArtifacts
-     */
-    public function setInputArtifacts(array $inputArtifacts)
+
+    public function addInputArtifact(array $artifact)
     {
+        $inputArtifacts = $this->inputArtifacts == null ? [] : $this->inputArtifacts->toArray();
+
+        if (!in_array($artifact, $inputArtifacts))
+            array_push($inputArtifacts, $artifact);
+
         $this->inputArtifacts = new ArrayCollection($inputArtifacts);
+    }
+
+    public function removeInputArtifact(array $artifact)
+    {
+        if ($this->inputArtifacts->contains($artifact)) {
+            $this->inputArtifacts->removeElement($artifact);
+        }
     }
 
     /**
@@ -108,12 +118,21 @@ class Task
         return $this->outputArtifacts->toArray();
     }
 
-    /**
-     * @param array $outputArtifacts
-     */
-    public function setOutputArtifacts(array $outputArtifacts)
+    public function addOutputArtifact(array $artifact)
     {
+        $outputArtifacts = $this->outputArtifacts == null ? [] : $this->outputArtifacts->toArray();
+
+        if (!in_array($artifact, $outputArtifacts))
+            array_push($outputArtifacts, $artifact);
+
         $this->outputArtifacts = new ArrayCollection($outputArtifacts);
+    }
+
+    public function removeOutputArtifact(array $artifact)
+    {
+        if ($this->outputArtifacts->contains($artifact)) {
+            $this->outputArtifacts->removeElement($artifact);
+        }
     }
 
     /**

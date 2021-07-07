@@ -4,7 +4,38 @@
 
 {% block body %}
 
-    {# Construct situational Method #}
+    <div class="alert alert-danger validation-banner-1 mt-3" role="alert">
+        Enactment can not be started! Please check the <a class="btn btn-primary" data-toggle="modal"
+                                                          data-target="#exampleModalCenter">log</a> to find out the
+        reasons.
+    </div>
+
+    <!-- Log Modal -->
+    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <ul>
+
+                    </ul>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    {#<button type="button" class="btn btn-primary">Save changes</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    {# situational Method #}
     <div class="mt-5 d-flex flex-column ">
 
         <h3 class="m-auto"> Enactment of {{ situationalMethod.name }}</h3>
@@ -70,7 +101,7 @@
     <div id="method-block-popup" tabindex="-1"
          style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
-        <div class="modal-content" style="max-height: 560px;">
+        <div class="modal-content" style="max-height: 600px; background: #a8a6a3">
             {# Header #}
             <div class="modal-header">
                 <h5 class="modal-title" id="name-of-method-block"> {# Name of block comes here #}</h5>
@@ -114,13 +145,7 @@
 
             {# Footer #}
             <div class="modal-footer">
-                <button class="btn btn-info" type="button" style="display: none;" id="add-more-method-blocks">Add More
-                    Method Blocks
-                </button>
-                <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">
-                    Remove Method Block
-                </button>
-                <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
+
             </div>
 
         </div>
@@ -131,8 +156,6 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
-
-
         let nodes = [];
         let edges = [];
         let tasks = [];
@@ -176,7 +199,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
-        console.log(nodes, edges, tasks);
+        console.log(tasks);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -184,6 +207,9 @@
 
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
+        let teamMembers = JSON.parse(("{{ teamMembers|json_encode }}").replace(/&quot;/ig, '"'));
+
+        console.log(tools, roles, teamMembers);
 
         initializeGraph(true);
 
@@ -261,52 +287,71 @@
 
                 } else if (node.type === 'methodBlock') {
 
-                    let artifactHTML = (artifactType, artifact, nodeId) => `
+                    let artifactInputHTML = (artifactType, artifact, nodeId, frontendId) => `
                                <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
-                                  <span style="width: 98%; display: flex; flex-direction: column; justify-content: center;
-                                    color: #010668; margin-left:1%;">
-                                      ${artifact}
-                                  </span>
-                                  <button class="remove-artifact btn btn-warning ml-3 d-none"
-                                   data-id="${nodeId}" data-artifactType="${artifactType}">
-                                        Remove ${artifact}
-                                  </button>
+                                    <div class="input-group mb-3">
+                                      <div class="input-group-prepend">
+                                        <span class="input-group-text">${artifact}</span>
+                                      </div>
+                                      <div class="custom-file">
+                                        <input type="file" id="${frontendId}" class="custom-file-input" data-nodeId="${nodeId}" data-artifact="${artifact}" data-artifactType="${artifactType}">
+                                        <label class="custom-file-label">Choose file</label>
+                                      </div>
+                                    </div>
                                </div>
                                 `;
 
-                    let toBeFilledUpRole = (key, nodeId) => `
+                    let artifactOutputHTML = (artifactType, artifact, nodeId, filePath) => `
+                                <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+
+                                  <span style="display: flex; flex-direction: column; justify-content: center; color: #010668; margin-left:1%;">
+                                      <a target="_blank" href="${filePath}" id="${nodeId}">${artifact}</a>
+                                  </span>
+
+                                  <button class="remove-artifact btn btn-warning ml-3"
+                                   data-id="${nodeId}" data-artifactType="${artifactType}">
+                                        Remove
+                                  </button>
+                                </div>
+                                `;
+
+                    let toBeFilledUpRole = (key, nodeId, selectId) => `
                                <div class="to-be-filled-role d-flex flex-row flex-wrap mb-3">
-                                   <div class="input-group" style="width: 99%;">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text">${key}</span>
-                                        </div>
-                                        <input type="text" class="form-control" placeholder="Provide a name for ${key}" required>
-                                   </div>
-                                   <button class="remove-to-be-filled-role btn btn-warning d-none" data-id="${nodeId}" data-role="${key}">
-                                        Remove ${key}
-                                   </button>
+
+                                    <div class="input-group mb-3">
+
+                                          <div class="input-group-prepend">
+                                            <label class="input-group-text" for="${selectId}">${key}</label>
+                                          </div>
+
+                                          <select class="custom-select role-select" id="${selectId}" data-nodeId="${nodeId}" data-role="${key}">
+                                            <option value="0" selected>Choose...</option>
+
+                                          </select>
+
+                                    </div>
+
                                </div>
                                 `;
 
                     let toBeFilledUpTool = (toolType, selectId, nodeId) => `
-                               <div class="to-be-filled-tool d-flex flex-row flex-wrap mb-3 justify-content-between">
+
                                     <div style="display: flex; flex-direction: row; width: 90%;">
                                           <div class="input-group-prepend">
                                             <label class="input-group-text"><b>Tool Type: &nbsp</b> ${toolType} </label>
                                           </div>
-                                          <select class="custom-select tool-select" id="${selectId}">
+                                          <select class="custom-select tool-select" id="${selectId}" data-nodeId="${nodeId}" data-toolType="${toolType}">
                                             <option selected>Choose a tool..</option>
 
                                           </select>
                                     </div>
-                                   <button class="remove-to-be-filled-tool btn btn-warning d-none"
-                                        data-id="${nodeId}" data-toolType="${toolType}">Remove ${toolType}
-                                   </button>
-                               </div>
+
                                 `;
 
                     nodePopupToRefer = methodBlockPopup;
                     showNodePopup(methodBlockPopup);
+
+                    let task = getTask(parseInt(node.id));
                     methodBlockPopup.attr("data-nodeId", node.id);
 
                     //Clear previous contents from the dom
@@ -315,34 +360,151 @@
                     $(".roles").children().remove();
                     $(".tools").children().remove();
 
-                    $("#name-of-method-block").html("<b>Name of method block::</b> " + node.label);
-                    for (let [key, value] of Object.entries(node)) {
+
+                    $("#name-of-method-block").html("<b>Name of method block::</b> " + task.label);
+                    for (let [key, value] of Object.entries(task)) {
                         if (key === 'inputArtifacts') {
-                            node[key].forEach(function (artifact, index) {
-                                if (artifact !== "")
-                                    methodBlockPopup.find(".input-artifacts").append(artifactHTML('inputArtifact', artifact, node.id));
+                            task[key].forEach(function (artifact, index) {
+                                if (typeof artifact === 'object' && artifact !== null) {
+                                    let uploadedArtifact = artifactOutputHTML('inputArtifact', artifact.name, nodeId, artifact.path);
+                                    $(".input-artifacts").append(uploadedArtifact);
+                                }
+                                else if (artifact !== "")
+                                {
+                                    let frontendId = key+"-"+artifact.replace(/ /g, '')+"-"+task.id;
+                                    methodBlockPopup.find(".input-artifacts").append(artifactInputHTML('inputArtifact', artifact, task.id, frontendId));
+
+                                    if(!userHasWritePermission(task))
+                                        $("#" + frontendId).attr('disabled',true);
+                                }
+
                             });
                         }
                         if (key === 'outputArtifacts') {
-                            node[key].forEach(function (artifact, index) {
-                                if (artifact !== "")
-                                    methodBlockPopup.find(".output-artifacts").append(artifactHTML('outputArtifact', artifact, node.id));
+                            task[key].forEach(function (artifact, index) {
+                                if (typeof artifact === 'object' && artifact !== null) {
+                                    let uploadedArtifact = artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path);
+                                    $(".output-artifacts").append(uploadedArtifact);
+                                }
+                                else if (artifact !== "")
+                                {
+                                    let frontendId = key+"-"+artifact.replace(/ /g, '')+"-"+task.id;
+                                    methodBlockPopup.find(".output-artifacts").append(artifactInputHTML('outputArtifact', artifact, task.id, frontendId));
+
+                                    if(!userHasWritePermission(task))
+                                        $("#" + frontendId).attr('disabled',true);
+                                }
+
                             });
                         }
-                        if (roles.includes(key)) {
-                            methodBlockPopup.find(".roles").append(toBeFilledUpRole(key, node.id));
+                        if (roles.includes(key)) { //such as platform-owner, vp of sales, etc
+                            let selectId = key.replace(/ /g, '') + "-" + task.id;
+                            methodBlockPopup.find(".roles").append(toBeFilledUpRole(key, task.id, selectId));
+
+                            {% if not is_granted('ROLE_PROJECT_MANAGER') %}
+                                $("#" + selectId).attr('disabled',true);
+                            {% endif %}
+
+                            if (value === "") //i.e when no members have been assigned to the role(key)
+                            {
+                                for (let [memberName, memberId] of Object.entries(teamMembers)) {
+                                    $("#" + selectId).append(new Option(memberId, memberName));
+                                }
+                            } else if (typeof value === 'object') {
+                                for (let [memberId, memberName] of Object.entries(teamMembers)) {
+                                    if (memberName === value.memberName)
+                                        $("#" + selectId).append(new Option(memberName, memberId, true, true));
+                                    else
+                                        $("#" + selectId).append(new Option(memberName, memberId));
+                                }
+                            }
+
                         }
                         if (key in tools) {
-                            let selectId = key.replace(/ /g, '') + "-" + node.id;
+                            let selectId = key.replace(/ /g, '') + "-" + task.id;
                             methodBlockPopup.find(".tools").append(toBeFilledUpTool(key, selectId, node.id));
 
                             let toolsOptions = tools[key].split(",");
                             toolsOptions.forEach(function (item, index) {
                                 $("#" + selectId).append(new Option(item, item));
                             });
-
                         }
                     }
+
+                    //Logic to update artifacts
+                    $(".custom-file-input").on("change", function () {
+                        let nodeId = $(this).attr("data-nodeId");
+                        let task = getTask(parseInt(nodeId));
+                        let artifact = $(this).data("artifact");
+                        let artifactType = $(this).attr("data-artifactType");
+
+                        let form = new FormData();
+                        form.append("file_name", $(this)[0].files[0]);
+                        form.append('artifact_name', artifact);
+                        form.append('artifact_type', artifactType);
+                        form.append('task_id', task.taskId);
+                        form.append('update_type', 'update_artifact');
+
+                        let currentSelector = $(this);
+
+                        $.ajax({
+                            type: 'post',
+                            url: '{{ path('task_update') }}',
+                            processData: false,
+                            contentType: false,
+                            data: form,
+                            success: function (response) {
+                                let obj = JSON.parse(JSON.stringify(response));
+                                if (obj.status === 'success') {
+                                    let filePath = "{{ asset('images/artifacts') }}" + "/" + obj.fileName;
+                                    currentSelector.parent().parent().remove();
+                                    let uploadedArtifact = artifactOutputHTML(artifactType, artifact, nodeId, filePath);
+
+                                    artifactType === 'inputArtifact' ? $(".input-artifacts").append(uploadedArtifact) :
+                                        $(".output-artifacts").append(uploadedArtifact);
+
+                                    if (artifactType === 'inputArtifact') {
+                                        for (let [key, value] of Object.entries(task)) {
+                                            if (key === 'inputArtifacts') {
+                                                task[key].forEach(function (ourArtifact, index) {
+                                                    if (ourArtifact === artifact)
+                                                        task[key].splice(index, 1, {name: artifact, path: filePath});
+                                                });
+                                            }
+                                        }
+                                    }
+                                    if (artifactType === 'outputArtifact') {
+                                        for (let [key, value] of Object.entries(task)) {
+                                            if (key === 'outputArtifacts') {
+                                                task[key].forEach(function (ourArtifact, index) {
+                                                    if (ourArtifact === artifact)
+                                                        task[key].splice(index, 1, {name: artifact, path: filePath});
+                                                });
+                                            }
+                                        }
+                                    }
+
+                                    updateJsonTasks();
+                                }
+                            },
+                        });
+                    });
+
+                    $(".role-select").on("change", function () {
+                        let role = $(this).attr("data-role");
+                        let nodeId = $(this).attr("data-nodeId");
+                        let selectedMember = $(this).find('option:selected').text();
+                        let selectedVal = $(this).find('option:selected').val();
+
+                        let task = getTask(nodeId);
+                        delete task.key;
+                        if(parseInt(selectedVal)!==0)
+                            task[role] = {memberId: selectedVal, memberName: selectedMember};
+                        else
+                            task[role]="";
+
+                        updateJsonTasks();
+                    });
                 }
 
                 $(".close").on("click", function (e) {
@@ -437,13 +599,13 @@
 
         function getLocalRootNodeObject(nodeId) {
 
-            let localRootNodeObject = null;
+            let localRootNodeId = null;
             edges.forEach(function (edge, index) {
-                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
-                    localRootNodeObject = getNodeObject(parseInt(edge.from));
+                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.arrows === "from") {
+                    localRootNodeId = getLocalRootNodeObject(parseInt(edge.from));
                 }
             });
-            return localRootNodeObject;
+            return getNodeObject(localRootNodeId);
         }
 
         function checkIfLocalSupremeRootNodeReadyToBeExecuted(childNode) //This was previously a processType node
@@ -472,6 +634,59 @@
 
         function refreshedNodeValue() {
             return temporaryNode;
+        }
+
+        function enactmentValidation() {
+            tasks.forEach(function (task, index) {
+                for (let [key, value] of Object.entries(task)) {
+
+                }
+            });
+        }
+
+        function getTask(nodeId) {
+            let myTask = null;
+            tasks.forEach(function (task, index) {
+                if (parseInt(task.id) === parseInt(nodeId))
+                    myTask = task;
+            });
+            return myTask;
+        }
+
+        function updateJsonTasks() {
+            console.log(tasks);
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('task_update') }}',
+                data: {
+                    method_id: "{{ situationalMethod.id }}",
+                    tasks: tasks,
+                    update_type: 'update_jsonTasks'
+                },
+                success: function (response) {
+                    let obj = JSON.parse(JSON.stringify(response));
+                    console.log(obj);
+                }
+            });
+        }
+
+        function userHasWritePermission(task)
+        {
+            let haveWritePermission = false;
+
+            let currentUser = "{{ app.user.employeeName ~" : "~ app.user.implodedRoles }}"
+            console.log(currentUser);
+            for (let [role, object] of Object.entries(task)){
+                if (roles.includes(role)){
+                    if(object!=="" && object.memberName===currentUser)
+                        haveWritePermission = true;
+                }
+            }
+            {% if is_granted('ROLE_PROJECT_MANAGER') %}
+                haveWritePermission = true;
+            {% endif %}
+
+            return haveWritePermission;
         }
 
     </script>
