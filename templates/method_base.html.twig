@@ -9,11 +9,18 @@
     </div>
 
     <div class="card mt-4">
-        <div class="card-header">
-            <b>Current Updates</b>
-        </div>
-        <div class="card-body">
+    <div class="card-header">
+        <b>Current Updates</b>
+    </div>
+    <div class="card-body">
 
+        {# Notification #}
+        {% for notification in notifications %}
+        <div class="mt-4">
+            <div class="alert alert-info">
+                {{ notification.message }}
+            </div>
+            {% endfor %}
         </div>
     </div>
 

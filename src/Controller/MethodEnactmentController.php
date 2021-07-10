@@ -2,8 +2,8 @@
 
 namespace App\Controller;
 
+use App\Entity\Notification;
 use App\Entity\SituationalMethod;
-use App\Entity\Task;
 use App\Entity\User;
 use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
@@ -40,6 +40,7 @@ class MethodEnactmentController extends AbstractController
      */
     public function enactment(Request $request, DataService $dataService, int $id): Response
     {
+        /** @var SituationalMethod $situationalMethod **/
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
         $teamMembers = [];
@@ -56,6 +57,8 @@ class MethodEnactmentController extends AbstractController
             $tools [$tool->getType()] = $tool->getImplodedVariants();
         foreach ($dataService->getAllRoles() as $role)
             $roles [] = $role->getName();
+
+        $situationalMethod = $dataService->actualizeSituationalMethod($situationalMethod);
 
         return $this->render("situational_method/enactment.html.twig", [
             'situationalMethod' => $situationalMethod,
@@ -102,15 +105,45 @@ class MethodEnactmentController extends AbstractController
                 return new JsonResponse(['status' => 'success', 'fileName' => $newFilename]);
             }
 
-            //Update Json Tasks
+            /* @var SituationalMethod $method */
+            $method = $entityManager->getRepository(SituationalMethod::class)->find($request->get('method_id'));
+
+
+            /*-----------------Update Json Tasks----------------------*/
             if ($request->get('update_type') == "update_jsonTasks") {
 
-                /* @var SituationalMethod $method */
-                $method = $entityManager->getRepository(SituationalMethod::class)->find($request->get('method_id'));
                 $method->setJsonTasks(json_encode($request->get('tasks')));
-                $entityManager->flush();
 
+                //If task and a member Id is coming in the request then notify the user about the task
+                $memberId = $request->get('memberId');
+                $task = $request->get("task");
+                $graphName = $request->get("graphName");
+                if($memberId && $task && $graphName)
+                {
+                    /**@var User $userToBeNotified**/
+                    $userToBeNotified = $this->getDoctrine()->getRepository(User::class)->find($memberId);
+                    $message ='You have been assigned to task '."'".$task['label']."' in the graph of '".$graphName."' in method enactment of ".$method->getName();
+
+                    $newNotification = new Notification();
+                    $newNotification->setDatetime(date_create("now"));
+                    $newNotification->setMessage($message);
+                    $newNotification->setUser($userToBeNotified);
+                    $userToBeNotified->addNotification($newNotification);
+                    $entityManager->persist($newNotification);
+                }
+
+                $entityManager->flush();
                 return new JsonResponse(['status' => 'success', 'msg' => 'Json tasks for the situational method updated']);
+            }
+
+
+            /*---------------Update Json Nodes-----------------------*/
+            if ($request->get('update_type') == "update_jsonNodes"){
+                $nodes = $request->get("nodes");
+                $method->setJsonNodes(json_encode($nodes));
+
+                $entityManager->flush();
+                return new JsonResponse(['status' => 'success', 'msg' => 'Nodes for the situational method updated']);
             }
 
             //Delete artifact

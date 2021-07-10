@@ -145,6 +145,14 @@ class MethodBuildingBlock
         return implode(", ", $toolsTypeArray);
     }
 
+    public function getExplodedTools()
+    {
+        $tools = [];
+        foreach (explode(",", $this->getImplodedTools()) as $tool)
+            array_push($tools, trim($tool));
+        return $tools;
+    }
+
     public function addRole(Role $role)
     {
         if (!$this->roles->contains($role))
@@ -169,6 +177,14 @@ class MethodBuildingBlock
         foreach ($this->roles as $role)
             $rolesArray[] = $role->getName();
         return implode(", ", $rolesArray);
+    }
+
+    public function getExplodedRoles()
+    {
+        $roles = [];
+        foreach (explode(",", $this->implodedRoles()) as $role)
+            array_push($roles, trim($role));
+        return $roles;
     }
 
     /**

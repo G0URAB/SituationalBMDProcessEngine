@@ -3,6 +3,7 @@
 namespace App\Entity;
 
 use App\Repository\UserRepository;
+use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 use Symfony\Component\Security\Core\User\PasswordAuthenticatedUserInterface;
 use Symfony\Component\Security\Core\User\UserInterface;
@@ -47,6 +48,17 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
      * @ORM\Column(type="integer", length=180, options={"default" : 0})
      */
     private $passwordResetCounter=0;
+
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\Notification", mappedBy="user", cascade={"persist", "remove"})
+     */
+    private $notifications;
+
+
+    public function __construct()
+    {
+        $this->notifications = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -168,4 +180,27 @@ class User implements UserInterface, PasswordAuthenticatedUserInterface
         $roles = $this->roles;
         return implode(", ",$roles);
     }
+
+    public function addNotification(Notification $notification)
+    {
+        if(!$this->notifications->contains($notification))
+        {
+            $this->notifications->add($notification);
+        }
+    }
+
+    public function removeNotification(Notification $notification)
+    {
+        if($this->notifications->contains($notification))
+        {
+            $this->notifications->removeElement($notification);
+        }
+    }
+
+
+    public function getNotifications()
+    {
+        return $this->notifications;
+    }
+
 }

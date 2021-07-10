@@ -26,8 +26,29 @@ class MethodBaseController extends AbstractController
     public function methodBase(): Response
     {
 
-        return $this->render('method_base.html.twig', [
+        $notifications = [];
 
+        foreach ($this->getUser()->getNotifications() as $notification)
+        {
+            $notificationDate = $notification->getDateTime();
+            $today = date_create("now");
+            $entityManager = $this->getDoctrine()->getManager();
+
+            if(date_diff($today,$notificationDate)->days<30)
+            {
+                $notifications[] = $notification;
+
+            }
+            else
+            {
+                $this->getUser()->removeNotification($notification);
+                $entityManager->persist($this->getUser());
+            }
+            $entityManager->flush();
+        }
+
+        return $this->render('method_base.html.twig', [
+            'notifications' => $notifications
         ]);
     }
 

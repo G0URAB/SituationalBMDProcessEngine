@@ -6,20 +6,17 @@
 
     <div class="alert alert-danger validation-banner-1 mt-3" role="alert">
         Enactment can not be started! Please check the <a class="btn btn-primary" data-toggle="modal"
-                                                          data-target="#exampleModalCenter">log</a> to find out the
+                                                          data-target="#logger">log</a> to find out the
         reasons.
     </div>
 
     <!-- Log Modal -->
-    <div class="modal fade" id="exampleModalCenter" tabindex="-1" role="dialog"
+    <div class="modal fade" id="logger" tabindex="-1" role="dialog"
          aria-labelledby="exampleModalCenterTitle" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" role="document">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="exampleModalLongTitle">Modal title</h5>
-                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                        <span aria-hidden="true">&times;</span>
-                    </button>
+                    <h5 class="modal-title" id="logger-title">Log Report</h5>
                 </div>
                 <div class="modal-body">
                     <ul>
@@ -29,6 +26,70 @@
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                     {#<button type="button" class="btn btn-primary">Save changes</button>#}
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show comments modal -->
+    <div class="modal fade" id="comments" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-taskId="">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h5 class="modal-title" id="logger-title">Comments</h5>
+                </div>
+
+                <div class="modal-body">
+
+                    <ul>
+
+                    </ul>
+
+                    <div class="input-group">
+                        <div class="input-group-prepend">
+                            <span class="input-group-text">New Comment</span>
+                        </div>
+                        <textarea class="form-control" aria-label="New Comment" id="new-comment"></textarea>
+                    </div>
+                    <button type="button" class="btn btn-primary mt-1" id="add-comment">Add a Comment</button>
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Show comments modal -->
+    <div class="modal fade" id="dependencies" tabindex="-1" role="dialog"
+         aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-taskId="">
+        <div class="modal-dialog modal-dialog-centered" role="document">
+            <div class="modal-content">
+
+                <div class="modal-header">
+                    <h4 class="modal-title" id="logger-title">Dependencies</h4>
+                </div>
+
+                <div class="modal-body">
+                    <h7>Input Dependencies</h7>
+                    <ul id="input-dependencies">
+
+                    </ul>
+
+                    <hr>
+
+                    <h7>Output Dependencies</h7>
+                    <ul id="output-dependencies">
+
+                    </ul>
+
+                </div>
+
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
@@ -99,9 +160,10 @@
 
     {# Modal 3 : Popup For Method Block View #}
     <div id="method-block-popup" tabindex="-1"
-         style="position: fixed;top: 8%; left:10%;display: none; width: 565px; background: #a4cbf8"
+         style="position: fixed;top: 4%; left:10%;display: none; background: #a4cbf8"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
         <div class="modal-content" style="max-height: 600px; background: #a8a6a3">
+
             {# Header #}
             <div class="modal-header">
                 <h5 class="modal-title" id="name-of-method-block"> {# Name of block comes here #}</h5>
@@ -110,8 +172,21 @@
                 </button>
             </div>
 
+
             {# Body #}
             <div class="modal-body" style="overflow: auto">
+
+                <div class="form-check d-flex flex-row justify-content-center">
+                    <div>
+                        <input class="form-check-input" type="checkbox" value="" id="task-can-be-started" onclick="return false;">
+                        <label class="form-check-label" for="task-can-be-started">
+                            Task can be started?
+                        </label>
+                    </div>
+
+                </div>
+
+
                 {# input artifacts, output artifacts, roles and tools come here #}
                 <div class="d-flex flex-column border rounded p-2 mt-2">
                     <h5>Input Artifacts</h5>
@@ -145,7 +220,15 @@
 
             {# Footer #}
             <div class="modal-footer">
+                <button type="button" class="btn btn-primary" data-toggle="modal"
+                        data-target="#comments" id="show-add-comments">Show/Add Comments
+                </button>
+                <div id="status-box">
 
+                </div>
+                <button type="button" class="btn btn-warning" data-toggle="modal"
+                        data-target="#dependencies" id="show-dependencies">Show Dependencies
+                </button>
             </div>
 
         </div>
@@ -156,6 +239,76 @@
 {% block javascripts %}
     {{ parent() }}
     <script>
+
+        let commentTemplate = (taskId, commentId, user, text) => `
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+                                    <span> ${user} : ${text}</span>
+                                    <button id="${commentId}" class="btn btn-danger delete-comment" data-commentId="${commentId}" data-taskId="${taskId}">Remove</button>
+                               </div>
+                                `;
+
+        $("#show-dependencies").on("click",function () {
+
+            let dependencies = $("#dependencies");
+            dependencies.css("opacity", 1);
+            let taskId = $(this).parent().parent().parent().attr("data-nodeId");
+            dependencies.attr("data-taskId", taskId);
+            let task = getTaskObject(parseInt(taskId));
+
+            let taskCanBeStarted = canStartThisTask(task);
+            $("#input-dependencies").children().remove();
+            taskCanBeStarted.inputArtifactMessages.split(".").forEach(function (message,index) {
+                if(message)
+                    $("#input-dependencies").append("<li>"+message+"</li>");
+            });
+            $("#output-dependencies").children().remove();
+            taskCanBeStarted.outputArtifactMessages.split(".").forEach(function (message,index) {
+                if(message)
+                    $("#output-dependencies").append("<li>"+message+"</li>");
+            });
+
+        });
+
+        $("#show-add-comments").on("click", function () {
+            let commentsBox = $("#comments");
+            commentsBox.css("opacity", 1);
+            let taskId = $(this).parent().parent().parent().attr("data-nodeId");
+            commentsBox.attr("data-taskId", taskId);
+
+            let task = getTaskObject(parseInt(taskId));
+            commentsBox.find(".modal-body").find("ul").children().remove();
+            if ('comments' in task) {
+                task.comments.forEach(function (comment, index) {
+
+                    let user = comment.user;
+                    let commentId = comment.id;
+                    let text = comment.text;
+
+                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, commentId, user, text));
+
+                    if (!userHasWritePermission(task) || user !== "{{ app.user.employeeName }}")
+                        $("#" + commentId).attr('disabled', true);
+                });
+            }
+            $("#add-comment").on("click", function () {
+                let taskId = parseInt($(this).parent().parent().parent().parent().attr("data-taskId"));
+                let task = getTaskObject(taskId);
+
+                if (!('comments' in task)) {
+                    task.comments = [];
+                }
+
+                let newComment = {
+                    id: Date.now(),
+                    user: "{{ app.user.employeeName }}",
+                    text: $("#new-comment").val()
+                }
+                task.comments.push(newComment);
+                commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, newComment.id, newComment.user, newComment.text));
+                updateJsonTasks();
+            });
+        });
+
         let nodes = [];
         let edges = [];
         let tasks = [];
@@ -167,6 +320,7 @@
             item.id = parseInt(item.id);
             item.level = parseInt(item.level);
             item.margin = parseInt(item.margin);
+            item.hidden = false;
             nodes.push(item);
         });
 
@@ -199,7 +353,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
-        console.log(tasks);
+        console.log(tasks, nodes);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -208,6 +362,10 @@
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
         let teamMembers = JSON.parse(("{{ teamMembers|json_encode }}").replace(/&quot;/ig, '"'));
+
+        let logs = [];
+        validateGraph();
+        console.log(logs);
 
         console.log(tools, roles, teamMembers);
 
@@ -249,7 +407,7 @@
                                           </div>
 
                                           <select class="custom-select role-select" id="${selectId}" data-nodeId="${nodeId}" data-role="${key}">
-                                            <option value="0" selected>Choose...</option>
+                                            <option value="0" selected>Choose a member...</option>
 
                                           </select>
 
@@ -265,7 +423,21 @@
                                             <label class="input-group-text"><b>Tool Type: &nbsp</b> ${toolType} </label>
                                           </div>
                                           <select class="custom-select tool-select" id="${selectId}" data-nodeId="${nodeId}" data-toolType="${toolType}">
-                                            <option selected>Choose a tool..</option>
+                                            <option value="0" selected>Choose a tool..</option>
+
+                                          </select>
+                                    </div>
+
+                                `;
+
+        let taskStatus = (selectId, taskId) => `
+
+                                    <div style="display: flex; flex-direction: row; width: 96%;">
+                                          <div class="input-group-prepend">
+                                            <label class="input-group-text"><b>Task Status</b> </label>
+                                          </div>
+                                          <select class="custom-select status-select" id="${selectId}" data-nodeId="${taskId}">
+                                            <option value="0" selected>ToDo</option>
 
                                           </select>
                                     </div>
@@ -348,12 +520,10 @@
 
                 } else if (node.type === 'methodBlock') {
 
-
-
                     nodePopupToRefer = methodBlockPopup;
                     showNodePopup(methodBlockPopup);
 
-                    let task = getTask(parseInt(node.id));
+                    let task = getTaskObject(parseInt(node.id));
                     methodBlockPopup.attr("data-nodeId", node.id);
 
                     //Clear previous contents from the dom
@@ -361,13 +531,45 @@
                     $(".output-artifacts").children().remove();
                     $(".roles").children().remove();
                     $(".tools").children().remove();
+                    $("#status-box").children().remove();
+
+                    /* Code to set the checkbox of task-can-be-started */
+                    console.log(canStartThisTask(task));
+                    if(canStartThisTask(task).status===true)
+                    {
+                        $("#task-can-be-started").prop('checked', true);
+                    }
+
+                    else{
+                        $("#task-can-be-started").prop('checked', false);
+                    }
+
+                    /* Code to implement status of the task */
+                    let taskStatusId = Date.now() - 230; //230 just a random number to differentiate Date.now function
+                    $("#status-box").append(taskStatus(taskStatusId, task.id));
+
+                    if (!userHasWritePermission(task) || logs.length > 0 || canStartThisTask(task).status===false) {
+                        $("#"+taskStatusId).css("width","150px");
+                        $("#" + taskStatusId).attr('disabled', true);
+                        $("#add-comment").attr('disabled', true);
+                    } else {
+
+                        let options = [{status: 1, text: 'Under Progress'}, {status: 2, text: 'Finished'}];
+
+                        options.forEach(function (option, index) {
+                            if (parseInt(task.status) === option.status)
+                                $("#" + taskStatusId).append(new Option(option.text, option.status, true, true));
+                            else
+                                $("#" + taskStatusId).append(new Option(option.text, option.status));
+                        });
+                    }
 
                     $("#name-of-method-block").html("<b>Name of method block::</b> " + task.label);
                     for (let [key, value] of Object.entries(task)) {
-                        if (key === 'inputArtifacts') {
+                        if (key === 'inputArtifacts' && task[key] !== "") {
                             task[key].forEach(function (artifact, index) {
 
-                                let frontendId = Date.now();
+                                let frontendId = Date.now() + index;
 
                                 if (typeof artifact === 'object') {
                                     let uploadedArtifact = artifactOutputHTML('inputArtifact', artifact.name, nodeId, artifact.path, frontendId);
@@ -375,22 +577,20 @@
 
                                     /* The frontendId here is assigned to a delete button */
 
-                                    handleArtifactRemoval('inputArtifact',frontendId);
-                                }
-                                else if (artifact !== "")
-                                {
+                                    handleArtifactRemoval('inputArtifact', frontendId);
+                                } else if (artifact !== "") {
                                     methodBlockPopup.find(".input-artifacts").append(artifactInputHTML('inputArtifact', artifact, task.id, frontendId));
                                 }
 
-                                if(!userHasWritePermission(task))
-                                    $("#" + frontendId).attr('disabled',true);
+                                if (!userHasWritePermission(task) || canStartThisTask(task).status===false || !('status' in task) ||parseInt(task.status)===0)
+                                    $("#" + frontendId).attr('disabled', true);
 
                             });
                         }
-                        if (key === 'outputArtifacts') {
+                        if (key === 'outputArtifacts' && task[key] !== "") {
                             task[key].forEach(function (artifact, index) {
 
-                                let frontendId = Date.now();
+                                let frontendId = Date.now() + index + 100;
 
                                 if (typeof artifact === 'object') {
                                     let uploadedArtifact = artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path, frontendId);
@@ -398,14 +598,13 @@
 
                                     /* The frontendId here is assigned to a delete button */
 
-                                    handleArtifactRemoval('outputArtifact',frontendId);
-                                }
-                                else if (artifact !== "")
-                                {
+                                    handleArtifactRemoval('outputArtifact', frontendId);
+                                } else if (artifact !== "") {
 
                                     methodBlockPopup.find(".output-artifacts").append(artifactInputHTML('outputArtifact', artifact, task.id, frontendId));
-                                    if(!userHasWritePermission(task))
-                                        $("#" + frontendId).attr('disabled',true);
+
+                                    if (!userHasWritePermission(task) || canStartThisTask(task).status===false || !('status' in task) || parseInt(task.status)===0)
+                                        $("#" + frontendId).attr('disabled', true);
                                 }
 
                             });
@@ -415,7 +614,7 @@
                             methodBlockPopup.find(".roles").append(toBeFilledUpRole(key, task.id, selectId));
 
                             {% if not is_granted('ROLE_PROJECT_MANAGER') %}
-                                $("#" + selectId).attr('disabled',true);
+                            $("#" + selectId).attr('disabled', true);
                             {% endif %}
 
                             if (value === "") //i.e when no members have been assigned to the role(key)
@@ -434,13 +633,38 @@
 
                         }
                         if (key in tools) {
-                            let selectId = key.replace(/ /g, '') + "-" + task.id;
-                            methodBlockPopup.find(".tools").append(toBeFilledUpTool(key, selectId, node.id));
+                            setTimeout(() => {
+                                let selectId = Date.now();
+                                methodBlockPopup.find(".tools").append(toBeFilledUpTool(key, selectId, task.id));
 
-                            let toolsOptions = tools[key].split(",");
-                            toolsOptions.forEach(function (item, index) {
-                                $("#" + selectId).append(new Option(item, item));
-                            });
+                                //Logic to update tools
+                                $(".tool-select").on("change", function (e) {
+                                    e.stopImmediatePropagation();
+                                    let tool = $(this).find('option:selected').val();
+                                    let toolType = $(this).attr("data-toolType");
+                                    let nodeId = parseInt($(this).attr("data-nodeId"));
+
+                                    let task = getTaskObject(nodeId);
+
+                                    if (parseInt(tool) !== 0)
+                                        task[toolType] = tool;
+                                    else
+                                        task[toolType] = "";
+
+                                    updateJsonTasks();
+                                    validateGraph();
+                                });
+
+                                {% if not is_granted('ROLE_PROJECT_MANAGER') %}
+                                $("#" + selectId).attr('disabled', true);
+                                {% endif %}
+
+                                let toolsOptions = tools[key].split(",");
+
+                                toolsOptions.forEach(function (item, index) {
+                                    task[key] === item ? $("#" + selectId).append(new Option(item, item, true, true)) : $("#" + selectId).append(new Option(item, item));
+                                });
+                            }, 100);
                         }
                     }
 
@@ -449,17 +673,81 @@
 
                     $(".role-select").on("change", function () {
                         let role = $(this).attr("data-role");
-                        let nodeId = $(this).attr("data-nodeId");
+                        let nodeId = parseInt($(this).attr("data-nodeId"));
                         let selectedMember = $(this).find('option:selected').text();
                         let selectedVal = $(this).find('option:selected').val();
 
-                        let task = getTask(nodeId);
-                        delete task.key;
-                        if(parseInt(selectedVal)!==0)
+                        let task = getTaskObject(nodeId);
+
+                        if (parseInt(selectedVal) !== 0)
                             task[role] = {memberId: selectedVal, memberName: selectedMember};
                         else
-                            task[role]="";
+                            task[role] = "";
 
+                        updateJsonTasks(selectedVal, task);
+                        validateGraph();
+                    });
+
+                    //Logic to update task status
+                    let previousStatusText;
+                    let previousStatusValue;
+                    $(".status-select").on("focus click", function () {
+                        previousStatusText = $(this).find('option:selected').text();
+                        previousStatusValue = $(this).find('option:selected').val();
+
+                    }).change(function () {
+
+                        let taskId = $(this).attr("data-nodeId");
+                        /* ToDo=0, Under Progress=1, Finished=2 */
+                        let status = parseInt($(this).find('option:selected').val());
+                        let node = getNodeObject(parseInt(taskId));
+                        let task = getTaskObject(parseInt(taskId));
+                        if (status === 0) {
+                            task.color = "red";
+                            task.status = 0;
+                            node.color = "red";
+                            methodBlockPopup.find('input[type="file"]').attr('disabled', true);
+                        } else if (status === 1) {
+                            task.color = "rgba(248,151,8,0.76)";
+                            task.status = 1;
+                            node.color = "rgba(248,151,8,0.76)";
+                            methodBlockPopup.find('input[type="file"]').attr('disabled', false);
+                        } else if (status === 2) {
+
+                            let outputArtifactsThatHasNotBeenUploaded = []
+
+                            //Check if all the output artifacts have been uploaded
+                            for (let [key, value] of Object.entries(task)) {
+                                if (key === 'outputArtifacts' && value !== "") {
+                                    value.forEach(function (artifact, index) {
+                                        if (typeof artifact !== 'object')
+                                            outputArtifactsThatHasNotBeenUploaded.push(artifact);
+                                    });
+                                }
+                            }
+
+                            if (outputArtifactsThatHasNotBeenUploaded.length > 0) {
+                                let message = "These output artifacts: ";
+                                outputArtifactsThatHasNotBeenUploaded.forEach(function (artifact, index) {
+                                    if (index === 0)
+                                        message = message + artifact;
+                                    else
+                                        message = message + "," + artifact;
+                                });
+                                message = message + " has not been uploaded and hence status can not be changed to finished.";
+                                alert(message);
+                                $(this).val(previousStatusValue);
+                                return false;
+                            }
+
+                            task.color = "#54f856";
+                            task.status = 2;
+                            node.color = "#54f856";
+                        }
+
+                        changeParentStatusAfterUpdateOfTaskStatus(task);
+                        console.log(nodes);
+                        updateJsonNodes();
                         updateJsonTasks();
                     });
                 }
@@ -565,13 +853,16 @@
 
         function getLocalRootNodeObject(nodeId) {
 
-            let localRootNodeId = null;
+            let localRootNode = null;
             edges.forEach(function (edge, index) {
                 if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.arrows === "from") {
-                    localRootNodeId = getLocalRootNodeObject(parseInt(edge.from));
+                    if (parseInt(edge.from) !== 1)
+                        localRootNode = getLocalRootNodeObject(parseInt(edge.from));
+                    else
+                        localRootNode = getNodeObject(parseInt(edge.to));
                 }
             });
-            return getNodeObject(localRootNodeId);
+            return localRootNode;
         }
 
         function checkIfLocalSupremeRootNodeReadyToBeExecuted(childNode) //This was previously a processType node
@@ -610,16 +901,7 @@
             });
         }
 
-        function getTask(nodeId) {
-            let myTask = null;
-            tasks.forEach(function (task, index) {
-                if (parseInt(task.id) === parseInt(nodeId))
-                    myTask = task;
-            });
-            return myTask;
-        }
-
-        function updateJsonTasks() {
+        function updateJsonTasks(memberId = null, task = null) {
             console.log(tasks);
             $.ajax({
                 type: 'POST',
@@ -627,6 +909,9 @@
                 data: {
                     method_id: "{{ situationalMethod.id }}",
                     tasks: tasks,
+                    memberId: memberId,
+                    task: task,
+                    graphName: task == null ? null : getLocalRootNodeObject(parseInt(task.id)).label,
                     update_type: 'update_jsonTasks'
                 },
                 success: function (response) {
@@ -636,32 +921,46 @@
             });
         }
 
-        function userHasWritePermission(task)
-        {
+        function updateJsonNodes() {
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('task_update') }}',
+                data: {
+                    method_id: "{{ situationalMethod.id }}",
+                    update_type: 'update_jsonNodes',
+                    nodes: nodes
+                },
+                success: function (response) {
+                    let obj = JSON.parse(JSON.stringify(response));
+                    console.log(obj);
+                }
+            });
+        }
+
+        function userHasWritePermission(task) {
             let haveWritePermission = false;
 
             let currentUser = "{{ app.user.employeeName ~" : "~ app.user.implodedRoles }}"
 
-            for (let [role, object] of Object.entries(task)){
-                if (roles.includes(role)){
-                    if(object!=="" && object.memberName===currentUser)
+            for (let [role, object] of Object.entries(task)) {
+                if (roles.includes(role)) {
+                    if (object !== "" && object.memberName === currentUser)
                         haveWritePermission = true;
                 }
             }
             {% if is_granted('ROLE_PROJECT_MANAGER') %}
-                haveWritePermission = true;
+            haveWritePermission = true;
             {% endif %}
 
             return haveWritePermission;
         }
 
-        function handleArtifactRemoval(artifactType, buttonId)
-        {
-            $("#"+buttonId).on("click",function () {
+        function handleArtifactRemoval(artifactType, buttonId) {
+            $("#" + buttonId).on("click", function () {
                 let taskId = $(this).attr("data-id");
                 let artifactName = $(this).attr("data-artifact");
                 let filePath = $(this).attr("data-filePath");
-                let fileName = filePath.replace("/images/artifacts/","");
+                let fileName = filePath.replace("/images/artifacts/", "");
 
                 console.log(taskId, artifactName, fileName);
 
@@ -670,12 +969,14 @@
                 superParent.append(artifactInputHTML(artifactType, artifactName, taskId, buttonId));
                 handleArtifactUpload();
 
-                let artifactPlural = artifactType+'s';
+                let artifactPlural = artifactType + 's';
 
                 let task = getTaskObject(parseInt(taskId));
+                let node = getNodeObject(parseInt(taskId));
+
                 task[artifactPlural].forEach(function (artifact, index) {
 
-                    if (typeof artifact === 'object' && artifact.name===artifactName && artifact.path===filePath) {
+                    if (typeof artifact === 'object' && artifact.name === artifactName && artifact.path === filePath) {
                         task[artifactPlural].splice(index, 1, artifactName);
                     }
                 });
@@ -694,7 +995,13 @@
                         console.log(obj);
                     }
                 });
-                console.log(tasks);
+
+                task.color = "rgba(248,151,8,0.76)";
+                task.status = 1;
+                node.color = "rgba(248,151,8,0.76)";
+                changeParentStatusAfterUpdateOfTaskStatus(task);
+                updateJsonNodes();
+                updateJsonTasks();
             });
         }
 
@@ -704,7 +1011,7 @@
             $(".custom-file-input").on("change", function (e) {
                 e.stopImmediatePropagation();
                 let nodeId = $(this).attr("data-nodeId");
-                let task = getTask(parseInt(nodeId));
+                let task = getTaskObject(parseInt(nodeId));
                 let artifact = $(this).data("artifact");
                 let artifactType = $(this).attr("data-artifactType");
 
@@ -732,11 +1039,11 @@
                             artifactType === 'inputArtifact' ? $(".input-artifacts").append(uploadedArtifact) :
                                 $(".output-artifacts").append(uploadedArtifact);
 
-                            handleArtifactRemoval(artifactType,removeButtonId);
+                            handleArtifactRemoval(artifactType, removeButtonId);
 
                             if (artifactType === 'inputArtifact') {
                                 for (let [key, value] of Object.entries(task)) {
-                                    if (key === 'inputArtifacts') {
+                                    if (key === 'inputArtifacts' && task[key] !== "") {
                                         task[key].forEach(function (ourArtifact, index) {
                                             if (ourArtifact === artifact)
                                                 task[key].splice(index, 1, {name: artifact, path: filePath});
@@ -746,7 +1053,7 @@
                             }
                             if (artifactType === 'outputArtifact') {
                                 for (let [key, value] of Object.entries(task)) {
-                                    if (key === 'outputArtifacts') {
+                                    if (key === 'outputArtifacts' && task[key] !== "") {
                                         task[key].forEach(function (ourArtifact, index) {
                                             if (ourArtifact === artifact)
                                                 task[key].splice(index, 1, {name: artifact, path: filePath});
@@ -762,6 +1069,202 @@
             });
 
         }
+
+        function validateGraph() {
+            logs = [];
+            tasks.forEach(function (task, index) {
+                for (let [key, value] of Object.entries(task)) {
+                    let localGraphName = getLocalRootNodeObject(task.id).label;
+                    if (roles.includes(key) && value === "")
+                        logs.push({
+                            task: task,
+                            msg: key + " in \"" + task.label + "\" in graph " + localGraphName + " has not been assigned any team member."
+                        });
+                    if (key in tools && value === "")
+                        logs.push({
+                            task: task,
+                            msg: key + " in \"" + task.label + "\" in graph " + localGraphName + " has not been selected."
+                        });
+                }
+            });
+
+            if (logs.length > 0) {
+                $(".validation-banner-1").css("display", "block");
+                nodes.forEach(function (node, index) {
+                    node.color = "#bababa";
+                });
+                $("#logger").find("ul").children().remove();
+                logs.forEach(function (log, index) {
+                    $("#logger").find("ul").append("<li>" + log.msg + "</li>");
+                });
+                initializeGraph(true);
+            } else if (logs.length === 0) {
+                $("#logger").find("ul").children().remove();
+                $(".validation-banner-1").css("display", "none");
+
+                nodes.forEach(function (node, index) {
+                    let task = getTaskObject(parseInt(node.id));
+                    if (task != null && 'color' in task && task.color !== "#bababa") {
+                        node.color = task.color;
+                        changeParentStatusAfterUpdateOfTaskStatus(task);
+                    } else if (node.color === "#bababa")
+                        node.color = "red";
+                });
+                initializeGraph(true);
+            }
+        }
+
+        function changeParentStatusAfterUpdateOfTaskStatus(task) {
+            if (parseInt(task.status) === 1) {
+
+                let parent = getParent(task.id);
+
+                if (parent) {
+                    parent.status = 1;
+                    parent.color = "rgba(248,151,8,0.76)";
+                    changeParentStatusAfterUpdateOfTaskStatus(parent);
+                }
+
+            } else if (task.status === 0) {
+                //change parent status to 0 only if all the other children are 0
+
+                let parentStatus = 0;
+
+                let parentOfTask = getParent(task.id);
+
+                if (parentOfTask) {
+
+                    let childrenOfParent = getChildren(parentOfTask.id);
+                    childrenOfParent.forEach(function (child, index) {
+                        if (child != null && child.shape === "box") {
+                            let equivalentTask = getTaskObject(parseInt(child.id));
+                            if (equivalentTask != null && 'status' in equivalentTask && (parseInt(equivalentTask.status) === 1 || parseInt(equivalentTask.status) === 2))
+                                parentStatus = 1;
+                        } else if (child != null && (child.color === "rgba(248,151,8,0.76)" || child.color === "#54f856")) {
+                            parentStatus = 1;
+                        }
+
+                    });
+
+                    if (parentStatus === 0)
+                        parentOfTask.color = "red";
+                    else
+                        parentOfTask.color = "rgba(248,151,8,0.76)";
+                    parentOfTask.status = parentStatus;
+
+                    changeParentStatusAfterUpdateOfTaskStatus(parentOfTask);
+                }
+            } else if (task.status === 2) {
+                let parentOfTask = getParent(task.id);
+
+                if (parentOfTask) {
+                    let childrenOfParent = getChildren(parentOfTask.id);
+
+                    let allChildrenOfParentAreGreen = true;
+
+                    childrenOfParent.forEach(function (child, index) {
+                        if (child != null && child.shape === "box") {
+                            let equivalentTask = getTaskObject(parseInt(child.id));
+                            if (equivalentTask != null && (('status' in equivalentTask && parseInt(equivalentTask.status) !== 2) || !('status' in equivalentTask)))
+                                allChildrenOfParentAreGreen = false;
+                        } else if (child != null && child.color !== "#54f856") {
+                            allChildrenOfParentAreGreen = false;
+                        }
+                    });
+
+                    if (allChildrenOfParentAreGreen) {
+                        parentOfTask.color = "#54f856";
+                        parentOfTask.status = 2;
+                        changeParentStatusAfterUpdateOfTaskStatus(parentOfTask);
+                    }
+                }
+            }
+
+            initializeGraph(true);
+        }
+
+        function getParent(nodeId) {
+            let parent = null;
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "from" && parseInt(edge.to) === parseInt(nodeId)) {
+                    parent = getNodeObject(parseInt(edge.from));
+                }
+            });
+            return parent;
+        }
+
+        function getChildren(nodeId) {
+            let children = [];
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "from" && parseInt(edge.from) === parseInt(nodeId)) {
+                    children.push(getNodeObject(parseInt(edge.to)));
+                }
+            });
+            return children;
+        }
+
+        function canStartThisTask(task) {
+
+            let taskCanBeStarted = {status: true, inputArtifactMessages: "", outputArtifactMessages: ""};
+            let neededInputArtifacts = [];
+            let producedOutputArtifacts = [];
+
+            let localGraph = getLocalRootNodeObject(task.id);
+
+            for (let [key, value] of Object.entries(task)) {
+                if (key === 'inputArtifacts' && value !== "") {
+                    value.forEach(function (artifact, index) {
+                        neededInputArtifacts.push(artifact);
+                    });
+                }
+                if (key === 'outputArtifacts' && value !== "") {
+                    value.forEach(function (artifact, index) {
+                        producedOutputArtifacts.push(artifact);
+                    });
+                }
+            }
+
+            neededInputArtifacts.forEach(function (inputArtifact, index) {
+                tasks.forEach(function (myTask, index) {
+
+                    if (getLocalRootNodeObject(myTask.id).label === localGraph.label) {
+                        for (let [key, value] of Object.entries(myTask)) {
+                            if (key === 'outputArtifacts' && value !== "") {
+                                value.forEach(function (outputArtifact, index) {
+                                    if (typeof outputArtifact === "string" && outputArtifact === inputArtifact) {
+                                        taskCanBeStarted.status = false;
+                                        taskCanBeStarted.inputArtifactMessages += outputArtifact + " in step '" + myTask.label + "' has not been uploaded yet.";
+                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact) {
+                                        taskCanBeStarted.status = true;
+                                        taskCanBeStarted.inputArtifactMessages += "Download input artifact '"+ outputArtifact.name +"' from step " + myTask.label;
+                                    }
+                                });
+                            }
+                        }
+                    }
+
+                });
+            });
+
+            producedOutputArtifacts.forEach(function (outputArtifact, index) {
+                tasks.forEach(function (myTask, index) {
+                    if (getLocalRootNodeObject(myTask.id).label === localGraph.label) {
+                        for (let [key, value] of Object.entries(myTask)) {
+                            if (key === 'inputArtifacts' && value !== "") {
+                                value.forEach(function (inputArtifact, index) {
+                                    if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
+                                        taskCanBeStarted.outputArtifactMessages += outputArtifact + " is used in step '" + myTask.label + "'.";
+                                    }
+                                });
+                            }
+                        }
+                    }
+                });
+            });
+
+            return taskCanBeStarted;
+        }
+
 
     </script>
 {% endblock %}

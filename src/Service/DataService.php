@@ -10,10 +10,11 @@ use App\Entity\ProcessKind;
 use App\Entity\Role;
 use App\Entity\SituationalFactor;
 use App\Entity\SituationalMethod;
-use App\Entity\Task;
 use App\Entity\Tool;
 use Doctrine\ORM\EntityManagerInterface;
 use stdClass;
+use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
+use Symfony\Component\Filesystem\Filesystem;
 
 
 class DataService
@@ -29,9 +30,11 @@ class DataService
     private $tools;
     private $situationalFactors;
     private $situationalMethods;
+    private $parameterBag;
 
-    public function __construct(EntityManagerInterface $em)
+    public function __construct(EntityManagerInterface $em, ParameterBagInterface $parameterBag)
     {
+        $this->parameterBag = $parameterBag;
         $this->entityManager = $em;
         $this->roles = $em->getRepository(Role::class)->findAll();
         $this->artifacts = $em->getRepository(Artifact::class)->findArtifactsInAscendingOrder();
@@ -63,9 +66,25 @@ class DataService
         return $this->tools;
     }
 
+    public function getAllExplodedToolTypes()
+    {
+        $toolTypes = [];
+        foreach ($this->tools as $tool)
+            array_push($toolTypes, $tool->getType());
+        return $toolTypes;
+    }
+
     public function getAllRoles()
     {
         return $this->roles;
+    }
+
+    public function getAllExplodedRoles()
+    {
+        $roles = [];
+        foreach ($this->roles as $role)
+            array_push($roles, $role->getName());
+        return $roles;
     }
 
     public function getAllArtifacts()
@@ -188,6 +207,125 @@ class DataService
         $obj->situationalFactors = $graph->getImplodedSituationalFactors();
 
         return $obj;
+    }
+
+    public function actualizeSituationalMethod(SituationalMethod $situationalMethod)
+    {
+        $actualizedTasks = [];
+        $tasks = json_decode($situationalMethod->getJsonTasks());
+
+        /*dd(
+            getType(($tasks[0]->inputArtifacts)[0]->name)
+        );*/
+
+        foreach ($tasks as $task) {
+
+            $block = $this->entityManager->getRepository(MethodBuildingBlock::class)->find($task->tableId);
+
+            //If any role missing then add role to the task
+            foreach ($block->getExplodedRoles() as $role) {
+                if (!property_exists($task, $role)) {
+                    $foo = (array)$task;
+                    $foo[$role] = "";
+                    $task = (object)$foo;
+                }
+            }
+
+            //Remove any role from task if it has been already removed from a method block
+            $currentTaskRoles = [];
+            foreach ($task as $key => $value) {
+                if (in_array($key, $this->getAllExplodedRoles()))
+                    array_push($currentTaskRoles, $key);
+            }
+            foreach ($currentTaskRoles as $role) {
+                if (!(in_array($role, (array)$block->getExplodedRoles())))
+                    unset($task->$role);
+            }
+
+            //Remove duplicate roles
+            foreach ($currentTaskRoles as $role)
+            {
+                if(property_exists($task, " ".$role) ){
+                    $foo = (array)$task;
+                    unset($foo[(" ".$role)]);
+                    $task = (object) $foo;
+                }
+            }
+
+
+            //If any tool missing then add the tool to the task
+            foreach ($block->getExplodedTools() as $toolType) {
+                if (!property_exists($task, $toolType)) {
+                    $foo = (array)$task;
+                    $foo[$toolType] = "";
+                    $task = (object)$foo;
+                }
+            }
+
+            //Remove any toolType from task if it has been already removed from a method block
+            $currentToolTypes = [];
+            foreach ($task as $key => $value) {
+                if (in_array($key, $this->getAllExplodedToolTypes()))
+                    array_push($currentToolTypes, $key);
+            }
+            foreach ($currentToolTypes as $toolType) {
+                if (!(in_array($toolType, (array)$block->getExplodedTools())))
+                    unset($task->$toolType);
+            }
+
+            //Check if input artifact needs to be added
+            foreach ($block->getInputArtifacts() as $artifact){
+                $inputArtifactExist = false;
+                foreach ($task->inputArtifacts as $inputArtifact)
+                {
+                    if(gettype($inputArtifact)=="object" && $inputArtifact->name==$artifact)
+                        $inputArtifactExist = true;
+                    else if($inputArtifact==$artifact)
+                        $inputArtifactExist = true;
+                }
+                if(!$inputArtifactExist)
+                {
+                    $foo = (array) $task;
+                    array_push($foo['inputArtifacts'], $artifact);
+                    $task = (object) $foo;
+                }
+            }
+
+            //Check if input artifact needs to deleted
+            foreach ($task->inputArtifacts as $key => $inputArtifact)
+            {
+                $inputArtifactNeedsToBeDeleted = false;
+                $artifactFilePath = null;
+
+                if(gettype($inputArtifact)=="object" && !in_array($inputArtifact->name, (array)$block->getInputArtifacts()))
+                {
+                    $inputArtifactNeedsToBeDeleted = true;
+                    $artifactFilePath = str_replace("/images/artifacts/","",$inputArtifact->path);
+                }
+
+                else if(!in_array($inputArtifact, (array)$block->getInputArtifacts()))
+                    $inputArtifactNeedsToBeDeleted = true;
+
+                if($inputArtifactNeedsToBeDeleted)
+                {
+                    unset($task->inputArtifacts[$key]);
+
+                    if($artifactFilePath)
+                    {
+                        $fileSystem = new Filesystem();
+                        $fileSystem->remove($this->parameterBag->get('kernel.project_dir')."/public/images/artifacts/".$artifactFilePath);
+                    }
+
+                }
+            }
+
+            array_push($actualizedTasks, $task);
+        }
+
+        $situationalMethod->setJsonTasks(json_encode($actualizedTasks));
+        $this->entityManager->flush();
+
+        return $situationalMethod;
     }
 
 }
