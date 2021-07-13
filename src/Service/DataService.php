@@ -286,6 +286,7 @@ class DataService
                 if(!$inputArtifactExist)
                 {
                     $foo = (array) $task;
+                    $foo['inputArtifacts'] = gettype($foo['inputArtifacts'])=="object"? (array)($foo['inputArtifacts']):$foo['inputArtifacts'];
                     array_push($foo['inputArtifacts'], $artifact);
                     $task = (object) $foo;
                 }

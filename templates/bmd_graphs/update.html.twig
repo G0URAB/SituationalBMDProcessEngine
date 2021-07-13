@@ -130,9 +130,8 @@
     </div>
     <div class="mt-1 text-white d-flex flex-column">
         <span>2. All the steps <b><u>should</u></b> be put in a sequence. From left to right. </span>
-        <span>3. <b class="text-danger">Red arrow</b> indicates a child sub process type and
-                 <b class="text-primary">blue arrow</b> indicates a prerequisite.</span>
-        <span>4. If two steps can be implemented <u>in parallel then there is no prerequisite!</u> </span>
+        <span>3. <b class="text-danger">Red arrow</b> indicates a child step and
+                 <b class="text-primary">blue arrow</b> indicates a sequence in which steps should executed.</span>
     </div>
 </div>
 
@@ -206,8 +205,15 @@
     edgesInDatabase.forEach(function (item, index) {
         item.from = parseInt(item.from);
         item.to = parseInt(item.to);
+        if ('smooth' in item)
+        {
+            delete item.smooth;
+            item = Object.assign({smooth: {enabled: true, type: "curvedCW", roundness: "0.2", forceDirection:'horizontal'}}, item);
+        }
         edges.push(item);
     });
+
+    console.log(edges);
 
     initializeGraph();
     initializeInputs();
@@ -227,7 +233,6 @@
             },
             edges: {
                 length: 300 // Longer edges between nodes.
-
             },
             layout: {
                 hierarchical: {
@@ -352,12 +357,12 @@
 
         $('#from-step option').each(function () {
             if (parseInt($(this).attr("data-node")) === oldId) {
-                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName, nodeId));
             }
         });
         $('#to-step option').each(function () {
             if (parseInt($(this).attr("data-node")) === oldId) {
-                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName));
+                $(this).attr("value", newTableId).text(updatedNameOfProcessTypeForEdgeOptions(newNodeName, nodeId));
             }
         });
 
@@ -434,19 +439,19 @@
         if (nodes.length < 3)
             fromStep.append($('<option>', {
                 value: IdOfProcessType,
-                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType, newNode.id),
                 'data-node': newNode.id
             }));
         else {
             fromStep.append($('<option>', {
                 value: IdOfProcessType,
-                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType, newNode.id),
                 'data-node': newNode.id
             }));
 
             toStep.append($('<option>', {
                 value: IdOfProcessType,
-                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType, newNode.id),
                 'data-node': newNode.id
             }));
         }
@@ -469,6 +474,20 @@
 
         if (!prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, 'add'))
             return;
+
+        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
+            let reverseEdge = {
+                smooth: {enabled: true, type: "curvedCW", roundness: "0.2", forceDirection:'horizontal'},
+                from: id_of_FromNode,
+                to: id_of_ToNode,
+                arrows: "to",
+                color: "rgb(20,24,200)"
+            };
+            edges.push(reverseEdge);
+            messageBox.html("<span class='text-danger'>A reverse edge was added!</span>");
+            initializeGraph();
+            return;
+        }
 
         /*
         If there are three nodes sequentially e.g. a,b,c and there is going to be an edge between a and c
@@ -523,7 +542,7 @@
                 edges.splice(index, 1);
         });
 
-        if (indexOfToObject - indexOfFromObject > 1) {
+        if ((indexOfToObject - indexOfFromObject > 1) && (parseInt(indexOfToObject) > parseInt(indexOfFromObject))) {
             //There is someone in between, loop on them and get them up
 
             for (let i = indexOfFromObject + 1; i < indexOfToObject; i++) {
@@ -590,18 +609,18 @@
         return true;
     }
 
-    function updatedNameOfProcessTypeForEdgeOptions(nameOfNode) {
-        let labelIndex = 0;
+    function updatedNameOfProcessTypeForEdgeOptions(nameOfNode, nodeId) {
+        let labelIndex = [];
         nodes.forEach(function (item, index) {
 
             if (item.label === "<<" + nameOfNode + ">>") {
-                labelIndex++;
+                labelIndex[item.id] = index;
             }
         });
-        if (labelIndex === 1)
+        if (labelIndex.length === 1)
             return nameOfNode;
         else
-            return nameOfNode + "-" + labelIndex;
+            return nameOfNode + "-" + labelIndex[nodeId];
     }
 
     function nodeExistInGraph(id) {
@@ -615,6 +634,7 @@
 
     //If an edge between two nodes already exist
     function edgeExistInGraph(idOfFrom, idOfTo) {
+
         let edgeExistInGraph = false;
         edges.forEach(function (item, index) {
             if (item.from === idOfFrom && item.to === idOfTo)
@@ -751,10 +771,10 @@
                 actionIsValid = false;
             }
         }
-        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
+        /*if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
             messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
             actionIsValid = false;
-        }
+        }*/
         return actionIsValid;
     }
 
@@ -765,13 +785,13 @@
             if (index !== 0) {
                 fromStep.append($('<option>', {
                     value: item.tableId,
-                    text: updatedNameOfProcessTypeForEdgeOptions((item.label).replace("<<", "").replace(">>", "")),
+                    text: updatedNameOfProcessTypeForEdgeOptions((item.label).replace("<<", "").replace(">>", ""), item.id),
                     'data-node': item.id
                 }));
 
                 toStep.append($('<option>', {
                     value: item.tableId,
-                    text: updatedNameOfProcessTypeForEdgeOptions((item.label).replace("<<", "").replace(">>", "")),
+                    text: updatedNameOfProcessTypeForEdgeOptions((item.label).replace("<<", "").replace(">>", ""), item.id),
                     'data-node': item.id
                 }));
             }

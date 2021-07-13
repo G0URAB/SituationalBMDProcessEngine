@@ -253,12 +253,24 @@
             item.id = parseInt(item.id);
             item.level = parseInt(item.level);
             item.margin = parseInt(item.margin);
+            item.hidden =false;
             nodes.push(item);
         });
 
         edgesFromDatabase.forEach(function (item, index) {
             item.from = parseInt(item.from);
             item.to = parseInt(item.to);
+            if ('smooth' in item) {
+                delete item.smooth;
+                item = Object.assign({
+                    smooth: {
+                        enabled: true,
+                        type: "curvedCW",
+                        roundness: "0.2",
+                        forceDirection: 'horizontal'
+                    }
+                }, item);
+            }
             edges.push(item);
         });
 
@@ -286,7 +298,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
-        //console.log(nodes, edges, tasks);
+        console.log(nodes, edges, tasks);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -880,7 +892,10 @@
             let localRootNodeObject = null;
             edges.forEach(function (edge, index) {
                 if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
-                    localRootNodeObject = getNodeObject(parseInt(edge.from));
+                    if (parseInt(edge.from) !== 1)
+                        localRootNodeObject = getLocalRootNodeObject(parseInt(edge.from));
+                    else
+                        localRootNodeObject = getNodeObject(parseInt(edge.to));
                 }
             });
             return localRootNodeObject;

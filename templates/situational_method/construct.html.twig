@@ -345,7 +345,7 @@
                                     //Next add situational factor
                                     let graphsAndTheirSituationalFactor = {
                                         graphName: $(this).data("name"),
-                                        rootNodeLabel : nodesOfGraph[0].label,
+                                        rootNodeLabel: nodesOfGraph[0].label,
                                         factors: situationalFactors
                                     }
                                     graphsAndTheirSituationalFactors.push(graphsAndTheirSituationalFactor);
@@ -623,14 +623,13 @@
             let node = getNodeObject(nodeId);
             let rootNode = JSON.parse(node.rootNode);
 
-            if (parseInt(rootNode.id) === 1){
+            if (parseInt(rootNode.id) === 1) {
                 removeLocalGraph(node, 1);
-                graphsAndTheirSituationalFactors.forEach(function (item,index) {
-                    if(item.rootNodeLabel===node.label)
-                        graphsAndTheirSituationalFactors.splice(index,1);
+                graphsAndTheirSituationalFactors.forEach(function (item, index) {
+                    if (item.rootNodeLabel === node.label)
+                        graphsAndTheirSituationalFactors.splice(index, 1);
                 });
-            }
-            else
+            } else
                 removeLocalGraph(node, 2);
             closeNodePopup(graphRootNodePopup);
         });
@@ -687,8 +686,9 @@
                     },
                     success: function (response) {
                         let obj = JSON.parse(JSON.stringify(response));
-                        if(obj.status==="okay")
-                            window.location = "{{ path('situational_methods') }}";
+                        if (obj.status === "okay")
+                            /*window.location = "{{ path('situational_methods') }}";*/
+                            console.log(obj);
                     }
                 });
             }
@@ -840,6 +840,11 @@
                         edge.from = node.id;
                     if (edge.to === node.oldId)
                         edge.to = node.id;
+                    if ('smooth' in edge)
+                    {
+                        delete edge.smooth;
+                        edge = Object.assign({smooth: {enabled: true, type: "curvedCW", roundness: "0.2", forceDirection:'horizontal'}}, edge);
+                    }
                 });
                 edges.push(edge);
             });
@@ -864,7 +869,10 @@
             let localRootNodeObject = null;
             edges.forEach(function (edge, index) {
                 if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
-                    localRootNodeObject = getNodeObject(parseInt(edge.from));
+                    if (parseInt(edge.from) !== 1)
+                        localRootNodeObject = getLocalRootNodeObject(parseInt(edge.from));
+                    else
+                        localRootNodeObject = getNodeObject(parseInt(edge.to));
                 }
             });
             return localRootNodeObject;

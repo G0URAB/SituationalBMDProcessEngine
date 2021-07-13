@@ -178,7 +178,8 @@
 
                 <div class="form-check d-flex flex-row justify-content-center">
                     <div>
-                        <input class="form-check-input" type="checkbox" value="" id="task-can-be-started" onclick="return false;">
+                        <input class="form-check-input" type="checkbox" value="" id="task-can-be-started"
+                               onclick="return false;">
                         <label class="form-check-label" for="task-can-be-started">
                             Task can be started?
                         </label>
@@ -247,7 +248,7 @@
                                </div>
                                 `;
 
-        $("#show-dependencies").on("click",function () {
+        $("#show-dependencies").on("click", function () {
 
             let dependencies = $("#dependencies");
             dependencies.css("opacity", 1);
@@ -257,14 +258,14 @@
 
             let taskCanBeStarted = canStartThisTask(task);
             $("#input-dependencies").children().remove();
-            taskCanBeStarted.inputArtifactMessages.split(".").forEach(function (message,index) {
-                if(message)
-                    $("#input-dependencies").append("<li>"+message+"</li>");
+            taskCanBeStarted.inputArtifactMessages.split(".").forEach(function (message, index) {
+                if (message)
+                    $("#input-dependencies").append("<li>" + message + "</li>");
             });
             $("#output-dependencies").children().remove();
-            taskCanBeStarted.outputArtifactMessages.split(".").forEach(function (message,index) {
-                if(message)
-                    $("#output-dependencies").append("<li>"+message+"</li>");
+            taskCanBeStarted.outputArtifactMessages.split(".").forEach(function (message, index) {
+                if (message)
+                    $("#output-dependencies").append("<li>" + message + "</li>");
             });
 
         });
@@ -327,6 +328,17 @@
         edgesFromDatabase.forEach(function (item, index) {
             item.from = parseInt(item.from);
             item.to = parseInt(item.to);
+            if ('smooth' in item) {
+                delete item.smooth;
+                item = Object.assign({
+                    smooth: {
+                        enabled: true,
+                        type: "curvedCW",
+                        roundness: "0.2",
+                        forceDirection: 'horizontal'
+                    }
+                }, item);
+            }
             edges.push(item);
         });
 
@@ -334,6 +346,13 @@
             item.id = parseInt(item.id);
             item.level = parseInt(item.level);
             item.margin = parseInt(item.margin);
+            if (typeof item.inputArtifacts === 'object') {
+                let inputArtifacts = [];
+                for (let [key, value] of Object.entries(item.inputArtifacts))
+                    inputArtifacts.push(value);
+                delete item.inputArtifacts;
+                item.inputArtifacts = inputArtifacts;
+            }
             tasks.push(item);
         });
 
@@ -353,7 +372,7 @@
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
-        console.log(tasks, nodes);
+        console.log(tasks);
         let totalHiddenTrees = 0;
         let temporaryNode = null;
         let methodRecommendationCounter = 0;
@@ -365,9 +384,6 @@
 
         let logs = [];
         validateGraph();
-        console.log(logs);
-
-        console.log(tools, roles, teamMembers);
 
         let artifactInputHTML = (artifactType, artifact, nodeId, frontendId) => `
                                <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
@@ -534,13 +550,10 @@
                     $("#status-box").children().remove();
 
                     /* Code to set the checkbox of task-can-be-started */
-                    console.log(canStartThisTask(task));
-                    if(canStartThisTask(task).status===true)
-                    {
-                        $("#task-can-be-started").prop('checked', true);
-                    }
 
-                    else{
+                    if (canStartThisTask(task).status === true && logs.length === 0) {
+                        $("#task-can-be-started").prop('checked', true);
+                    } else {
                         $("#task-can-be-started").prop('checked', false);
                     }
 
@@ -548,8 +561,8 @@
                     let taskStatusId = Date.now() - 230; //230 just a random number to differentiate Date.now function
                     $("#status-box").append(taskStatus(taskStatusId, task.id));
 
-                    if (!userHasWritePermission(task) || logs.length > 0 || canStartThisTask(task).status===false) {
-                        $("#"+taskStatusId).css("width","150px");
+                    if (!userHasWritePermission(task) || logs.length > 0 || canStartThisTask(task).status === false) {
+                        $("#" + taskStatusId).css("width", "150px");
                         $("#" + taskStatusId).attr('disabled', true);
                         $("#add-comment").attr('disabled', true);
                     } else {
@@ -582,7 +595,7 @@
                                     methodBlockPopup.find(".input-artifacts").append(artifactInputHTML('inputArtifact', artifact, task.id, frontendId));
                                 }
 
-                                if (!userHasWritePermission(task) || canStartThisTask(task).status===false || !('status' in task) ||parseInt(task.status)===0)
+                                if (!userHasWritePermission(task) || canStartThisTask(task).status === false || !('status' in task) || parseInt(task.status) === 0 || parseInt(task.status) === 2)
                                     $("#" + frontendId).attr('disabled', true);
 
                             });
@@ -603,7 +616,7 @@
 
                                     methodBlockPopup.find(".output-artifacts").append(artifactInputHTML('outputArtifact', artifact, task.id, frontendId));
 
-                                    if (!userHasWritePermission(task) || canStartThisTask(task).status===false || !('status' in task) || parseInt(task.status)===0)
+                                    if (!userHasWritePermission(task) || canStartThisTask(task).status === false || !('status' in task) || parseInt(task.status) === 0 || parseInt(task.status) === 2)
                                         $("#" + frontendId).attr('disabled', true);
                                 }
 
@@ -616,6 +629,7 @@
                             {% if not is_granted('ROLE_PROJECT_MANAGER') %}
                             $("#" + selectId).attr('disabled', true);
                             {% endif %}
+
 
                             if (value === "") //i.e when no members have been assigned to the role(key)
                             {
@@ -707,11 +721,13 @@
                             task.status = 0;
                             node.color = "red";
                             methodBlockPopup.find('input[type="file"]').attr('disabled', true);
+                            makeConsecutiveTasksRed(task);
                         } else if (status === 1) {
                             task.color = "rgba(248,151,8,0.76)";
                             task.status = 1;
                             node.color = "rgba(248,151,8,0.76)";
                             methodBlockPopup.find('input[type="file"]').attr('disabled', false);
+                            makeConsecutiveTasksRed(task);
                         } else if (status === 2) {
 
                             let outputArtifactsThatHasNotBeenUploaded = []
@@ -746,7 +762,7 @@
                         }
 
                         changeParentStatusAfterUpdateOfTaskStatus(task);
-                        console.log(nodes);
+                        console.log(tasks);
                         updateJsonNodes();
                         updateJsonTasks();
                     });
@@ -902,7 +918,6 @@
         }
 
         function updateJsonTasks(memberId = null, task = null) {
-            console.log(tasks);
             $.ajax({
                 type: 'POST',
                 url: '{{ path('task_update') }}',
@@ -916,7 +931,6 @@
                 },
                 success: function (response) {
                     let obj = JSON.parse(JSON.stringify(response));
-                    console.log(obj);
                 }
             });
         }
@@ -932,7 +946,6 @@
                 },
                 success: function (response) {
                     let obj = JSON.parse(JSON.stringify(response));
-                    console.log(obj);
                 }
             });
         }
@@ -962,8 +975,6 @@
                 let filePath = $(this).attr("data-filePath");
                 let fileName = filePath.replace("/images/artifacts/", "");
 
-                console.log(taskId, artifactName, fileName);
-
                 let superParent = $(this).parent().parent();
                 $(this).parent().remove();
                 superParent.append(artifactInputHTML(artifactType, artifactName, taskId, buttonId));
@@ -992,7 +1003,7 @@
                     },
                     success: function (response) {
                         let obj = JSON.parse(JSON.stringify(response));
-                        console.log(obj);
+
                     }
                 });
 
@@ -1213,9 +1224,11 @@
 
             for (let [key, value] of Object.entries(task)) {
                 if (key === 'inputArtifacts' && value !== "") {
+
                     value.forEach(function (artifact, index) {
                         neededInputArtifacts.push(artifact);
                     });
+
                 }
                 if (key === 'outputArtifacts' && value !== "") {
                     value.forEach(function (artifact, index) {
@@ -1231,12 +1244,16 @@
                         for (let [key, value] of Object.entries(myTask)) {
                             if (key === 'outputArtifacts' && value !== "") {
                                 value.forEach(function (outputArtifact, index) {
-                                    if (typeof outputArtifact === "string" && outputArtifact === inputArtifact) {
+                                    if (typeof outputArtifact === "string" && outputArtifact === inputArtifact && parseInt(myTask.status) !== 2) {
                                         taskCanBeStarted.status = false;
                                         taskCanBeStarted.inputArtifactMessages += outputArtifact + " in step '" + myTask.label + "' has not been uploaded yet.";
-                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact) {
+                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && (parseInt(myTask.status) === 1||parseInt(myTask.status)===0)) {
+                                        taskCanBeStarted.status = false;
+                                        taskCanBeStarted.inputArtifactMessages += "'" + outputArtifact.name + "'has been uploaded in Step '" + myTask.label + "' in graph '" + localGraph.label + "'," +
+                                            " however  the step is still under progress.";
+                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && parseInt(myTask.status) === 2) {
                                         taskCanBeStarted.status = true;
-                                        taskCanBeStarted.inputArtifactMessages += "Download input artifact '"+ outputArtifact.name +"' from step " + myTask.label;
+                                        taskCanBeStarted.inputArtifactMessages += "Download input artifact '" + outputArtifact.name + "' from step '" + myTask.label + "'";
                                     }
                                 });
                             }
@@ -1251,11 +1268,19 @@
                     if (getLocalRootNodeObject(myTask.id).label === localGraph.label) {
                         for (let [key, value] of Object.entries(myTask)) {
                             if (key === 'inputArtifacts' && value !== "") {
-                                value.forEach(function (inputArtifact, index) {
-                                    if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
-                                        taskCanBeStarted.outputArtifactMessages += outputArtifact + " is used in step '" + myTask.label + "'.";
+                                if (typeof value !== "object") {
+                                    value.forEach(function (inputArtifact, index) {
+                                        if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
+                                            taskCanBeStarted.outputArtifactMessages += "'" + outputArtifact + "' is used in step '" + myTask.label + "'.";
+                                        }
+                                    });
+                                } else if (typeof value == "object") {
+                                    for (let [key, inputArtifact] of Object.entries(value)) {
+                                        if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
+                                            taskCanBeStarted.outputArtifactMessages += "'" + outputArtifact + "' is used in step '" + myTask.label + "'.";
+                                        }
                                     }
-                                });
+                                }
                             }
                         }
                     }
@@ -1265,6 +1290,49 @@
             return taskCanBeStarted;
         }
 
+        function makeConsecutiveTasksRed(task) {
 
+            let nextNode = null;
+
+            edges.forEach(function (edge,index) {
+                if(edge.arrows==="to" && parseInt(edge.from)===parseInt(task.id) && !('smooth' in edge))
+                    nextNode=getNodeObject(parseInt(edge.to));
+            });
+
+            if(nextNode)
+            {
+                if(nextNode.shape==="diamond")
+                {
+                    nextNode.color="red";
+                    nextNode.status = 0;
+
+                    let childNodes = getChildren(nextNode.id);
+                    childNodes.forEach(function (childNode,index) {
+                        childNode.status=0;
+                        childNode.color="red";
+                        getTaskObject(childNode.id).status=0;
+                        getTaskObject(childNode.id).color="red";
+                    });
+                    makeConsecutiveTasksRed(nextNode);
+                }
+                else if(nextNode.shape==="box")
+                {
+                    nextNode.status=0;
+                    nextNode.color="red";
+                    getTaskObject(nextNode.id).status=0;
+                    getTaskObject(nextNode.id).color="red";
+                    makeConsecutiveTasksRed(nextNode);
+                }
+                else if(nextNode.shape==="circle")
+                {
+                    let children = getChildren(nextNode);
+                    children.forEach(function (child,index) {
+                        makeConsecutiveTasksRed(child);
+                    });
+                }
+                initializeGraph(true);
+            }
+
+        }
     </script>
 {% endblock %}

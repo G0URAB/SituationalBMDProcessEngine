@@ -2,9 +2,12 @@
 
 namespace App\Controller;
 
+use App\Entity\Notification;
 use App\Entity\User;
 use App\Form\UserType;
+use App\Service\DataService;
 use Doctrine\ORM\EntityManagerInterface;
+use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\EmailType;
 use Symfony\Component\Form\Extension\Core\Type\PasswordType;
@@ -12,6 +15,7 @@ use Symfony\Component\Form\Extension\Core\Type\RepeatedType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormError;
+use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\PasswordHasher\Hasher\UserPasswordHasherInterface;
@@ -210,5 +214,56 @@ class TeamManagementController extends AbstractController
         return $this->render('security/change_password.html.twig',[
             'form'=> $form->createView()
         ]);
+    }
+
+    /**
+     * @Route("/delete_user", name="delete_user")
+     * @param Request $request
+     * @param DataService $dataService
+     * @return Response
+     */
+    public function deleteUser(Request $request, DataService $dataService)
+    {
+        if($request->isXmlHttpRequest())
+        {
+            $userId = $request->get('user_id');
+            $user = $this->entityManager->getRepository(User::class)->find($userId);
+
+            $constraints = [];
+
+            $allSituationalMethods = $dataService->getAllSituationalMethods();
+            foreach ($allSituationalMethods as $situationalMethod)
+            {
+                $tasks = json_decode($situationalMethod->getJsonTasks());
+                foreach ($tasks as $task)
+                {
+                    $rootNodeOfTask = json_decode($task->rootNode);
+                    $localGraph = (json_decode($rootNodeOfTask->rootNode))->graphName;
+
+                    foreach ($task as $key=>$value)
+                    {
+                        if(gettype($value)=="object" && property_exists($value, 'memberId') && $value->memberName== $user->getEmployeeName()." : ".$user->getImplodedRoles()){
+                            $constraint = new stdClass;
+                            $constraint->taskName = $task->label;
+                            $constraint->localGraph = $localGraph;
+                            $constraint->methodName = $situationalMethod->getName();
+                            array_push($constraints,$constraint);
+                        }
+
+                    }
+                }
+            }
+
+            if(count($constraints)==0)
+            {
+                $notifications = $this->entityManager->getRepository(Notification::class)->findBy(['user'=>$userId]);
+                foreach ($notifications as $notification)
+                    $this->entityManager->remove($notification);
+                $this->entityManager->remove($user);
+                $this->entityManager->flush();
+            }
+            return new JsonResponse(['success'=>count($constraints)>0, 'constraints'=>$constraints]);
+        }
+        return new Response("Invalid Request", 400);
     }
 }

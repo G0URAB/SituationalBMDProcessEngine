@@ -129,9 +129,8 @@
     </div>
     <div class="mt-1 text-white d-flex flex-column">
         <span>2. All the steps <b><u>should</u></b> be put in a sequence. From left to right. </span>
-        <span>3. <b class="text-danger">Red arrow</b> indicates a child sub process type and
-                 <b class="text-primary">blue arrow</b> indicates a prerequisite.</span>
-        <span>4. If two steps can be implemented <u>in parallel then there is no prerequisite!</u> </span>
+        <span>3. <b class="text-danger">Red arrow</b> indicates a child step and
+                 <b class="text-primary">blue arrow</b> indicates a sequence in which steps should executed.</span>
     </div>
 </div>
 
@@ -415,26 +414,26 @@
         messageBox.html("<span class='text-success'>Great!! A step with process type '" + nameOfProcessType + "' was added to graph :-)</span>");
 
         //Reset Prerequisite edges options
-        if (nodes.length < 3)
+        /*if (nodes.length < 3)
             fromStep.append($('<option>', {
                 value: IdOfProcessType,
                 text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
                 'data-node': newNode.id
             }));
-        else {
+        else {*/
 
-            fromStep.append($('<option>', {
-                value: IdOfProcessType,
-                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
-                'data-node': newNode.id
-            }));
+        fromStep.append($('<option>', {
+            value: IdOfProcessType,
+            text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+            'data-node': newNode.id
+        }));
 
-            toStep.append($('<option>', {
-                value: IdOfProcessType,
-                text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
-                'data-node': newNode.id
-            }));
-        }
+        toStep.append($('<option>', {
+            value: IdOfProcessType,
+            text: updatedNameOfProcessTypeForEdgeOptions(nameOfProcessType),
+            'data-node': newNode.id
+        }));
+        /*}*/
         checkEvents();
     });
 
@@ -454,6 +453,20 @@
 
         if (!prerequisiteActionIsValid(nameOfFrom, id_of_FromNode, nameOfTo, id_of_ToNode, 'add'))
             return;
+
+        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
+            let reverseEdge = {
+                from: id_of_ToNode,
+                to: id_of_FromNode,
+                smooth: {enabled: true, type: "curvedCCW", roundness: "0.1"},
+                arrows: "from",
+                color: "rgb(20,24,200)"
+            };
+            edges.push(reverseEdge);
+            messageBox.html("<span class='text-danger'>A reverse edge was added!</span>");
+            initializeGraph();
+            return;
+        }
 
         /*
         If there are three nodes sequentially e.g. a,b,c and there is going to be an edge between a and c
@@ -736,10 +749,10 @@
             }
         }
 
-        if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
+        /*if (parseInt(indexOfToObject) < parseInt(indexOfFromObject)) {
             messageBox.html("<span class='text-danger'>You can not go back in steps!!</span>");
             actionIsValid = false;
-        }
+        }*/
         return actionIsValid;
     }
 

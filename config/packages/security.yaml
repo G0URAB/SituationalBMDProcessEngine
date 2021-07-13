@@ -42,6 +42,7 @@ security:
         - { path: ^/situational_method/modify, roles: ROLE_METHOD_ENGINEER }
         - { path: ^/enactment, roles: [ROLE_PROJECT_MANAGER, ROLE_PROJECT_TEAM_MEMBER ]}
         - { path: ^/method_elements, roles: ROLE_METHOD_ENGINEER }
+        - { path: ^(/method/building/block/)\d+$, roles: [ROLE_METHOD_ENGINEER, ROLE_PROJECT_MANAGER] }
         - { path: ^/method/building/block, roles: ROLE_METHOD_ENGINEER }
         - { path: ^/bmd/graph, roles: ROLE_METHOD_ENGINEER }
 

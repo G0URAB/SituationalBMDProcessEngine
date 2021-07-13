@@ -46,7 +46,10 @@
                             <td>{{ user.employeeName }}</td>
                             <td>{{ user.email }}</td>
                             <td>{{ user.implodedRoles }}</td>
-                            <td><a href="#"><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                            <td {% if user.implodedRoles == 'ROLE_SUPER_ADMIN' %} style="pointer-events: none" {% endif %}>
+                                <a href="#" class="delete-user" data-userId="{{ user.id }}" data-roles="{{ user.implodedRoles }}"><i style="font-size:24px"
+                                                                                               class="fa">&#xf014;</i></a>
+                            </td>
                         </tr>
                     {% endfor %}
                     </tbody>
@@ -55,4 +58,56 @@
         </div>
     {% endif %}
 
+    <div class="spinner-grow text-danger" role="status" id="spinner"
+         style="position: absolute; top:30%; left:40%; display: none;">
+        <span class="sr-only">Loading...</span>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $(".delete-user").on("click", function () {
+
+            let userId = $(this).attr("data-userId");
+            let roles = $(this).attr("data-roles");
+
+            console.log(userId, roles);
+            if(parseInt(userId)===parseInt("{{ app.user.id }}"))
+                alert("You cant delete yourself");
+
+            else if (confirm("Are you sure to delete this user?")) {
+                $(".container-fluid").children().not("#spinner").css({
+                    'opacity': '0.3',
+                    'pointer-events': 'none'
+                });
+                $("#spinner").css("display", "block");
+                $.ajax({
+                    type: 'POST',
+                    url: '{{ path('delete_user') }}',
+                    data: {
+                        user_id: $(this).attr("data-userId")
+                    },
+                    success: function (response) {
+                        let obj = JSON.parse(JSON.stringify(response));
+                        let constraints = obj.constraints;
+                        if (constraints.length > 0) {
+                            let message = "The user is associated in the following tasks. Please remove him/her from the following tasks and try again.\n \n";
+                            constraints.forEach(function (constraint, index) {
+                                message += index + 1 + ": '" + constraint.taskName + "' in '" + constraint.localGraph + "' of " + constraint.methodName + ".\n";
+                            });
+                            $(".container-fluid").children().not("#spinner").css({
+                                'opacity': '1',
+                                'pointer-events': 'auto'
+                            });
+                            $("#spinner").css("display", "none");
+                            alert(message);
+                        } else
+                            window.location.reload();
+                    }
+                });
+            }
+        });
+    </script>
 {% endblock %}
