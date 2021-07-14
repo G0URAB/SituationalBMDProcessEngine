@@ -3,7 +3,7 @@
 - Composer (Its a dependency management software for php)
 - Symfony version greater than 4.4
 
-## Windows 10 Installation
+## Installation in Windows 10
 #### 1. Install PHP ([Video Guidance](https://www.youtube.com/watch?v=iW0B9NTId2g))
   - Ignore if PHP is already installed
   - Go to https://windows.php.net/download#php-7.3 and download the zip file under **VC15 x64 Thread Safe**, or just click on this [link](https://windows.php.net/downloads/releases/php-7.3.29-Win32-VC15-x64.zip) download the zip.
@@ -38,6 +38,6 @@
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
  - Make sure to grant access if firewall prompts when symfony starts the application.
 
-## Ubuntu Installation
+## Installation in Ubuntu 18
   - To be updated soon!
  
