@@ -17,3 +17,9 @@
   - There might be an error called `vcruntime140.dll was not found`. In this case, go to https://www.microsoft.com/en-us/download/details.aspx?id=48145. Download and install the redist file
   based on your system type e.g 32 or 64 bit. If wrong type was installed, then the error will still persist. After installation, the `php -v` command will show a response.
   
+#### 2. Install Composer ([Video Guidance](https://www.youtube.com/watch?v=HBDJsc2cXR4))
+  - Ignore if composer is already installed.
+  - Download composer with this [link](https://getcomposer.org/Composer-Setup.exe).
+  - Installation: a) Double click to install b) Ignore `Developer Mode` c) Make sure the path of php.exe is correct. In our case, it is `c:\PHP7.3\php.exe`
+  d) Keep the `update this php.ini` box checked e) Ignore proxy settings f) Install
+  - Open a command prompt and type `composer`. If a response is returned then composer was installed successfully.
