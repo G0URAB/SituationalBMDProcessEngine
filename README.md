@@ -1,6 +1,7 @@
 # Installation Requirements
 - PHP version greater than 7.2
 - Composer (Its a dependency management software for php)
+- Symfony version greater than 4.4
 
 ## Windows 10 Installation
 #### 1. Install PHP ([Video Guidance](https://www.youtube.com/watch?v=iW0B9NTId2g))
@@ -23,3 +24,20 @@
   - Installation: a) Double click to install b) Ignore `Developer Mode` c) Make sure the path of php.exe is correct. In our case, it is `c:\PHP7.3\php.exe`
   d) Keep the `update this php.ini` box checked e) Ignore proxy settings f) Install
   - Open a command prompt and type `composer`. If a response is returned then composer was installed successfully.
+  
+#### 3. Symfony Installation
+- Go to https://symfony.com/download and download and install the symfony.exe. 
+- Make sure that during installation the `Add application directory to system path` box is checked. Otherwise symfony command will not be recognizable.
+- If it prompts for `Symfony requires Git` then just ignore it. However if you are going to develop then it is assumed that Git is already installed on your system and hence this step can be ignored anyway. 
+
+#### 4. Project Setup
+ - Download the project as zip file from https://github.com/G0URAB/LightWeightEngine and extract it.
+ - Go inside the folder and open a command prompt and type the command `composer install --no-scripts`
+ - Next, run the command `symfony server:ca:install` to enable TLS for the server.
+ - Finally, the app can be started by running the server with the command `symfony server:start`. The app can be stopped, by typing CTRL+C and `symfony server:stop`.
+ - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
+ - Make sure to grant access if firewall prompts when symfony starts the application.
+
+## Ubuntu Installation
+  - To be updated soon!
+ 
