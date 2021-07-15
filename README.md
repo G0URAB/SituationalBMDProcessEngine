@@ -38,6 +38,9 @@
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
  - Make sure to grant access if firewall prompts when symfony starts the application.
 
-## Installation in Ubuntu 18
-  - To be updated soon!
+## Installation in Ubuntu version > 16.04
+#### 1. Install PHP 7.4
+   - Follow the guideline in this website, https://phoenixnap.com/kb/install-php-7-on-ubuntu
+#### 2. Install Composer
+
  
