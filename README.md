@@ -48,6 +48,7 @@
         - To check if php was properly installed, run php -v
         - Next, open php.ini (/etc/php/7.3/cli/) and uncomment extension=pdo_sqlite, extension=sqlite3. Uncomment means remove ";" from the front of the line.
         - Next, install a missing extension called PHP-XML through "sudo apt-get install php7.3-xml"
+        - Finally, install php's sqlite driver with command "sudo apt-get install php7.3-sqlite"
 #### 2. Install Composer ([Helpful link](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-18-04))
 #### 3. Install Symfony
    - Run command `wget https://get.symfony.com/cli/installer -O - | bash`
