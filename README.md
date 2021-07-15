@@ -38,9 +38,25 @@
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
  - Make sure to grant access if firewall prompts when symfony starts the application.
 
-## Installation in Ubuntu version > 16.04
-#### 1. Install PHP 7.4
-   - Follow the guideline in this website, https://phoenixnap.com/kb/install-php-7-on-ubuntu
-#### 2. Install Composer
+## Installation in Ubuntu version >= 20.04
+#### 1. Install PHP 
+        - sudo apt-get update
+        - sudo apt -y install software-properties-common
+        - sudo add-apt-repository ppa:ondrej/php
+        - sudo apt-get update
+        - sudo apt -y install php7.3
+        - To check if php was properly installed, run php -v
+        - Next, open php.ini (/etc/php/7.3/cli/) and uncomment extension=pdo_sqlite, extension=sqlite3. Uncomment means remove ";" from the front of the line.
+        - Next, install a missing extension called PHP-XML through "sudo apt-get install php7.3-xml"
+#### 2. Install Composer ([Helpful link](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-18-04))
+#### 3. Install Symfony
+   - Run command `wget https://get.symfony.com/cli/installer -O - | bash`
+   - Then move the symfony binary to global bin folder, with the command `sudo mv /home/{your_username}/.symfony/bin/symfony /usr/local/bin/symfony`.
+#### 4. Project Setup
+ - Download the project as zip file from https://github.com/G0URAB/LightWeightEngine and extract it.
+ - Go inside the folder and open a command prompt and type the command `composer install --no-scripts`
+ - Next, run the command `symfony server:ca:install` to enable TLS for the server.
+ - Finally, the app can be started by running the server with the command `symfony server:start`. The app can be stopped, by typing CTRL+C and `symfony server:stop`.
+ - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
 
  
