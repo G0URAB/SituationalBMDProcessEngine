@@ -1,7 +1,7 @@
 # Installation Requirements
-- PHP version greater than 7.2
+- PHP version >= 7.2
 - Composer (Its a dependency management software for php)
-- Symfony version greater than 4.4
+- Symfony version >= 4.4
 
 ## Installation in Windows 10
 #### 1. Install PHP ([Video Guidance](https://www.youtube.com/watch?v=iW0B9NTId2g))
