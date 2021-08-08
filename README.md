@@ -42,7 +42,7 @@
  - Finally, the app can be started by running the server with the command `symfony server:start`. The app can be stopped, by typing CTRL+C and `symfony server:stop`.
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
  - Make sure to grant access if firewall prompts when symfony starts the application.
- - To load a bunch of test users, run command `php bin/console doctrine:fixtures:load --append --group=testUsers`
+ - To load a bunch of test users, run command `php bin/console doctrine:fixtures:load --append --group=testUsers`. The default password for all test users is `abc123`.
 
 ## Installation in Ubuntu version >= 20.04
 #### 1. Install PHP 
@@ -65,5 +65,5 @@
  - Next, run the command `symfony server:ca:install` to enable TLS for the server.
  - Finally, the app can be started by running the server with the command `symfony server:start`. The app can be stopped, by typing CTRL+C and `symfony server:stop`.
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
- - To load a bunch of test users, run command `php bin/console doctrine:fixtures:load --append --group=testUsers`
+ - To load a bunch of test users, run command `php bin/console doctrine:fixtures:load --append --group=testUsers`. The default password for all test users is `abc123`.
  
