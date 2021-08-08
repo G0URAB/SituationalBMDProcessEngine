@@ -12,7 +12,6 @@
 
 ## Installation in Windows 10
 #### 1. Install PHP ([Video Guidance](https://www.youtube.com/watch?v=iW0B9NTId2g))
-  - Ignore if PHP is already installed
   - Go to https://windows.php.net/download#php-7.3 and download the zip file under **VC15 x64 Thread Safe**, or just click on this [link](https://windows.php.net/downloads/releases/php-7.3.29-Win32-VC15-x64.zip) download the zip.
   - Extract the zip and copy the content to a new folder called PHP7.3
   - Then move the PHP7.3 folder to c:/
@@ -26,7 +25,6 @@
   based on your system type e.g 32 or 64 bit. If wrong type was installed, then the error will still persist. After installation, the `php -v` command will show a response.
   
 #### 2. Install Composer ([Video Guidance](https://www.youtube.com/watch?v=HBDJsc2cXR4))
-  - Ignore if composer is already installed.
   - Download composer with this [link](https://getcomposer.org/Composer-Setup.exe).
   - Installation: a) Double click to install b) Ignore `Developer Mode` c) Make sure the path of php.exe is correct. In our case, it is `c:\PHP7.3\php.exe`
   d) Keep the `update this php.ini` box checked e) Ignore proxy settings f) Install
