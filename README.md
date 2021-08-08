@@ -1,4 +1,11 @@
-# Installation Requirements
+# SmeProcessEngine
+> It is a web based application using which situation specific business models can be built for digital platforms. Currently, the application provides following features:
+ - Method Base Management (Create/update method fragments, method patterns or BMD Graphs, method building blocks)
+ - Utility to create and update situation specific BMD (Business Model Development) method / Process Model
+ - A process engine to support enactment of any situation-specific BMD method
+ - Acess control / security to restrict unauthorised usage
+
+## Installation Requirements
 - PHP version >= 7.2
 - Composer (Its a dependency management software for php)
 - Symfony version >= 4.4
