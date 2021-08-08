@@ -24,7 +24,7 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
         // $manager->persist($product);
         foreach ($this->getUserData() as $userData) {
             $user = $manager->getRepository(User::class)->findOneBy(['email' => $userData['email']]);
-            if (!$user) {
+            if (!$user && !$this->userIsSecondSuperUser($userData, $manager)) {
                 $user = new User();
                 $user->setEmployeeName($userData['name']);
                 $user->setEmail($userData['email']);
@@ -130,7 +130,25 @@ class UserFixtures extends Fixture implements FixtureGroupInterface
     }
 
     public static function getGroups(): array
-     {
-         return ['testUsers'];
-     }
+    {
+        return ['testUsers'];
+    }
+
+    public function userIsSecondSuperUser($userData, $entityManger)
+    {
+        $testUserIsSuperUser = $userData['roles']== ['ROLE_SUPER_ADMIN'];
+        $superUserAlreadyExist = false;
+        $users = $entityManger->getRepository(User::class)->findAll();
+
+        foreach($users as $user)
+        {
+            if(in_array('ROLE_SUPER_ADMIN', $user->getRoles()))
+            {
+                $superUserAlreadyExist = true;
+                break;
+            }
+        }
+
+        return $testUserIsSuperUser && $superUserAlreadyExist;
+    }
 }
