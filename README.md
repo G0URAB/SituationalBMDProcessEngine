@@ -1,4 +1,4 @@
-# Situational BMD Process Engine
+# Situational BMD (Business Model Development) Process Engine
 
 ![alt text](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/features.JPG)
 
