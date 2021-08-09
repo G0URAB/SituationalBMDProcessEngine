@@ -96,4 +96,7 @@ The prvileges of all roles are as follows:
    - View all the owned situational BMD methods
    - Inherit role as a **Project Team Member**
 
+## Getting Started
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/what_is_situational_bmd_process_engine.jpg)](https://www.youtube.com/watch?v=rbQ1sg5_a1I)
+
  
