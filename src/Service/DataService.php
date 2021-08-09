@@ -176,6 +176,7 @@ class DataService
              * If the method block can be used in all situation, then recommend it as well.
              */
             $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
+            //dd($matchedSituationalFactors,$totalSituationalFactors,$percentageOfSituationalApplicability);
             if ($percentageOfSituationalApplicability >= 50 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
                 $methodBlockIsSituationSpecific = true;
             }
