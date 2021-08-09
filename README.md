@@ -3,7 +3,7 @@
 ![alt text](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/features.JPG)
 
 > It is a web based application using which situation specific business models can be built for digital platforms. Currently, the application provides following features:
- - Method Base Management (Create/update method fragments, method patterns or BMD Graphs, method building blocks)
+ - Method Base Management (Create/update method elements, BMD Graphs, method building blocks)
  - Utility to create and update situation specific BMD (Business Model Development) method / Process Model
  - A process engine to support enactment of any situation-specific BMD method
  - Acess control / security to restrict unauthorised usage
@@ -100,6 +100,8 @@ The prvileges of all roles are as follows:
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/what_is_situational_bmd_process_engine.jpg)](https://www.youtube.com/watch?v=rbQ1sg5_a1I)
    
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/tool_overview.jpg)](https://www.youtube.com/watch?v=mL5jfK0sTI4?cc_load_policy=1)
+   
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_processes_and_types.jpg)](https://www.youtube.com/watch?v=rr9vgtZlJV8?cc_load_policy=1)
    
 ## Test Users Details
 > Command to create test users: `php bin/console doctrine:fixtures:load --append --group=testUsers`
