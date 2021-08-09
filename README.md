@@ -67,9 +67,17 @@
  - The app can be opened with the route of 127.0.0.1:8000 in any web browser.
  - To load a bunch of test users, run command `php bin/console doctrine:fixtures:load --append --group=testUsers`. The default password for all test users is `abc123`.
 
+## Method Base Overview
+![alt text](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/MethodBaseComponentRelationships.JPG)
+> Explanation coming soon!
+
 ## Roles & Access Control
+> There are currently 4 roles e.g. Method Engineer, Project Manager, Team Member, Platform Owner. The "Super Admin" gets privileges of all the roles.
+
 ![alt text](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/RoleHierarchy.JPG)
-There are currently 4 roles e.g. Method Engineer, Project Manager, Team Member, Platform Owner. The "Super Admin" gets privileges of all the roles. The prvileges of all roles are as follows:
+
+The prvileges of all roles are as follows:
+
 1. Method Engineer Privileges
    - Manage method base
    - Create/view/update situational methods
