@@ -38,6 +38,7 @@ security:
         # - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/index, roles: ROLE_USER }
         - { path: ^/situational_methods, roles: [ ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER ] }
+        - { path: ^/situational_method/create, roles: ROLE_METHOD_ENGINEER }
         - { path: ^/situational_method/show, roles: [ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER] }
         - { path: ^/situational_method/modify, roles: ROLE_METHOD_ENGINEER }
         - { path: ^/enactment, roles: [ROLE_PROJECT_MANAGER, ROLE_PROJECT_TEAM_MEMBER ]}
