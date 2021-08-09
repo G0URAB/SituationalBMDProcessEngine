@@ -100,5 +100,23 @@ The prvileges of all roles are as follows:
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/what_is_situational_bmd_process_engine.jpg)](https://www.youtube.com/watch?v=rbQ1sg5_a1I)
    
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/tool_overview.jpg)](https://www.youtube.com/watch?v=mL5jfK0sTI4?cc_load_policy=1)
+   
+## Test Users Details
+> Command to create test users: `php bin/console doctrine:fixtures:load --append --group=testUsers`
+
+| Name of member | email | password | Role |
+| ------------- | ------------- | ------------- | ------------- |
+| James Anderson  | james@anderson.com  | abc123  |  SUPER_ADMIN  |
+| Saul Brown  | saul@brown.com  | abc123  |  PROJECT_MANAGER  |
+| Alexander Belov  | alexander@belov.com  | abc123  |  PLATFORM_OWNER  |
+| Walter White  | walter@white.com  | abc123  |  METHOD_ENGINEER |
+| Peter Gates  | peter@gates.com  | abc123  |  WEB_DEVELOPER  |
+| Adam Black | adam@black.com  | abc123  |  WEB_DEVELOPER  |
+| Joyita Ambett  | joyita@ambett.com  | abc123  |  MARKETING_VP  |
+| Jane Brown  | jane@brown.com  | abc123  |  MARKETING_MANAGER |
+| Samir Baptist | samir@baptist.com  | abc123  |  MARKETING_EXECUTIVE  |
+| Amanda Wilson  | amanda@wilson.com  | abc123  |  ROLE_SALES_VP  |
+| Daniel Yeh  | daniel@yeh.com  | abc123  |  ROLE_SALES_MANAGER  |
+| Xavier Selvan  | xavier@selvan.com  | abc123  |  ROLE_SALES_EXECUTIVE  |
 
  
