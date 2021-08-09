@@ -1,4 +1,7 @@
-# Situational BMD Process Engine
+# Situational BMD (Business Model Development) Process Engine
+
+![alt text](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/features.JPG)
+
 > It is a web based application using which situation specific business models can be built for digital platforms. Currently, the application provides following features:
  - Method Base Management (Create/update method fragments, method patterns or BMD Graphs, method building blocks)
  - Utility to create and update situation specific BMD (Business Model Development) method / Process Model
