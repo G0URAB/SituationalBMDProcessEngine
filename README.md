@@ -59,6 +59,27 @@
         - Next, install a missing extension called PHP-XML through "sudo apt-get install php7.3-xml"
         - Finally, install php's sqlite driver with command "sudo apt-get install php7.3-sqlite"
 #### 2. Install Composer ([Helpful link](https://www.digitalocean.com/community/tutorials/how-to-install-and-use-composer-on-ubuntu-18-04))
+        - sudo apt update
+        - cd ~
+        - curl -sS https://getcomposer.org/installer -o composer-setup.php
+        - copy the hash from this webpage: https://composer.github.io/pubkeys.html and paste in the terminal. An example,
+          HASH=544e09ee996cdf60ece3804abc52599c22b1f40f4323403c44d44fdfdd586475ca9813a858088ffbc1f233e9b180f061. If any doubt, then refer the helpful link.
+        - Now execute the following PHP script to verify that the installation script is safe to run:
+          $ php -r "if (hash_file('SHA384', 'composer-setup.php') === '$HASH') { echo 'Installer verified'; } else { echo 'Installer corrupt'; unlink('composer-setup.php'); } echo PHP_EOL;"
+        - You will see this output: "Installer verified". If you see "Installer corrupt", then you’ll need to redownload the installation script again and double check that you’re using the correct hash. Then run the command to verify the installer again. Once you have a verified installer, you can continue.
+        - To install composer globally, use the following command which will download and install Composer as a system-wide command named composer, under /usr/local/bin:
+          $ sudo php composer-setup.php --install-dir=/usr/local/bin --filename=composer
+        - You will see following output
+          All settings correct for using Composer
+          Downloading...
+
+          Composer (version 1.6.5) successfully installed to: /usr/local/bin/composer
+          Use it: php /usr/local/bin/composer
+        - To test your installation, run:
+          $ composer
+
+
+
 #### 3. Install Symfony
    - Run command `wget https://get.symfony.com/cli/installer -O - | bash`
    - Then move the symfony binary to global bin folder, with the command `sudo mv /home/{your_username}/.symfony/bin/symfony /usr/local/bin/symfony`.
