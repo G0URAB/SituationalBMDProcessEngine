@@ -687,7 +687,7 @@
                     success: function (response) {
                         let obj = JSON.parse(JSON.stringify(response));
                         if (obj.status === "okay")
-                            /*window.location = "{{ path('situational_methods') }}";*/
+                            window.location = "{{ path('situational_methods') }}";
                             console.log(obj);
                     }
                 });
