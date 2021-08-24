@@ -560,7 +560,7 @@
                     /* Code to implement status of the task */
                     let taskStatusId = Date.now() - 230; //230 just a random number to differentiate Date.now function
                     $("#status-box").append(taskStatus(taskStatusId, task.id));
-
+                    console.log(!userHasWritePermission(task), logs.length > 0, canStartThisTask(task).status === false)
                     if (!userHasWritePermission(task) || logs.length > 0 || canStartThisTask(task).status === false) {
                         $("#" + taskStatusId).css("width", "150px");
                         $("#" + taskStatusId).attr('disabled', true);
