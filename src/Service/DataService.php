@@ -305,7 +305,7 @@ class DataService
                     $artifactFilePath = str_replace("/images/artifacts/","",$inputArtifact->path);
                 }
 
-                else if(!in_array($inputArtifact, (array)$block->getInputArtifacts()))
+                else if(gettype($inputArtifact)!=="object" && !in_array($inputArtifact, (array)$block->getInputArtifacts()))
                     $inputArtifactNeedsToBeDeleted = true;
 
                 if($inputArtifactNeedsToBeDeleted)
