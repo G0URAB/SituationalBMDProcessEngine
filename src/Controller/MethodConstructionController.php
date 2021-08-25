@@ -221,6 +221,13 @@ class MethodConstructionController extends AbstractController
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
+        if($request->isXmlHttpRequest() && $request->get("set_enactment"))
+        {
+            $enactment = $request->get("set_enactment")=="true";
+            $situationalMethod->setEnacted($enactment);
+            $this->getDoctrine()->getManager()->flush();
+        }
+
         $tools = [];
         $roles = [];
         foreach ($dataService->getAllTools() as $tool)

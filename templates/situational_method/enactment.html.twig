@@ -1108,7 +1108,7 @@
                 logs.forEach(function (log, index) {
                     $("#logger").find("ul").append("<li>" + log.msg + "</li>");
                 });
-                initializeGraph(true);
+
             } else if (logs.length === 0) {
                 $("#logger").find("ul").children().remove();
                 $(".validation-banner-1").css("display", "none");
@@ -1121,8 +1121,17 @@
                     } else if (node.color === "#bababa")
                         node.color = "red";
                 });
-                initializeGraph(true);
             }
+
+            initializeGraph(true);
+            $.ajax({
+                type: 'POST',
+                url: '{{ path('modify_situational_method',{id:situationalMethod.id}) }}',
+                data: {
+                    set_enactment: logs.length===0
+                },
+            });
+
         }
 
         function changeParentStatusAfterUpdateOfTaskStatus(task) {

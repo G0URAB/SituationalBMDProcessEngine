@@ -70,6 +70,12 @@ class SituationalMethod
     private $graphsAndTheirSituationalFactors;
 
 
+    /**
+     * @ORM\Column(type="boolean", options={"default" : 0})
+     */
+    private $enacted = 0;
+
+
     public function __construct()
     {
         $this->bmdGraphsBeingUsed = new ArrayCollection();
@@ -236,5 +242,21 @@ class SituationalMethod
     public function setGraphsAndTheirSituationalFactors($graphsAndTheirSituationalFactors)
     {
         $this->graphsAndTheirSituationalFactors = $graphsAndTheirSituationalFactors;
+    }
+
+    /**
+     * @return bool
+     */
+    public function isEnacted()
+    {
+        return $this->enacted;
+    }
+
+    /**
+     * @param bool $enacted
+     */
+    public function setEnacted(bool $enacted)
+    {
+        $this->enacted = $enacted;
     }
 }
