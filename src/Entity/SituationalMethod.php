@@ -76,9 +76,16 @@ class SituationalMethod
     private $enacted = 0;
 
 
+    /**
+     * @ORM\OneToMany(targetEntity="App\Entity\CancelledMethodBlock", mappedBy="situationalMethod")
+     */
+    private $cancelledMethodBlocks;
+
+
     public function __construct()
     {
         $this->bmdGraphsBeingUsed = new ArrayCollection();
+        $this->cancelledMethodBlocks = new ArrayCollection();
     }
 
 
@@ -258,5 +265,28 @@ class SituationalMethod
     public function setEnacted(bool $enacted)
     {
         $this->enacted = $enacted;
+    }
+
+    public function addCancelledMethodBlock(CancelledMethodBlock $block)
+    {
+        if (!$this->cancelledMethodBlocks->contains($block))
+        {
+            $this->cancelledMethodBlocks->add($block);
+            $block->setSituationalMethod($this);
+        }
+
+    }
+
+    public function removeCancelledMethodBlock(CancelledMethodBlock $block)
+    {
+        if ($this->cancelledMethodBlocks->contains($block)) {
+            $block->setSituationalMethod(null);
+            $this->cancelledMethodBlocks->removeElement($block);
+        }
+    }
+
+    public function getCancelledMethodBlocks()
+    {
+        return $this->cancelledMethodBlocks;
     }
 }

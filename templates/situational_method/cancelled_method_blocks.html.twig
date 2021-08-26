@@ -1,0 +1,55 @@
+{% extends 'base.html.twig' %}
+
+{% block title %}Cancelled Method Blocks{% endblock %}
+
+{% block body %}
+
+    <div class="w-100 d-flex flex-row justify-content-center mt-3">
+        <a class="btn btn-primary" href="{{ path('enactment',{'id':situationalMethod.id}) }}">Go Back To Enactment</a>
+    </div>
+    {{ dump(cancelledBlocks) }}
+    <div style="max-height: 500px;min-height: 500px; overflow: auto"
+         class="w-100  border border-dark mt-2 d-flex flex-column">
+
+        {% for block in cancelledBlocks %}
+            <div class="bg-info mt-2 ml-2 p-2 d-flex flex-column w-50 rounded">
+                <span><b>Name:</b> <b class="text-white">{{ block.name }}</b> </span>
+                <span><b>Reason of cancellation: </b> <b class="text-white">{{ block.reason }}</b> </span>
+                <span><b>Date of cancellation: </b> <b class="text-white"> {{ block.dateTime| date('d-M-Y H:i:s') }} </b> </span>
+                <span><b>Roles:</b></span>
+                <div class="d-flex flex-column ml-4 text-white">
+                    {% for key, role in block.roles %}
+                        <span class="font-weight-bold"> {{ key~' : '~role.memberName }}</span>
+                    {% endfor %}
+                </div>
+                <span><b>InputArtifacts:</b></span>
+                <div class="d-flex flex-column ml-4 font-weight-bold">
+                    {% for key, artifact in block.inputArtifacts %}
+                        {% if artifact.path is defined  %}
+                          <a class="text-white" href="{{ asset(artifact.path) }}">{{ artifact.name}}</a>
+                        {% else %}
+                          <span class="text-white"> {{ artifact  }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+                <span><b>OutputArtifacts:</b></span>
+                <div class="d-flex flex-column ml-4 font-weight-bold">
+                    {% for key, artifact in block.outputArtifacts %}
+                        {% if artifact.path is defined  %}
+                          <span class="text-white"> {{ artifact.name~' : '~artifact.path }}</span>
+                        {% else %}
+                          <span class="text-white"> {{ artifact  }}</span>
+                        {% endif %}
+                    {% endfor %}
+                </div>
+            </div>
+        {% endfor %}
+
+    </div>
+{% endblock %}
+
+{% block javascripts %}
+    <script>
+
+    </script>
+{% endblock %}

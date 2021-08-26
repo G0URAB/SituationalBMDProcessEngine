@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\BmdGraph;
+use App\Entity\CancelledMethodBlock;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
@@ -183,6 +184,21 @@ class MethodConstructionController extends AbstractController
                 $situationalMethod = new SituationalMethod();
             } else {
                 $situationalMethod = $entityManager->getRepository(SituationalMethod::class)->find($request->get("id"));
+                $cancelledBlocks = $request->get("cancelledBlocks") ? $request->get("cancelledBlocks") : null;
+
+                if(!empty($cancelledBlocks))
+                {
+                    foreach ($cancelledBlocks as $cancelledBlock)
+                    {
+                        $cancelledMethodBlock = new CancelledMethodBlock();
+                        $cancelledMethodBlock->setName($cancelledBlock['label']);
+                        $cancelledMethodBlock->setReason($cancelledBlock['removalReason']);
+                        $cancelledMethodBlock->setJsonData(json_encode($cancelledBlock));
+                        $cancelledMethodBlock->setDateTime(new \DateTime("now"));
+                        $situationalMethod->addCancelledMethodBlock($cancelledMethodBlock);
+                        $entityManager->persist($cancelledMethodBlock);
+                    }
+                }
             }
 
             $situationalMethod->setName($nameOfSituationalMethod);
@@ -220,12 +236,18 @@ class MethodConstructionController extends AbstractController
     public function modifySituationalMethod(Request $request, DataService $dataService, int $id): Response
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+        $entityManager = $this->getDoctrine()->getManager();
 
         if($request->isXmlHttpRequest() && $request->get("set_enactment"))
         {
             $enactment = $request->get("set_enactment")=="true";
             $situationalMethod->setEnacted($enactment);
-            $this->getDoctrine()->getManager()->flush();
+            $entityManager->flush();
+        }
+
+        if($request->isXmlHttpRequest() && $request->get("update_method"))
+        {
+
         }
 
         $tools = [];

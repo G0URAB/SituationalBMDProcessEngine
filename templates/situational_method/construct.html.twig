@@ -213,7 +213,7 @@
                 <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">
                     Remove Method Block
                 </button>
-                <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
+                {#<button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>#}
             </div>
 
         </div>
@@ -1304,7 +1304,7 @@
                             });
 
                             /*checkIfLocalSupremeRootNodeReadyToBeExecuted(node);*/
-                            initializeGraph(true);
+                            initializeGraph(true); console.log(nodes,tasks);
                             closeNodePopup(nodePopup);
                         });
                     }

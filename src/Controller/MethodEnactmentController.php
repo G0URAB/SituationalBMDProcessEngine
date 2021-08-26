@@ -6,6 +6,7 @@ use App\Entity\Notification;
 use App\Entity\SituationalMethod;
 use App\Entity\User;
 use App\Service\DataService;
+use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Filesystem\Filesystem;
 use Symfony\Component\HttpFoundation\File\Exception\FileException;
@@ -59,7 +60,7 @@ class MethodEnactmentController extends AbstractController
             $roles [] = $role->getName();
 
         $situationalMethod = $dataService->actualizeSituationalMethod($situationalMethod);
-
+        //dd(json_decode($situationalMethod->getJsonTasks()), json_decode($situationalMethod->getJsonNodes()));
         return $this->render("situational_method/enactment.html.twig", [
             'situationalMethod' => $situationalMethod,
             'situationalFactors' => $dataService->getAllSituationalFactors(),
@@ -160,6 +161,52 @@ class MethodEnactmentController extends AbstractController
             }
         }
         return new Response("Invalid request", 400);
+    }
+
+    /**
+     * @Route("/enactment/{id}/cancelled", name="show_cancelled_method_blocks")
+     * @param Request $request
+     * @param int $id
+     */
+    public function showCancelledBlocks(Request $request, int $id, DataService $dataService)
+    {
+        $cancelledBlocks = [];
+
+        /** @var SituationalMethod $situationalMethod **/
+        $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+        $cancelledMethods = $situationalMethod->getCancelledMethodBlocks();
+        $allRoles = $dataService->getAllRoles();
+        $allTools = $dataService->getAllTools();
+
+        foreach ($cancelledMethods as $method)
+        {
+            $block = new stdClass;
+            $block->name = $method->getName();
+            $block->reason = $method->getReason();
+            $block->dateTime = $method->getDateTime();
+            $block->inputArtifacts = json_decode($method->getJsonData())->inputArtifacts;
+            $block->outputArtifacts = json_decode($method->getJsonData())->outputArtifacts;
+            $roles = []; $tools = [];
+            foreach($allRoles as $role)
+            {
+                if(property_exists(json_decode($method->getJsonData()),$role->getName()))
+                    $roles[$role->getName()]= json_decode($method->getJsonData(),true)[$role->getName()];
+            }
+            foreach($allTools as $tool)
+            {
+                if(property_exists(json_decode($method->getJsonData()),$tool->getType()))
+                    $tools[$tool->getType()]= json_decode($method->getJsonData(),true)[$tool->getType()];
+            }
+            $block->roles = $roles;
+            $block->tools = $tools;
+
+            $cancelledBlocks[] = $block;
+        }
+
+        return $this->render("situational_method/cancelled_method_blocks.html.twig",[
+            'cancelledBlocks'=>$cancelledBlocks,
+            'situationalMethod'=>$situationalMethod
+        ]);
     }
 
 }

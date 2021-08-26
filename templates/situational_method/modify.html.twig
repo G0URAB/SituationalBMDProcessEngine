@@ -3,7 +3,7 @@
 {% block title %}Situational Method Modification{% endblock %}
 
 {% block body %}
-{{ dump(situationalMethod.enacted) }}
+    {{ dump(situationalMethod.enacted) }}
     {# Situational Checkboxes #}
     <div id="situational-factor-box">
         <h3 class="text-center mt-3">Situational Factors</h3>
@@ -92,7 +92,7 @@
             </div>
         </div>
 
-        <button type="button" class="btn btn-success" id="save-situational-method">Save Situational Method</button>
+        <button type="button" class="btn btn-success" id="save-situational-method">Update Situational Method</button>
     </div>
 
     {# Modal 1 : For recommending situational graphs and method-blocks for a processType in any step #}
@@ -213,7 +213,7 @@
                 <button type="button" class="btn btn-danger" data-dismiss="modal" id="remove-method-block">
                     Remove Method Block
                 </button>
-                <button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>
+                {#<button type="button" class="btn btn-primary" id="save-method-block-data">Save Data</button>#}
             </div>
 
         </div>
@@ -235,6 +235,36 @@
         </div>
     </div>
 
+    {# Modal 5: Document Method Cancellation #}
+    <div id="document-cancellation" style="position: fixed;top: 25%; left:10%;display: none; width: 500px;"
+         role="document">
+        <div class="modal-content" style="max-height: 560px;">
+            {# Header #}
+            <div class="modal-header">
+                <h5 class="modal-title" id="name-of-method-block-to-remove"> {# Name of block comes here #}</h5>
+            </div>
+
+            {# Body #}
+            <div class="modal-body" style="overflow: auto">
+                <div class="form-group">
+                    <label for="message-text" class="col-form-label">Cancellation Reason:</label>
+                    <textarea class="form-control" id="cancellation-text"></textarea>
+                </div>
+            </div>
+
+            {# Footer #}
+            <div class="modal-footer">
+                <button class="btn btn-info" type="button" id="save-method-block-removal-reason" data-nodeId="">
+                    Save
+                </button>
+                <button type="button" class="btn btn-danger" data-dismiss="modal" id="cancel-method-block-removal">
+                    Cancel
+                </button>
+            </div>
+
+        </div>
+    </div>
+
 {% endblock %}
 
 {% block javascripts %}
@@ -253,7 +283,8 @@
             item.id = parseInt(item.id);
             item.level = parseInt(item.level);
             item.margin = parseInt(item.margin);
-            item.hidden =false;
+            item.hidden = false;
+            item.addRemoveId = parseInt(item.id);
             nodes.push(item);
         });
 
@@ -287,6 +318,7 @@
         let nodePopup2 = $("#node-popup-2")
         let methodBlockPopup = $("#method-block-popup");
         let graphRootNodePopup = $("#graph-root-node-popup");
+        let documentMethodBlockCancellationPopup = $("#document-cancellation");
         let processTypeInModal = $("#modal-process-type");
         let level = $("#level");
         let situationalMethods = $("#situational-methods");
@@ -294,7 +326,7 @@
         let hideShowMethodBlocksOfStep = $("#hide-step-method-blocks");
         nameOfRootNode.val("");
 
-        let graphsAndTheirSituationalFactors = JSON.parse(("{{ situationalMethod.graphsAndTheirSituationalFactors}}").replace(/&quot;/ig, '"'));
+        let graphsAndTheirSituationalFactors = JSON.parse(("{{ situationalMethod.graphsAndTheirSituationalFactors }}").replace(/&quot;/ig, '"'));
 
         let nodePopupToRefer = null;
         let bmdGraphsBeingUsed = JSON.parse(("{{ situationalMethod.bmdGraphsBeingUsed|json_encode }}").replace(/&quot;/ig, '"'));
@@ -306,6 +338,10 @@
 
         let tools = JSON.parse(("{{ tools|json_encode }}").replace(/&quot;/ig, '"'));
         let roles = JSON.parse(("{{ roles|json_encode }}").replace(/&quot;/ig, '"'));
+
+        let cancelledBlocks = [];
+        const originalBlocks = tasks;
+        console.log(tasks);
 
         console.log(tools, roles);
 
@@ -369,7 +405,7 @@
                                     //Next add situational factor
                                     let graphsAndTheirSituationalFactor = {
                                         graphName: $(this).data("name"),
-                                        rootNodeLabel : nodesFromDatabase[0].label,
+                                        rootNodeLabel: nodesFromDatabase[0].label,
                                         factors: situationalFactors
                                     }
                                     graphsAndTheirSituationalFactors.push(graphsAndTheirSituationalFactor);
@@ -595,39 +631,43 @@
 
             let methodBlockId = methodBlockPopup.attr("data-nodeId");
             let methodBlockObject = getNodeObject(parseInt(methodBlockId));
-            let rootOfMethodBlock = JSON.parse(methodBlockObject.rootNode);
+            let taskObject = getTaskObject(methodBlockObject.addRemoveId);
+            let methodEnacted = "{{ situationalMethod.enacted }}" === "1";
 
-            //When methodblock not in place of processtype
-            if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id))
-                removeMethodBlock(parseInt(methodBlockId), parseInt(rootOfMethodBlock.id));
-            else {
-                //When methodblock sitting on top of the step
-                let indexOfStep = null;
-
-                nodes.forEach(function (node, index) {
-                    if (parseInt(node.id) === parseInt(methodBlockId)) {
-                        indexOfStep = index;
-                        nodes.splice(index, 1);
-                    }
-
+            if (methodEnacted && originalBlocks.includes(getTaskObject(methodBlockObject.addRemoveId))) {
+                let saveMethodBlockRemoval = $("#save-method-block-removal-reason");
+                saveMethodBlockRemoval.attr("data-nodeId", methodBlockObject.addRemoveId)
+                nodePopupToRefer.css("display", "none");
+                $("#name-of-method-block-to-remove").text(methodBlockObject.label + " (to be cancelled)");
+                documentMethodBlockCancellationPopup.css({
+                    "display": "block",
+                    'opacity': '1'
                 });
-                tasks.forEach(function (task, index) {
-                    if (parseInt(task.id) === parseInt(methodBlockId))
-                        tasks.splice(index, 1);
+                $("#cancellation-text").val("");
+                $("#cancel-method-block-removal").on("click", function () {
+                    documentMethodBlockCancellationPopup.css({
+                        "display": "none",
+                    });
+                    showNodePopup(nodePopupToRefer);
                 });
+                saveMethodBlockRemoval.on("click", function (e) {
 
-                if (rootOfMethodBlock.shape === "diamond") {
-                    rootOfMethodBlock.shape = "box";
-                    rootOfMethodBlock.label = "<<" + rootOfMethodBlock.title + ">>";
-                    delete rootOfMethodBlock.title;
-                    console.log("This part needs to be debugged!");
-                }
-                nodes.splice(indexOfStep, 0, rootOfMethodBlock);
-                /*nodes.push(rootOfMethodBlock);*/
-                initializeGraph(true);
+                    /*let taskId = parseInt($(this).attr("data-nodeId"));*/
+                    let blockToRemove = taskObject;
+                    if (!('removalReason' in blockToRemove))
+                        blockToRemove.removalReason = $("#cancellation-text").val();
+
+                    if (!cancelledBlocks.includes(blockToRemove))
+                        cancelledBlocks.push(blockToRemove);
+                    console.log(cancelledBlocks);
+                    documentMethodBlockCancellationPopup.css("display", "none");
+
+                    nodeRestructure(methodBlockObject, methodBlockId);
+                });
+            } else {
+                nodeRestructure(methodBlockObject, methodBlockId);
             }
 
-            closeNodePopup(methodBlockPopup);
         });
 
         $("#hide-show-local-graph").on("click", function (e) {
@@ -648,14 +688,13 @@
             let node = getNodeObject(nodeId);
             let rootNode = JSON.parse(node.rootNode);
 
-            if (parseInt(rootNode.id) === 1){
+            if (parseInt(rootNode.id) === 1) {
                 removeLocalGraph(node, 1);
-                graphsAndTheirSituationalFactors.forEach(function (item,index) {
-                    if(item.rootNodeLabel===node.label)
-                        graphsAndTheirSituationalFactors.splice(index,1);
+                graphsAndTheirSituationalFactors.forEach(function (item, index) {
+                    if (item.rootNodeLabel === node.label)
+                        graphsAndTheirSituationalFactors.splice(index, 1);
                 });
-            }
-            else
+            } else
                 removeLocalGraph(node, 2);
             closeNodePopup(graphRootNodePopup);
         });
@@ -711,9 +750,14 @@
                         bmd_graphs_being_used: bmdGraphsBeingUsed,
                         graphs_and_their_factors: graphsAndTheirSituationalFactors,
                         type: 'edit_situational_method',
-                        id: "{{ situationalMethod.id }}"
+                        id: "{{ situationalMethod.id }}",
+                        cancelledBlocks: cancelledBlocks
                     },
                     success: function (response) {
+                        let obj = JSON.parse(JSON.stringify(response));
+                        if (obj.status === "okay")
+                            window.location = "{{ path('situational_methods') }}";
+                        console.log(obj);
                     }
                 });
             }
@@ -1026,8 +1070,11 @@
                     if (rootRemoved) {
                         //Reenter the lastMethodBlock into the place of step
                         nodes.splice(originalIndexOfRoot, 0, lastMethodBlock);
+                        let tempId = lastMethodBlock.id;
+                        let task = getTaskObject(tempId);
                         lastMethodBlock.id = rootNodeIdOfMethodBlock;
                         lastMethodBlock.level = newLevelOftheLastMethodBlock;
+                        task.id = lastMethodBlock.id;
                     }
                 }
 
@@ -1228,7 +1275,10 @@
                                         }
                                     });
 
+                                    let sittingBlockOldId = sittingBlock.id;
                                     sittingBlock.id = newIdForTheSittingMethodBlock;
+                                    let sittingBlockTask = getTaskObject(sittingBlockOldId);
+                                    sittingBlockTask.id = sittingBlock.id;
                                     sittingBlock.level = level;
 
                                     nodes.splice(newIndexForRootNodeOfMethod, 0, rootNodeOfMethod);
@@ -1317,6 +1367,7 @@
 
                                     edges.push(edgeFromMethodBlockToProcessType);
                                 }
+                                console.log(nodes, tasks);
                             });
 
                             //If graphs have been selected
@@ -1482,6 +1533,51 @@
                     return 3;
                 }
             }
+        }
+
+        function getTaskObject(taskId) {
+            let node = null;
+            tasks.forEach(function (item, index) {
+                if (item.id === taskId)
+                    node = item;
+            });
+            return node;
+        }
+
+        function nodeRestructure(methodBlockObject, methodBlockId) {
+            let rootOfMethodBlock = JSON.parse(methodBlockObject.rootNode);
+
+            //hen methodblock is not sitting on top of the step
+            if (parseInt(methodBlockId) !== parseInt(rootOfMethodBlock.id))
+                removeMethodBlock(parseInt(methodBlockId), parseInt(rootOfMethodBlock.id));
+            else {
+                //When methodblock sitting on top of the step
+                let indexOfStep = null;
+
+                nodes.forEach(function (node, index) {
+                    if (parseInt(node.id) === parseInt(methodBlockId)) {
+                        indexOfStep = index;
+                        nodes.splice(index, 1);
+                    }
+
+                });
+                tasks.forEach(function (task, index) {
+                    if (parseInt(task.id) === parseInt(methodBlockId))
+                        tasks.splice(index, 1);
+                });
+
+                if (rootOfMethodBlock.shape === "diamond") {
+                    rootOfMethodBlock.shape = "box";
+                    rootOfMethodBlock.label = "<<" + rootOfMethodBlock.title + ">>";
+                    delete rootOfMethodBlock.title;
+                    console.log("This part needs to be debugged!");
+                }
+                nodes.splice(indexOfStep, 0, rootOfMethodBlock);
+                /*nodes.push(rootOfMethodBlock);*/
+                initializeGraph(true);
+            }
+
+            closeNodePopup(methodBlockPopup);
         }
 
     </script>
