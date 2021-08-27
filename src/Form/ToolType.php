@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\Tool;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ButtonType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -24,6 +25,7 @@ class ToolType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
+            ->add('description',CKEditorType::class)
             ->add('variants', CollectionType::class, [
                 'label' => "Tools",
                 'entry_type' => TextType::class,
@@ -36,7 +38,9 @@ class ToolType extends AbstractType
             ])
             ->add("add_variant", ButtonType::class, [
                 'label' => "Add new tool"
-            ]);
+            ])
+
+        ;
     }
 
     public function configureOptions(OptionsResolver $resolver)

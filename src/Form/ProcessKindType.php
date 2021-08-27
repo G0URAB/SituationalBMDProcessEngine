@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\ProcessKind;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
@@ -23,6 +24,7 @@ class ProcessKindType extends AbstractType
                     new Length(['min' => 4]),
                 ],
             ])
+            ->add('description',CKEditorType::class)
             ->add('parentProcessKind', EntityType::class,[
                 'required'=>false,
                 'label'=> "Parent Process Type",

@@ -46,6 +46,11 @@ class ProcessKind
     private $childProcessKinds;
 
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
 
     public function __construct()
     {
@@ -180,4 +185,21 @@ class ProcessKind
     {
         return $this->name;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param mixed $description
+     */
+    public function setDescription($description): void
+    {
+        $this->description = $description;
+    }
+
 }

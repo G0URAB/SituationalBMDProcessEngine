@@ -30,6 +30,11 @@ class Tool
      */
     private $variants;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
 
     public function __construct()
     {
@@ -91,4 +96,21 @@ class Tool
     {
         return $this->type;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param mixed $description
+     */
+    public function setDescription($description): void
+    {
+        $this->description = $description;
+    }
+
 }

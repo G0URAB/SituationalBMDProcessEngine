@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\Artifact;
 use App\Entity\Process;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -26,6 +27,7 @@ class ArtifactType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
+            ->add('description',CKEditorType::class)
         ;
     }
 

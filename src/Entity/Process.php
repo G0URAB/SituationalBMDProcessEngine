@@ -42,6 +42,11 @@ class Process
      */
     private $otherRelatedProcessKinds;
 
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $description;
+
     public function __construct()
     {
         $this->otherRelatedProcessKinds = new ArrayCollection();
@@ -113,5 +118,21 @@ class Process
     public function __toString()
     {
         return $this->name;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getDescription()
+    {
+        return $this->description;
+    }
+
+    /**
+     * @param mixed $description
+     */
+    public function setDescription($description)
+    {
+        $this->description = $description;
     }
 }

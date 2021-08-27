@@ -3,6 +3,7 @@
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
     <link href="{{ asset('css/bootstrap.css') }}" rel="stylesheet" type="text/css">
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
     <style type="text/css">
 
         html, body {
@@ -100,19 +101,24 @@
             {{ form_row(form.situationalFactors) }}
             {{ form_row(form.parentProcessKind) }}
         </div>
-        <div class="d-flex flex-row justify-content-center">
+        <div class="d-flex flex-row justify-content-center" style="margin-top: 40%;">
             {{ form_row(form.saveGraph) }}
             <div class="form-group">
-                <a href="{{ path('bmd_graphs') }}" class="btn btn-danger">Cancel</a>
+                <a href="{{ path('bmd_graphs') }}" class="btn btn-danger">Cancel and go back</a>
             </div>
         </div>
     </div>
 </div>
 {{ form_end(form) }}
 
+{# Description #}
+<div class="form-group w-75 ml-2">
+    <label for="description">Description</label>
+    <textarea class="form-control" id="description" rows="3"></textarea>
+</div>
 
 {# Buttons #}
-<div class="d-flex flex-row">
+<div class="d-flex flex-row bg-info w-75">
     <div class="ml-3  d-flex flex-row" style="width: 76%;">
         <span><b>Log:</b></span> &nbsp
         <span id="message-box"></span>
@@ -132,6 +138,10 @@
         <span>3. <b class="text-danger">Red arrow</b> indicates a child step and
                  <b class="text-primary">blue arrow</b> indicates a sequence in which steps should executed.</span>
     </div>
+</div>
+
+
+
 </div>
 
 
@@ -168,7 +178,7 @@
 
 {#----------------------------------------------JavsScript Section-------------------------------#}
 <script>
-
+    CKEDITOR.replace( 'description' );
     // create an array with nodes
     let nodes = [
         {id: 1, label: 'Give me a name!', level: '0', shape: 'circle', color: '#bababa', margin: 8},

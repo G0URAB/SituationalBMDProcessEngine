@@ -5,6 +5,7 @@ namespace App\Form;
 
 use App\Entity\Process;
 use App\Entity\ProcessKind;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -28,6 +29,7 @@ class ProcessType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
+            ->add('description',CKEditorType::class)
             ->add('parentProcessKind', EntityType::class, [
                 'label' => "Process Type",
                 'placeholder' => 'Please select a parent process type',
