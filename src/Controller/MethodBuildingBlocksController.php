@@ -113,7 +113,6 @@ class MethodBuildingBlocksController extends AbstractController
         foreach ($artifacts as $artifact)
             $artifactChoices[$artifact->getName()] = $artifact->getName();
 
-        $situationalChoices['All Situations'] = "All Situations";
         foreach ($situationalFactors as $situationalFactor) {
             foreach ($situationalFactor->getVariants() as $variant) {
                 $situationalChoices [$situationalFactor->getName() . " : " . $variant] = $situationalFactor->getName() . " : " . $variant;

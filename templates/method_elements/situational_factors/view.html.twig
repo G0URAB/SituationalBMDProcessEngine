@@ -1,0 +1,45 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Update Situational Factor {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.variants.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.variants| length }}">
+        <div class="card-header bg-secondary">
+            <b>View Situational Factor</b>
+        </div>
+        <div class="card-body">
+
+            {#Name#}
+            {{ form_row(form.name, { 'attr':{'disabled':'disabled'}}) }}
+
+            {# Values #}
+            <h6>Values</h6>
+            <ul id="variantList">
+                {% for value in form.variants %}
+                    <li class="d-flex flex-row">
+                        {{ form_widget(value, { 'attr':{'disabled':'disabled'}}) }}
+                    </li>
+                {% endfor %}
+            </ul>
+            {{ form_row(form.description, { 'attr':{'disabled':'disabled'}}) }}
+
+            {{ form_end(form,{render_rest:false}) }}
+
+        </div>
+    </div>
+
+{% endblock %}

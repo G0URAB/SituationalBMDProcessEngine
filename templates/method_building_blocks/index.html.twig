@@ -16,27 +16,48 @@
 
         {% for block in buildingBlocks %}
             <div class="card" style="width: 31rem; margin:2%; background: #88b2d7;">
-                <div class="card-header d-flex flex-row">
+                <div class="card-header d-flex flex-row" style="max-height: 50px; overflow: auto; min-height: 50px">
                     <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
-                    <span><b>Process:</b> <i style="font-size: large">{{ block.process }}</i></span>
+                    <span><b>Process:</b> <i style="font-size: large"><a target="_blank" class="text-white"
+                                                                         href="{{ path('view_process',{'name':block.process}) }}">{{ block.process }}</a> </i></span>
                 </div>
                 <ul class="list-group list-group-flush">
                     <li class="list-group-item d-flex flex-column" style="height:75px;max-height: 80px; overflow: auto">
                         <div class="d-flex flex-row">
                             <i class="fa fa fa-magic" style="font-size:24px; width: 10%;"></i>
-                            <span><b>Process Type:</b> {{ block.process.parentProcessKind.name }}</span>
+                            <span><b>Process Type:</b>
+                            <a class="text-dark" target="_blank" href="{{ path('view_process_type',{'name':block.process.parentProcessKind.name}) }}">
+                            {{ block.process.parentProcessKind.name }}
+                            </a>
+                        </span>
                         </div>
                     </li>
                     <li class="list-group-item d-flex flex-column" style="height:70px;max-height: 80px; overflow: auto">
                         <div class="d-flex flex-row">
                             <i class="fa fa-file-text-o" style="font-size:24px; width: 10%;"></i>
-                            <span><b>Input Artifacts:</b> {{ block.implodedInputArtifacts }}</span>
+                            <span><b>Input Artifacts:</b>
+                            {% for artifact in block.inputArtifacts %}
+                                {% if not loop.last %}
+                                    <a class="text-dark" target="_blank" href="{{ path('view_artifact',{'name':artifact}) }}">{{ artifact~',' }}</a>
+                                    {% else %}
+                                    <a class="text-dark" target="_blank" href="{{ path('view_artifact',{'name':artifact}) }}">{{ artifact }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
                         </div>
                     </li>
                     <li class="list-group-item d-flex flex-column" style="height:75px;max-height: 80px; overflow: auto">
                         <div class="d-flex flex-row">
                             <i class="fa fa-file-text" style="font-size:24px; width: 10%;"></i>
-                            <span><b>Output Artifacts:</b> {{ block.implodedOutputArtifacts }}</span>
+                            <span><b>Output Artifacts:</b>
+                            {% for artifact in block.outputArtifacts %}
+                                {% if not loop.last %}
+                                    <a class="text-dark" target="_blank" href="{{ path('view_artifact',{'name':artifact}) }}">{{ artifact~',' }}</a>
+                                    {% else %}
+                                    <a class="text-dark" target="_blank" href="{{ path('view_artifact',{'name':artifact}) }}">{{ artifact }}</a>
+                                {% endif %}
+                            {% endfor %}
+                        </span>
                         </div>
                     </li>
                     <li class="list-group-item d-flex flex-column">
@@ -47,7 +68,7 @@
                         <ul style="height:100px;max-height: 100px; overflow: auto">
                             {% for factor in block.situationalFactors %}
                                 <li>
-                                    {{ factor }}
+                                    <a class="text-dark" target="_blank" href="{{ path('view_situational_factor',{'name':factor}) }}">{{ factor }}</a>
                                 </li>
                             {% endfor %}
                         </ul>
@@ -61,7 +82,15 @@
                     <li class="list-group-item d-flex flex-column" style="height:70px;max-height: 80px; overflow: auto">
                         <div class="d-flex flex-row">
                             <i class="fa fa-group" style="font-size:24px; width: 10%;"></i>
-                            <span><b>Roles:</b> {{ block.implodedRoles }}</span>
+                            <span><b>Roles:</b>
+                                {% for role in block.roles %}
+                                    {% if not loop.last %}
+                                        <a class="text-dark" target="_blank" href="{{ path('view_role',{'name':role.name}) }}">{{ role.name~',' }}</a>
+                                    {% else %}
+                                        <a class="text-dark" target="_blank" href="{{ path('view_role',{'name':role.name}) }}">{{ role.name }}</a>
+                                    {% endif %}
+                                {% endfor %}
+                            </span>
                         </div>
                     </li>
                     <li class="list-group-item d-flex flex-row justify-content-around">

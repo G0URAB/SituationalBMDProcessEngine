@@ -3,6 +3,7 @@
 namespace App\Form;
 
 use App\Entity\SituationalFactor;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ButtonType;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
@@ -36,6 +37,7 @@ class SituationalFactorType extends AbstractType
             ->add("add_variant",ButtonType::class,[
                 'label'=>'Add Value'
             ])
+            ->add('description',CKEditorType::class)
         ;
     }
 

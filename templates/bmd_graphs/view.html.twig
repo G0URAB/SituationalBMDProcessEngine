@@ -6,42 +6,49 @@
     <div class="w-100 mb-3 mt-3 d-flex flex-row justify-content-center">
         <div class="d-flex flex-row justify-content-between flex-wrap w-50">
             <a href="{{ path('bmd_graphs') }}" class="btn btn-dark"> Go Back To BMD Graphs</a>
-            <a href="{{ path('edit_bmd_graph',{id:graph.id})}}" class="btn btn-warning">Edit this graph</a>
+            <a href="{{ path('edit_bmd_graph',{id:graph.id}) }}" class="btn btn-warning">Edit this graph</a>
         </div>
     </div>
 
-    <div style="position: absolute; left:1%; right:1%;
-         height: 70%; border:1px solid black; border-radius: 4px; display: flex; flex-direction: row;">
-        <div id="mynetwork" data-nodes="{{ graph.nodes }}"
-             data-edges="{{ graph.edges }}" style="width: 80%; height: 100%;">
-        </div>
-        <div style="width: 30%; height: 100%; overflow: auto">
-            <div class="card h-100">
-                <div class="card-body bg-light">
-                    <h5 class="card-title">{{ graph.name }}</h5>
-                    <p class="card-text"><b>Parent Process Type:</b> {{ graph.parentProcessKind }}</p>
-                    <div class="card-text">
-                        <b>Children Process Types:</b>
-                        <ul>
-                            {% for processType in graph.childProcessKinds %}
-                                <li> {{ processType.name }} </li>
-                            {% endfor %}
-                        </ul>
-                    </div>
-                    <div class="card-text">
-                        <b>Situational Factors:</b>
-                        <ul>
-                            {% for factor in graph.situationalFactors %}
-                                <li> {{ factor }} </li>
-                            {% endfor %}
-                        </ul>
+    <div style="height: 500px; border:1px solid black; border-radius: 4px; display: flex; flex-direction: row;">
+            <div id="mynetwork" data-nodes="{{ graph.nodes }}"
+                 data-edges="{{ graph.edges }}" style="width: 80%; height: 100%;">
+            </div>
+            <div style="width: 30%; height: 100%; overflow: auto">
+                <div class="card h-100">
+                    <div class="card-body bg-light">
+                        <h5 class="card-title">{{ graph.name }}</h5>
+                        <p class="card-text"><b>Primary Process Type of Graph:</b> {{ graph.parentProcessKind }}</p>
+                        <div class="card-text">
+                            <b>Placeholder Process Types of Graph:</b>
+                            <ul>
+                                {% for processType in graph.childProcessKinds %}
+                                    <li> {{ processType.name }} </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
+                        <div class="card-text">
+                            <b>Situational Factors:</b>
+                            <ul>
+                                {% for factor in graph.situationalFactors %}
+                                    <li> {{ factor }} </li>
+                                {% endfor %}
+                            </ul>
+                        </div>
                     </div>
                 </div>
             </div>
-        </div>
     </div>
 
+    {# Description #}
+    <div class="form-group w-100 mt-2 border border-info rounded">
+        <label for="description" class="ml-2"><b>Description</b></label>
+        <textarea class="form-control" id="description" rows="3" disabled>
+            {{ graph.description }}
+        </textarea>
+    </div>
 
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
 {% endblock %}
 
 {% block javascripts %}
@@ -49,21 +56,38 @@
     {{ parent() }}
 
     <script>
+        CKEDITOR.replace('description');
         let nodes = new vis.DataSet();
         let edges = new vis.DataSet();
         let nodesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("nodes")));
         let edgesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("edges")));
 
-        nodesInDatabase.forEach(function (item,index) {
+        nodesInDatabase.forEach(function (item, index) {
             item.id = parseInt(item.id);
             item.level = parseInt(item.level);
             item.margin = parseInt(item.margin);
             nodes.add([item]);
         });
 
-        edgesInDatabase.forEach(function (item,index) {
+        /*edgesInDatabase.forEach(function (item,index) {
             item.from = parseInt(item.from);
             item.to = parseInt(item.to);
+            edges.add([item]);
+        });*/
+        edgesInDatabase.forEach(function (item, index) {
+            item.from = parseInt(item.from);
+            item.to = parseInt(item.to);
+            if ('smooth' in item) {
+                delete item.smooth;
+                item = Object.assign({
+                    smooth: {
+                        enabled: true,
+                        type: "curvedCW",
+                        roundness: "0.2",
+                        forceDirection: 'horizontal'
+                    }
+                }, item);
+            }
             edges.add([item]);
         });
 
@@ -101,8 +125,8 @@
                         size: 20,
                         color: '#000000'
                     },
-                    widthConstraint:{
-                        maximum:300
+                    widthConstraint: {
+                        maximum: 300
                     },
                     /*fixed: {
                         x: true,
@@ -118,4 +142,4 @@
         }
     </script>
 
-{%  endblock %}
+{% endblock %}

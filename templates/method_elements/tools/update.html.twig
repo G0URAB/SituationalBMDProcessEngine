@@ -25,8 +25,11 @@
             {{ form_errors(form) }}
             {{ form_start(form) }}
 
-            {#Name#}
+            {# Name #}
             {{ form_row(form.type) }}
+
+            {# Description #}
+            {{ form_row(form.description) }}
 
             {# Values #}
             <h5>Tools</h5>

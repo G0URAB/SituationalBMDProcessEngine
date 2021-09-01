@@ -4,6 +4,7 @@ namespace App\Form;
 
 use App\Entity\BmdGraph;
 use App\Entity\ProcessKind;
+use FOS\CKEditorBundle\Form\Type\CKEditorType;
 use Symfony\Bridge\Doctrine\Form\Type\EntityType;
 use Symfony\Component\Form\AbstractType;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -40,10 +41,11 @@ class BmdGraphType extends AbstractType
                 'required' => true
             ])
             ->add('parentProcessKind',EntityType::class,[
-                'label'=> "Parent Process Type",
+                'label'=> "Primary Process Type",
                 'class' => ProcessKind::class,
-                'placeholder'=> "Select a parent process type"
+                'placeholder'=> "Select the primary process type"
             ])
+            ->add("description", CKEditorType::class)
             ->add('saveGraph',SubmitType::class)
         ;
     }

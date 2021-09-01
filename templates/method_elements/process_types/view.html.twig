@@ -1,0 +1,53 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} View Process Type {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4">
+        <div class="card-header bg-primary">
+            <b>View Process Type</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            {{ form_row(form.name,{ 'attr':{'disabled':'disabled'}}) }}
+            {{ form_row(form.description,{ 'attr':{'disabled':'disabled'}}) }}
+            {{ form_end(form,{render_rest:false}) }}
+
+        </div>
+    </div>
+
+    <div class="card mt-4">
+        <div class="card-header bg-success">
+            <b>Related Processes</b>
+        </div>
+        <div class="card-body">
+            <ul>
+                {% for process in processType.processes %}
+                    <li>{{ process.name }}</li>
+                {% endfor %}
+            </ul>
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $("legend").remove();
+    </script>
+{% endblock %}

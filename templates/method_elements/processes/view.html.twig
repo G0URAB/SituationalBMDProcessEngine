@@ -1,0 +1,46 @@
+{% extends 'base_fluid.html.twig' %}
+
+{% block title %} View Process {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    <div style="display: flex; flex-direction: row; ">
+
+        {# Form box #}
+        <div class="card mt-4 w-50" style="min-width: 50%;">
+            <div class="card-header bg-success">
+                <b>View Process</b>
+            </div>
+            <div class="card-body">
+
+                {{ form_start(form) }}
+                {{ form_row(form.name, { 'attr':{'disabled':'disabled'}}) }}
+                {{ form_row(form.description, { 'attr':{'disabled':'disabled'}}) }}
+                {{ form_row(form.parentProcessKind, { 'attr':{'disabled':'disabled'}}) }}
+
+                {{ form_end(form,{render_rest: false}) }}
+
+            </div>
+        </div>
+
+        {# Picture #}
+        <div class="p-4 w-50">
+            <h4 style="text-align: center"><u>Recommendation of processes in any situation</u>  </h4>
+            <img class="w-100" src="{{ asset('images/ProcessRecommendation.JPG') }}">
+        </div>
+
+    </div>
+
+
+{% endblock %}

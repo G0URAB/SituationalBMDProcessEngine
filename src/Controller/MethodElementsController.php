@@ -135,6 +135,22 @@ class MethodElementsController extends AbstractController
     }
 
     /**
+     * @Route("/method_elements/process/view/{name?}", name="view_process")
+     * @param string $name
+     * @return Response
+     */
+    public function viewProcess(string $name)
+    {
+        $process = $this->getDoctrine()->getRepository(Process::class)->findOneBy(['name'=>$name]);
+        $form = $this->createForm(ProcessType::class, $process);
+
+        return $this->render('method_elements/processes/view.html.twig', [
+            'process'=> $process,
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
      * @Route("/method_elements/role/create", name="create_role")
      * @param Request $request
      * @param DataService $dataService
@@ -186,6 +202,21 @@ class MethodElementsController extends AbstractController
         }
 
         return $this->render('method_elements/roles/update.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/role/view/{name?}", name="view_role")
+     * @param string $name
+     * @return Response
+     */
+    public function viewRole(string $name)
+    {
+        $role = $this->getDoctrine()->getRepository(Role::class)->findOneBy(['name'=>$name]);
+        $form = $this->createForm(RoleType::class, $role);
+
+        return $this->render('method_elements/roles/view.html.twig', [
             'form' => $form->createView()
         ]);
     }
@@ -247,6 +278,21 @@ class MethodElementsController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/method_elements/artifact/view/{name?}", name="view_artifact")
+     * @param string $name
+     * @return Response
+     */
+    public function viewArtifact(string $name)
+    {
+        $artifact = $this->getDoctrine()->getRepository(Artifact::class)->findOneBy(['name'=>$name]);
+        $form = $this->createForm(ArtifactType::class, $artifact);
+
+        return $this->render('method_elements/artifacts/view.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
 
     /**
      * @Route("/method_elements/process_type/create", name="create_process_type")
@@ -304,6 +350,22 @@ class MethodElementsController extends AbstractController
     }
 
     /**
+     * @Route("/method_elements/process_type/view/{name?}", name="view_process_type")
+     * @param string $name
+     * @return Response
+     */
+    public function viewProcessKind(string $name)
+    {
+        $processType = $this->getDoctrine()->getRepository(ProcessKind::class)->findOneBy(['name'=>$name]);
+        $form = $this->createForm(ProcessKindType::class, $processType);
+
+        return $this->render('method_elements/process_types/view.html.twig', [
+            'form' => $form->createView(),
+            'processType' => $processType
+        ]);
+    }
+
+    /**
      * @Route("/method_elements/situational_factor/create", name="create_situational_factor")
      * @param Request $request
      * @param DataService $dataService
@@ -354,6 +416,22 @@ class MethodElementsController extends AbstractController
         }
 
         return $this->render('method_elements/situational_factors/update.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/situationa_factor/view/{name?}", name="view_situational_factor")
+     * @param string $name
+     * @return Response
+     */
+    public function viewSituationalFactor(string $name)
+    {
+        $name = trim(explode(":", $name)[0]);
+        $factor = $this->getDoctrine()->getRepository(SituationalFactor::class)->findOneBy(['name'=>$name]);
+        $form = $this->createForm(SituationalFactorType::class, $factor);
+
+        return $this->render('method_elements/situational_factors/view.html.twig', [
             'form' => $form->createView()
         ]);
     }

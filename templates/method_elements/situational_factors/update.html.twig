@@ -29,7 +29,7 @@
             {{ form_row(form.name) }}
 
             {# Values #}
-            <h4>Values</h4>
+            <h6>Values</h6>
             <ul id="variantList">
                 {% for value in form.variants %}
                     <li class="d-flex flex-row">
@@ -41,6 +41,7 @@
                 {% endfor %}
             </ul>
             {{ form_row(form.add_variant) }}
+            {{ form_row(form.description) }}
 
             <button type="submit" class="btn btn-primary mt-3">Save</button>
             {{ form_end(form) }}

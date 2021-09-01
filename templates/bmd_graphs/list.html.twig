@@ -16,12 +16,22 @@
                 <div class="card">
                     <div class="card-body" style="background: #93c7fb">
                         <h5 class="card-title">{{ graph.name }}</h5>
-                        <p class="card-text"><b>Parent Process Type:</b> {{ graph.parentProcessKind }}</p>
+                        <p class="card-text">
+                            <b>Primary Process Type:</b>
+                            <a class="text-dark" target="_blank"  href="{{ path('view_process_type',{'name':graph.parentProcessKind}) }}">
+                                {{ graph.parentProcessKind }}
+                            </a>
+                        </p>
                         <div class="card-text">
-                            <b>Children Process Types:</b>
+                            <b>Placeholder Process Types:</b>
                             <ul style="min-height:120px;max-height: 120px; overflow: auto">
                                 {% for processType in graph.childProcessKinds %}
-                                    <li> {{ processType.name }} </li>
+                                    <li>
+                                        <a class="text-dark" target="_blank"
+                                           href="{{ path('view_process_type',{'name':processType.name}) }}">
+                                            {{ processType.name }}
+                                        </a>
+                                    </li>
                                 {% endfor %}
                             </ul>
                         </div>
@@ -30,7 +40,10 @@
                             <b>Situational Factors:</b>
                             <ul style="min-height:200px;max-height: 200px; overflow: auto">
                                 {% for factor in graph.situationalFactors %}
-                                    <li> {{ factor }} </li>
+                                    <li>
+                                        <a class="text-dark" target="_blank"
+                                           href="{{ path('view_situational_factor',{'name':factor}) }}">{{ factor }}</a>
+                                    </li>
                                 {% endfor %}
                             </ul>
                         </div>

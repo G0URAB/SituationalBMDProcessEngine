@@ -1,0 +1,33 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} View Artifact {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4">
+        <div class="card-header bg-info">
+            <b>View Artifact</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            {{ form_row(form.name,{ 'attr':{'disabled':'disabled'}}) }}
+            {{ form_row(form.description,{ 'attr':{'disabled':'disabled'}}) }}
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}

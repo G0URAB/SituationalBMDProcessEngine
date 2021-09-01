@@ -3,6 +3,8 @@
     <script type="text/javascript" src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
     <script type="text/javascript" src="{{ asset('js/jquery.min.js') }}"></script>
     <link href="{{ asset('css/bootstrap.css') }}" rel="stylesheet" type="text/css">
+    <script src="https://cdn.ckeditor.com/4.16.2/standard/ckeditor.js"></script>
+    <title>Edit Graph: {{ graph.name }}</title>
     <style type="text/css">
 
         html, body {
@@ -101,7 +103,7 @@
             {{ form_row(form.situationalFactors) }}
             {{ form_row(form.parentProcessKind) }}
         </div>
-        <div class="d-flex flex-row justify-content-center">
+        <div class="d-flex flex-row justify-content-center" style="margin-top: 40%;">
             {{ form_row(form.saveGraph) }}
             <div class="form-group">
                 <a href="{{ path('bmd_graphs') }}" class="btn btn-danger">Cancel</a>
@@ -109,17 +111,23 @@
         </div>
     </div>
 </div>
-{{ form_end(form) }}
 
-
-{# Buttons #}
-<div class="d-flex flex-row">
+{# Log #}
+<div class="d-flex flex-row bg-info w-75">
     <div class="ml-3  d-flex flex-row" style="width: 76%;">
         <span><b>Log:</b></span> &nbsp
         <span id="message-box"></span>
     </div>
 </div>
 
+{# Description #}
+<div class="form-group w-75 ml-2 mt-2 border border-info rounded">
+    <label for="description" class="ml-2"><b>Description</b></label>
+    {#<textarea class="form-control" id="description" rows="3"></textarea>#}
+    {{ form_widget(form.description) }}
+</div>
+
+{{ form_end(form) }}
 
 {# Instruction #}
 <div class="mt-1 bg-dark d-flex flex-column p-2" style="width: 77%">
@@ -170,6 +178,7 @@
 {#----------------------------------------------JavsScript Section-------------------------------#}
 <script>
 
+    CKEDITOR.replace('description');
     let nodes = [];
     let edges = [];
     let nodesInDatabase = JSON.parse(JSON.stringify($("#mynetwork").data("nodes")));
@@ -409,10 +418,10 @@
         let idOfLastNode = parseInt((nodes[nodes.length - 1]).id);
 
 
-        if (getNodeObject(idOfLastNode).label === "<<" + nameOfProcessType + ">>") {
+        /*if (getNodeObject(idOfLastNode).label === "<<" + nameOfProcessType + ">>") {
             messageBox.html("<span class='text-danger'>Two immediate steps can not have the same process type :/</span>");
             immediateLastStepHasSameProcessType = true;
-        }
+        }*/
 
         if (immediateLastStepHasSameProcessType)
             return;
@@ -433,7 +442,7 @@
         }
         edges.push(newEdge);
         initializeGraph();
-        messageBox.html("<span class='text-success'>Great!! " + nameOfProcessType + " was added to graph :-)</span>");
+        messageBox.html("<span class='text-white'>Great!! " + nameOfProcessType + " was added to graph :-)</span>");
 
         //Reset Prerequisite edges options
         if (nodes.length < 3)
@@ -540,9 +549,11 @@
         edges.forEach(function (item, index) {
             if (item.from === id_of_FromNode && item.to === id_of_ToNode)
                 edges.splice(index, 1);
+            else if ('smooth' in item && item.from===id_of_ToNode && item.to===id_of_FromNode)
+                edges.splice(index, 1);
         });
 
-        if ((indexOfToObject - indexOfFromObject > 1) && (parseInt(indexOfToObject) > parseInt(indexOfFromObject))) {
+        if (indexOfToObject - indexOfFromObject > 1) {
             //There is someone in between, loop on them and get them up
 
             for (let i = indexOfFromObject + 1; i < indexOfToObject; i++) {
@@ -551,7 +562,7 @@
             }
         }
         initializeGraph();
-        messageBox.html("<span class='text-success'> Edge from " + nameOfFrom + " to " + nameOfTo + " deleted from the graph :/</span>");
+        messageBox.html("<span class='text-white'> Edge from " + nameOfFrom + " to " + nameOfTo + " deleted from the graph :/</span>");
         checkEvents();
     });
 
@@ -600,7 +611,7 @@
                 if (item.to === getNodeIdOfStep(idOfProcessType))
                     edges.splice(index, 1);
             });
-            messageBox.html("<span class='text-success'>Okay!! Step with " + nameOfProcessType + " was removed from the graph *_*</span>");
+            messageBox.html("<span class='text-white'>Okay!! Step with " + nameOfProcessType + " was removed from the graph *_*</span>");
             initializeGraph();
         } else {
             messageBox.html("<span class='text-danger'>" + nameOfProcessType + " is not there in the graph :/</span>");
@@ -634,12 +645,16 @@
 
     //If an edge between two nodes already exist
     function edgeExistInGraph(idOfFrom, idOfTo) {
-
         let edgeExistInGraph = false;
         edges.forEach(function (item, index) {
             if (item.from === idOfFrom && item.to === idOfTo)
                 edgeExistInGraph = true;
+            else if ('smooth' in item && item.from===idOfTo && item.to===idOfFrom)
+                edgeExistInGraph = true;
         });
+        console.log(edges);
+        console.log(idOfFrom, idOfTo);
+
         return edgeExistInGraph;
     }
 
