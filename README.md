@@ -120,9 +120,9 @@ The prvileges of all roles are as follows:
 ## Getting Started
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/what_is_situational_bmd_process_engine.jpg)](https://www.youtube.com/watch?v=rbQ1sg5_a1I)
    
-   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/tool_overview.jpg)](https://www.youtube.com/watch?v=mL5jfK0sTI4?cc_load_policy=1&cc_lang_pref=en)
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/tool_overview.jpg)](https://www.youtube.com/watch?v=mL5jfK0sTI4)
    
-   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_processes_and_types.jpg)](https://www.youtube.com/watch?v=rr9vgtZlJV8?cc_load_policy=1&cc_lang_pref=en)
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_processes_and_types.jpg)](https://www.youtube.com/watch?v=rr9vgtZlJV8)
    
 ## Test Users Details
 > Command to create test users: `php bin/console doctrine:fixtures:load --append --group=testUsers`
