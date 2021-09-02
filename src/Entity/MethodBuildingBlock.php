@@ -67,7 +67,7 @@ class MethodBuildingBlock
 
     public function getInputArtifacts()
     {
-        $array = $this->inputArtifacts->toArray();
+        $array = gettype($this->inputArtifacts)=="array"? $this->inputArtifacts: $this->inputArtifacts->toArray();
         sort($array);
         return $array;
     }
@@ -86,7 +86,7 @@ class MethodBuildingBlock
 
     public function getOutputArtifacts()
     {
-        $array = $this->outputArtifacts->toArray();
+        $array = gettype($this->outputArtifacts)=="array"? $this->outputArtifacts: $this->outputArtifacts->toArray();
         sort($array);
         return $array;
     }
@@ -109,7 +109,7 @@ class MethodBuildingBlock
 
     public function getSituationalFactors()
     {
-        return $this->situationalFactors->toArray();
+        return gettype($this->situationalFactors)=="array"? $this->situationalFactors: $this->situationalFactors->toArray();
     }
 
     public function getImplodedSituationalFactors()

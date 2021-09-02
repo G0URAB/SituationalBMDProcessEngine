@@ -43,7 +43,7 @@ class Process
     private $otherRelatedProcessKinds;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $description;
 

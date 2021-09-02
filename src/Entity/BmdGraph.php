@@ -49,7 +49,7 @@ class BmdGraph
     private $edges;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $description;
 
@@ -118,7 +118,7 @@ class BmdGraph
 
     public function getSituationalFactors()
     {
-        return $this->situationalFactors->toArray();
+        return gettype($this->situationalFactors)=="array"? $this->situationalFactors: $this->situationalFactors->toArray();
     }
 
     public function getImplodedSituationalFactors()

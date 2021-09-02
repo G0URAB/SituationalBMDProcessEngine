@@ -31,7 +31,7 @@ class Tool
     private $variants;
 
     /**
-     * @ORM\Column(type="string", length=255, nullable=true)
+     * @ORM\Column(type="text", nullable=true)
      */
     private $description;
 
@@ -76,7 +76,7 @@ class Tool
 
     public function getImplodedVariants()
     {
-        $variantsArray = $this->variants->toArray();
+        $variantsArray = gettype($this->variants)=="array"? $this->variants: $this->variants->toArray();
         return implode(", ",$variantsArray);
     }
 
