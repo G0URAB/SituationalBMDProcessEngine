@@ -508,6 +508,10 @@ class MethodElementsController extends AbstractController
             $entityType = ProcessKind::class;
         else if ($type == 'role')
             $entityType = Role::class;
+        else if ($type == 'tool')
+            $entityType = Tool::class;
+        else if ($type == 'factor')
+            $entityType = SituationalFactor::class;
         else if ($type == 'artifact')
             $entityType = Artifact::class;
 

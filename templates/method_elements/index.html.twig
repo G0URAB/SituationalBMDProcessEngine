@@ -103,7 +103,7 @@
                     <tr>
                         <td><a href="{{ path('edit_role',{'id':role.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ role.name }}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td><a href="{{ path('delete_method_element',{'id':role.id,'type':'role'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -158,7 +158,7 @@
                         <td><a href="{{ path('edit_tool',{'id':tool.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ tool.type }}</td>
                         <td>{{ tool.implodedVariants }}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td><a href="{{ path('delete_method_element',{'id':tool.id,'type':'tool'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>
@@ -186,7 +186,7 @@
                         <td><a href="{{ path('edit_situational_factor',{'id':factor.id}) }}">{{ loop.index }} </a></td>
                         <td>{{ factor.name }}</td>
                         <td>{{ factor.implodedVariants }}</td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                        <td><a href="{{ path('delete_method_element',{'id':factor.id,'type':'factor'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

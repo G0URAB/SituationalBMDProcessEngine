@@ -9,6 +9,7 @@ use App\Entity\SituationalFactor;
 use App\Form\MethodBuildingBlockType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
@@ -90,16 +91,30 @@ class MethodBuildingBlocksController extends AbstractController
 
     /**
      * @Route("/method/building/block/{id?}", name="show_method_building_block")
-     * @param Request $request
      * @param int $id
      * @return Response
      */
-    public function showMethodBuildingBlock(Request $request, int $id): Response
+    public function showMethodBuildingBlock(int $id): Response
     {
         $block = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->find($id);
         return $this->render('method_building_blocks/show.html.twig', [
             'block' => $block
         ]);
+    }
+
+    /**
+     * @Route("/method/building/block/delete/{id?}", name="delete_method_building_block")
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function deleteMethodBlock(int $id)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $block = $entityManager->getRepository(MethodBuildingBlock::class)->find($id);
+        $entityManager->remove($block);
+        $entityManager->flush();
+
+        return $this->redirectToRoute("method_building_blocks");
     }
 
 

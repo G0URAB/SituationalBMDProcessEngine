@@ -94,7 +94,7 @@
                         </div>
                     </li>
                     <li class="list-group-item d-flex flex-row justify-content-around">
-                        <button type="button" class="btn btn-danger rounded w-25">Remove</button>
+                        <a href="{{ path('delete_method_building_block',{'id':block.id}) }}" class="btn btn-danger rounded w-25">Remove</a>
                         <a href="{{ path('edit_method_building_block',{'id':block.id}) }}"
                            class="btn btn-info rounded w-25">Edit</a>
                     </li>
