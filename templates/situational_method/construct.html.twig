@@ -284,10 +284,10 @@
 
         let graphsAndTheirSituationalFactors = [];
 
-        let graphTemplate = (name, situationalFactors, nodes, edges) => `
+        let graphTemplate = (name, situationalFactors, nodes, edges,id) => `
            <div class="jumbotron m-2" style="width: 32%;min-width: 400px;">
                 <h4 style="max-height: 20%; min-height: 20%; overflow: auto"><b>Name:</b> ${name}</h4>
-                <p class="lead"><b>Description:</b>This is a simple hero unit, a simple jumbotron-style component for calling extra attention to featured content or information.</p>
+                <a target="_blank" href="/bmd/graph/show/${id}" class="btn btn-dark">Show Graph</a>
                 <hr class="my-4">
                 <p style="max-height: 30%;min-height: 30%; overflow: auto;"><b>Situational Factors:</b> ${situationalFactors} </p>
                 <p class="lead">
@@ -321,7 +321,7 @@
 
                     if (obj.graphs.length > 0) {
                         obj.graphs.forEach(function (item, index) {
-                            let graph = graphTemplate(item.name, item.situationalFactors, item.nodes, item.edges);
+                            let graph = graphTemplate(item.name, item.situationalFactors, item.nodes, item.edges, item.id);
                             $("#graphs").append(graph);
 
                             $(".select-graph").each(function () {
