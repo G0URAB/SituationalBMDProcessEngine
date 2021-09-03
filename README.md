@@ -132,6 +132,7 @@ The prvileges of all roles are as follows:
    
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_bmd_graph_overview.jpg)](https://youtu.be/fQBi4y7ggIM)
    
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_bmd_graph_management.jpg)](https://youtu.be/nrhnjqdTTWk)
    
    
 ## Test Users Details
