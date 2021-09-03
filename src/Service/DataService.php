@@ -157,7 +157,7 @@ class DataService
     {
         $methodBlockIsSituationSpecific = false;
 
-        if (in_array("All Situations", (array)$bmdGraph->getSituationalFactors()))
+        if ($this->isApplicableInAllSituations($bmdGraph->getSituationalFactors()))
             return true;
 
         if ($methodBlock) {
@@ -177,7 +177,7 @@ class DataService
              */
             $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
             //dd($matchedSituationalFactors,$totalSituationalFactors,$percentageOfSituationalApplicability);
-            if ($percentageOfSituationalApplicability >= 50 || in_array("All Situations", (array)$methodBlock->getSituationalFactors())) {
+            if ($percentageOfSituationalApplicability >= 50 || $this->isApplicableInAllSituations($methodBlock->getSituationalFactors())) {
                 $methodBlockIsSituationSpecific = true;
             }
         }
@@ -244,12 +244,11 @@ class DataService
             }
 
             //Remove duplicate roles
-            foreach ($currentTaskRoles as $role)
-            {
-                if(property_exists($task, " ".$role) ){
+            foreach ($currentTaskRoles as $role) {
+                if (property_exists($task, " " . $role)) {
                     $foo = (array)$task;
-                    unset($foo[(" ".$role)]);
-                    $task = (object) $foo;
+                    unset($foo[(" " . $role)]);
+                    $task = (object)$foo;
                 }
             }
 
@@ -275,47 +274,39 @@ class DataService
             }
 
             //Check if input artifact needs to be added
-            foreach ($block->getInputArtifacts() as $artifact){
+            foreach ($block->getInputArtifacts() as $artifact) {
                 $inputArtifactExist = false;
-                foreach ($task->inputArtifacts as $inputArtifact)
-                {
-                    if(gettype($inputArtifact)=="object" && $inputArtifact->name==$artifact)
+                foreach ($task->inputArtifacts as $inputArtifact) {
+                    if (gettype($inputArtifact) == "object" && $inputArtifact->name == $artifact)
                         $inputArtifactExist = true;
-                    else if($inputArtifact==$artifact)
+                    else if ($inputArtifact == $artifact)
                         $inputArtifactExist = true;
                 }
-                if(!$inputArtifactExist)
-                {
-                    $foo = (array) $task;
-                    $foo['inputArtifacts'] = gettype($foo['inputArtifacts'])=="object"? (array)($foo['inputArtifacts']):$foo['inputArtifacts'];
+                if (!$inputArtifactExist) {
+                    $foo = (array)$task;
+                    $foo['inputArtifacts'] = gettype($foo['inputArtifacts']) == "object" ? (array)($foo['inputArtifacts']) : $foo['inputArtifacts'];
                     array_push($foo['inputArtifacts'], $artifact);
-                    $task = (object) $foo;
+                    $task = (object)$foo;
                 }
             }
 
             //Check if input artifact needs to deleted
-            foreach ($task->inputArtifacts as $key => $inputArtifact)
-            {
+            foreach ($task->inputArtifacts as $key => $inputArtifact) {
                 $inputArtifactNeedsToBeDeleted = false;
                 $artifactFilePath = null;
 
-                if(gettype($inputArtifact)=="object" && !in_array($inputArtifact->name, (array)$block->getInputArtifacts()))
-                {
+                if (gettype($inputArtifact) == "object" && !in_array($inputArtifact->name, (array)$block->getInputArtifacts())) {
                     $inputArtifactNeedsToBeDeleted = true;
-                    $artifactFilePath = str_replace("/images/artifacts/","",$inputArtifact->path);
-                }
-
-                else if(gettype($inputArtifact)!=="object" && !in_array($inputArtifact, (array)$block->getInputArtifacts()))
+                    $artifactFilePath = str_replace("/images/artifacts/", "", $inputArtifact->path);
+                } else if (gettype($inputArtifact) !== "object" && !in_array($inputArtifact, (array)$block->getInputArtifacts()))
                     $inputArtifactNeedsToBeDeleted = true;
 
-                if($inputArtifactNeedsToBeDeleted)
-                {
+                if ($inputArtifactNeedsToBeDeleted) {
                     unset($task->inputArtifacts[$key]);
 
-                    if($artifactFilePath)
-                    {
+                    if ($artifactFilePath) {
                         $fileSystem = new Filesystem();
-                        $fileSystem->remove($this->parameterBag->get('kernel.project_dir')."/public/images/artifacts/".$artifactFilePath);
+                        $fileSystem->remove($this->parameterBag->get('kernel.project_dir') . "/public/images/artifacts/" . $artifactFilePath);
                     }
 
                 }
@@ -328,6 +319,21 @@ class DataService
         $this->entityManager->flush();
 
         return $situationalMethod;
+    }
+
+    public function isApplicableInAllSituations(array $situationalFactors)
+    {
+        $applicable = false;
+
+        foreach ($situationalFactors as $factor) {
+
+            $applicable = strcasecmp(trim(explode(":", $factor)[0]), "All Situations") == 0;
+            if ($applicable)
+                break;
+
+        }
+
+        return $applicable;
     }
 
 }
