@@ -123,7 +123,7 @@ class BmdGraph
 
     public function getImplodedSituationalFactors()
     {
-        $situationalFactorsArray = $this->situationalFactors->toArray();
+        $situationalFactorsArray = gettype($this->situationalFactors)=="array"? $this->situationalFactors : $this->situationalFactors->toArray();
         sort($situationalFactorsArray);
         return implode(", ", $situationalFactorsArray);
     }
