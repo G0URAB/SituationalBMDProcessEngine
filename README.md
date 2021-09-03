@@ -130,6 +130,9 @@ The prvileges of all roles are as follows:
    
    [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_building_blocks.jpg)](https://youtu.be/UIEv0NeOxwU)
    
+   [![Watch the video](https://github.com/G0URAB/SituationalBMDProcessEngine/blob/master/public/images/video%20thumbnails/method_base_bmd_graph_overview.jpg)](https://youtu.be/fQBi4y7ggIM)
+   
+   
    
 ## Test Users Details
 > Command to create test users: `php bin/console doctrine:fixtures:load --append --group=testUsers`
