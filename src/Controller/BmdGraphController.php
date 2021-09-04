@@ -153,6 +153,4 @@ class BmdGraphController extends AbstractController
 
         return $this->redirectToRoute("bmd_graphs");
     }
-
-
 }
