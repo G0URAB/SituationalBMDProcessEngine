@@ -271,7 +271,6 @@
     {{ parent() }}
     <script>
 
-
         let nodes = [];
         let edges = [];
         let tasks = [];
@@ -323,6 +322,7 @@
         let level = $("#level");
         let situationalMethods = $("#situational-methods");
         let nameOfRootNode = $("#name-of-root-node");
+        nameOfRootNode.val(nodes[0].label);
         let hideShowMethodBlocksOfStep = $("#hide-step-method-blocks");
         nameOfRootNode.val("");
 
