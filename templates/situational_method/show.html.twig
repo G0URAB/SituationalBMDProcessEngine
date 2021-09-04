@@ -65,6 +65,17 @@
         edgesFromDatabase.forEach(function (item, index) {
             item.from = parseInt(item.from);
             item.to = parseInt(item.to);
+            if ('smooth' in item) {
+                delete item.smooth;
+                item = Object.assign({
+                    smooth: {
+                        enabled: true,
+                        type: "curvedCW",
+                        roundness: "0.2",
+                        forceDirection: 'horizontal'
+                    }
+                }, item);
+            }
             edges.push(item);
         });
 
