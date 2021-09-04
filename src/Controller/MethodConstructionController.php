@@ -245,11 +245,6 @@ class MethodConstructionController extends AbstractController
             $entityManager->flush();
         }
 
-        if($request->isXmlHttpRequest() && $request->get("update_method"))
-        {
-
-        }
-
         $tools = [];
         $roles = [];
         foreach ($dataService->getAllTools() as $tool)
@@ -280,5 +275,20 @@ class MethodConstructionController extends AbstractController
             'situationalMethod' => $situationalMethod,
             'graphsAndSituationalFactors'=> json_decode($situationalMethod->getGraphsAndTheirSituationalFactors())
         ]);
+    }
+
+    /**
+     * @Route("/situational_method/delete/{id}", name="delete_situational_method")
+     * @param int $id
+     * @return Response
+     */
+    public function deleteSituationalMethod(int $id): Response
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $situationalMethod = $entityManager->getRepository(SituationalMethod::class)->find($id);
+        $entityManager->remove($situationalMethod);
+        $entityManager->flush();
+
+        return $this->redirectToRoute("situational_methods");
     }
 }

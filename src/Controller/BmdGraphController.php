@@ -8,6 +8,7 @@ use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\FormError;
 use Symfony\Component\HttpFoundation\JsonResponse;
+use Symfony\Component\HttpFoundation\RedirectResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\HttpFoundation\Session\SessionInterface;
@@ -138,6 +139,20 @@ class BmdGraphController extends AbstractController
         ]);
     }
 
+    /**
+     * @Route("/bmd/graph/delete/{id}", name="delete_bmd_graph")
+     * @param int $id
+     * @return RedirectResponse
+     */
+    public function deleteBmdGraph(int $id)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $block = $entityManager->getRepository(BmdGraph::class)->find($id);
+        $entityManager->remove($block);
+        $entityManager->flush();
+
+        return $this->redirectToRoute("bmd_graphs");
+    }
 
 
 }
