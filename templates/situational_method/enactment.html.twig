@@ -1277,7 +1277,7 @@
                                         taskCanBeStarted.inputArtifactMessages += outputArtifact + " in step '" + myTask.label + "' has not been uploaded yet.";
                                     } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && (parseInt(myTask.status) === 1 || parseInt(myTask.status) === 0)) {
                                         taskCanBeStarted.status = false;
-                                        taskCanBeStarted.inputArtifactMessages += "'" + outputArtifact.name + "'has been uploaded in Step '" + myTask.label + "' in graph '" + localGraph.label + "'," +
+                                        taskCanBeStarted.inputArtifactMessages += "'" + outputArtifact.name + "' has been uploaded in Step '" + myTask.label + "' in graph '" + localGraph.label + "'," +
                                             " however  the step is still under progress.";
                                     } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && parseInt(myTask.status) === 2) {
                                         taskCanBeStarted.status = true;
@@ -1296,19 +1296,15 @@
                     if (getLocalRootNodeObject(myTask.id).label === localGraph.label) {
                         for (let [key, value] of Object.entries(myTask)) {
                             if (key === 'inputArtifacts' && value !== "") {
-                                if (typeof value !== "object") {
-                                    value.forEach(function (inputArtifact, index) {
-                                        if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
-                                            taskCanBeStarted.outputArtifactMessages += "'" + outputArtifact + "' is used in step '" + myTask.label + "'.";
-                                        }
-                                    });
-                                } else if (typeof value == "object") {
-                                    for (let [key, inputArtifact] of Object.entries(value)) {
-                                        if (typeof inputArtifact === "string" && outputArtifact === inputArtifact) {
-                                            taskCanBeStarted.outputArtifactMessages += "'" + outputArtifact + "' is used in step '" + myTask.label + "'.";
-                                        }
+
+                                value.forEach(function (inputArtifact, index) {
+                                    if ((typeof inputArtifact === "string" && typeof outputArtifact === "string" && outputArtifact === inputArtifact) ||
+                                        (typeof outputArtifact === "object" && typeof inputArtifact === "object" && outputArtifact.name=== inputArtifact.name) ||
+                                        (typeof outputArtifact === "object" && typeof inputArtifact === "string" && outputArtifact.name=== inputArtifact)) {
+                                        let artifactName = typeof outputArtifact==="object" ? outputArtifact.name : outputArtifact;
+                                        taskCanBeStarted.outputArtifactMessages += "'" + artifactName + "' is used in step '" + myTask.label + "'.";
                                     }
-                                }
+                                });
                             }
                         }
                     }
