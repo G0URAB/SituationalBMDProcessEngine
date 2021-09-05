@@ -889,7 +889,7 @@
 
             let localRootNode = null;
             edges.forEach(function (edge, index) {
-                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.arrows === "from") {
+                if (edge.arrows === "from" && edge.to === parseInt(nodeId) && edge.color === "red") {
                     if (parseInt(edge.from) !== 1)
                         localRootNode = getLocalRootNodeObject(parseInt(edge.from));
                     else
@@ -1103,7 +1103,6 @@
             logs = [];
             tasks.forEach(function (task, index) {
                 for (let [key, value] of Object.entries(task)) {
-                    console.log(task, getLocalRootNodeObject(task.id));
                     let localGraphName = getLocalRootNodeObject(task.id).label;
                     if (roles.includes(key) && value === "")
                         logs.push({
