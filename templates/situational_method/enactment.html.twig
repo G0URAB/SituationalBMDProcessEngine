@@ -140,7 +140,8 @@
                     display: flex; flex-direction: column; justify-content: center; align-items: center;
                      color: white; font-size: larger">
                     <span>
-                        <a href="{{ path('show_cancelled_method_blocks',{'id':situationalMethod.id}) }}" class="text-decoration-none text-white">
+                        <a href="{{ path('show_cancelled_method_blocks',{'id':situationalMethod.id}) }}"
+                           class="text-decoration-none text-white">
                             <b>Canceled</b>
                         </a>
                     </span>
@@ -245,9 +246,9 @@
     {{ parent() }}
     <script>
 
-        let commentTemplate = (taskId, commentId, user, text) => `
+        let commentTemplate = (taskId, commentId, user, text, time) => `
                                <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
-                                    <span> ${user} : ${text}</span>
+                                    <span> ${user} ${time} : ${text}</span>
                                     <button id="${commentId}" class="btn btn-danger delete-comment" data-commentId="${commentId}" data-taskId="${taskId}">Remove</button>
                                </div>
                                 `;
@@ -275,6 +276,10 @@
         });
 
         $("#show-add-comments").on("click", function () {
+
+            let enteredComment = $("#new-comment");
+            enteredComment.val("");
+
             let commentsBox = $("#comments");
             commentsBox.css("opacity", 1);
             let taskId = $(this).parent().parent().parent().attr("data-nodeId");
@@ -288,30 +293,37 @@
                     let user = comment.user;
                     let commentId = comment.id;
                     let text = comment.text;
+                    let time = comment.time;
 
-                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, commentId, user, text));
+                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, commentId, user, text, time));
 
                     if (!userHasWritePermission(task) || user !== "{{ app.user.employeeName }}")
                         $("#" + commentId).attr('disabled', true);
                 });
             }
             $("#add-comment").on("click", function () {
-                let taskId = parseInt($(this).parent().parent().parent().parent().attr("data-taskId"));
-                let task = getTaskObject(taskId);
+                if (enteredComment.val() !== "") {
+                    let taskId = parseInt($(this).parent().parent().parent().parent().attr("data-taskId"));
+                    let task = getTaskObject(taskId);
 
-                if (!('comments' in task)) {
-                    task.comments = [];
-                }
+                    if (!('comments' in task)) {
+                        task.comments = [];
+                    }
 
-                let newComment = {
-                    id: Date.now(),
-                    user: "{{ app.user.employeeName }}",
-                    text: $("#new-comment").val()
+                    let newComment = {
+                        id: Date.now(),
+                        user: "{{ app.user.employeeName }}",
+                        text: $("#new-comment").val(),
+                        time: getDateTime()
+                    }
+                    task.comments.push(newComment);
+                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, newComment.id, newComment.user, newComment.text, newComment.time));
+                    updateJsonTasks();
+                    enteredComment.val("");
+                    handleDeleteCommentEvent();
                 }
-                task.comments.push(newComment);
-                commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, newComment.id, newComment.user, newComment.text));
-                updateJsonTasks();
             });
+            handleDeleteCommentEvent();
         });
 
         let nodes = [];
@@ -1132,7 +1144,7 @@
                 type: 'POST',
                 url: '{{ path('modify_situational_method',{id:situationalMethod.id}) }}',
                 data: {
-                    set_enactment: logs.length===0
+                    set_enactment: logs.length === 0
                 },
             });
 
@@ -1260,7 +1272,7 @@
                                     if (typeof outputArtifact === "string" && outputArtifact === inputArtifact && parseInt(myTask.status) !== 2) {
                                         taskCanBeStarted.status = false;
                                         taskCanBeStarted.inputArtifactMessages += outputArtifact + " in step '" + myTask.label + "' has not been uploaded yet.";
-                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && (parseInt(myTask.status) === 1||parseInt(myTask.status)===0)) {
+                                    } else if (typeof outputArtifact === "object" && outputArtifact.name === inputArtifact && (parseInt(myTask.status) === 1 || parseInt(myTask.status) === 0)) {
                                         taskCanBeStarted.status = false;
                                         taskCanBeStarted.inputArtifactMessages += "'" + outputArtifact.name + "'has been uploaded in Step '" + myTask.label + "' in graph '" + localGraph.label + "'," +
                                             " however  the step is still under progress.";
@@ -1307,45 +1319,71 @@
 
             let nextNode = null;
 
-            edges.forEach(function (edge,index) {
-                if(edge.arrows==="to" && parseInt(edge.from)===parseInt(task.id) && !('smooth' in edge))
-                    nextNode=getNodeObject(parseInt(edge.to));
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "to" && parseInt(edge.from) === parseInt(task.id) && !('smooth' in edge))
+                    nextNode = getNodeObject(parseInt(edge.to));
             });
 
-            if(nextNode)
-            {
-                if(nextNode.shape==="diamond")
-                {
-                    nextNode.color="red";
+            if (nextNode) {
+                if (nextNode.shape === "diamond") {
+                    nextNode.color = "red";
                     nextNode.status = 0;
 
                     let childNodes = getChildren(nextNode.id);
-                    childNodes.forEach(function (childNode,index) {
-                        childNode.status=0;
-                        childNode.color="red";
-                        getTaskObject(childNode.id).status=0;
-                        getTaskObject(childNode.id).color="red";
+                    childNodes.forEach(function (childNode, index) {
+                        childNode.status = 0;
+                        childNode.color = "red";
+                        getTaskObject(childNode.id).status = 0;
+                        getTaskObject(childNode.id).color = "red";
                     });
                     makeConsecutiveTasksRed(nextNode);
-                }
-                else if(nextNode.shape==="box")
-                {
-                    nextNode.status=0;
-                    nextNode.color="red";
-                    getTaskObject(nextNode.id).status=0;
-                    getTaskObject(nextNode.id).color="red";
+                } else if (nextNode.shape === "box") {
+                    nextNode.status = 0;
+                    nextNode.color = "red";
+                    getTaskObject(nextNode.id).status = 0;
+                    getTaskObject(nextNode.id).color = "red";
                     makeConsecutiveTasksRed(nextNode);
-                }
-                else if(nextNode.shape==="circle")
-                {
+                } else if (nextNode.shape === "circle") {
                     let children = getChildren(nextNode);
-                    children.forEach(function (child,index) {
+                    children.forEach(function (child, index) {
                         makeConsecutiveTasksRed(child);
                     });
                 }
                 initializeGraph(true);
             }
-
         }
+
+        function handleDeleteCommentEvent() {
+            $(".delete-comment").on("click", function () {
+                let taskId = parseInt($(this).attr("data-taskId"));
+                let commentId = parseInt($(this).attr("data-commentId"));
+                let respectiveTask = getTaskObject(taskId);
+                respectiveTask.comments.forEach(function (comment, index) {
+                    if (parseInt(comment.id) === commentId) {
+                        respectiveTask.comments.splice(index, 1);
+                    }
+                });
+                $(this).parent().remove();
+                updateJsonTasks();
+                console.log(tasks);
+            });
+            console.log(tasks);
+        }
+
+        function getDateTime()
+        {
+            let now = new Date();
+            let dayOfMonth = now.getDate();
+            let month = now.getMonth();
+            let year = now.getFullYear();
+            let hour = now.getHours();
+            let minutes = now.getMinutes()<10 ? "0"+now.getMinutes(): now.getMinutes();
+            let seconds = now.getSeconds()<10 ? "0"+now.getSeconds(): now.getSeconds();
+
+            let months = ['Jan','Feb','March','April','May','June','July','Aug','Sept','Oct','Nov','Dec'];
+
+            return " ("+ dayOfMonth+"-"+months[month]+"-"+year+" "+hour+":"+minutes+":"+seconds +")";
+        }
+
     </script>
 {% endblock %}
