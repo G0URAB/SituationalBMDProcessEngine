@@ -1103,6 +1103,7 @@
             logs = [];
             tasks.forEach(function (task, index) {
                 for (let [key, value] of Object.entries(task)) {
+                    console.log(task, getLocalRootNodeObject(task.id));
                     let localGraphName = getLocalRootNodeObject(task.id).label;
                     if (roles.includes(key) && value === "")
                         logs.push({
