@@ -291,26 +291,70 @@ class DataService
             }
 
             //Check if input artifact needs to deleted
-            foreach ($task->inputArtifacts as $key => $inputArtifact) {
-                $inputArtifactNeedsToBeDeleted = false;
-                $artifactFilePath = null;
+            if (property_exists($task, "inputArtifacts")) {
+                foreach ($task->inputArtifacts as $key => $inputArtifact) {
+                    $inputArtifactNeedsToBeDeleted = false;
+                    $artifactFilePath = null;
 
-                if (gettype($inputArtifact) == "object" && !in_array($inputArtifact->name, (array)$block->getInputArtifacts())) {
-                    $inputArtifactNeedsToBeDeleted = true;
-                    $artifactFilePath = str_replace("/images/artifacts/", "", $inputArtifact->path);
-                } else if (gettype($inputArtifact) !== "object" && !in_array($inputArtifact, (array)$block->getInputArtifacts()))
-                    $inputArtifactNeedsToBeDeleted = true;
+                    if (gettype($inputArtifact) == "object" && !in_array($inputArtifact->name, (array)$block->getInputArtifacts())) {
+                        $inputArtifactNeedsToBeDeleted = true;
+                        $artifactFilePath = str_replace("/images/artifacts/", "", $inputArtifact->path);
+                    } else if (gettype($inputArtifact) !== "object" && !in_array($inputArtifact, (array)$block->getInputArtifacts()))
+                        $inputArtifactNeedsToBeDeleted = true;
 
-                if ($inputArtifactNeedsToBeDeleted) {
-                    unset($task->inputArtifacts[$key]);
+                    if ($inputArtifactNeedsToBeDeleted) {
+                        unset($task->inputArtifacts[$key]);
 
-                    if ($artifactFilePath) {
-                        $fileSystem = new Filesystem();
-                        $fileSystem->remove($this->parameterBag->get('kernel.project_dir') . "/public/images/artifacts/" . $artifactFilePath);
+                        if ($artifactFilePath) {
+                            $fileSystem = new Filesystem();
+                            $fileSystem->remove($this->parameterBag->get('kernel.project_dir') . "/public/images/artifacts/" . $artifactFilePath);
+                        }
+
                     }
-
                 }
             }
+
+            //Check if output artifact needs to be added
+            foreach ($block->getOutputArtifacts() as $artifact) {
+                $outputArtifactExist = false;
+                foreach ($task->outputArtifacts as $outputArtifact) {
+                    if (gettype($outputArtifact) == "object" && $outputArtifact->name == $artifact)
+                        $outputArtifactExist = true;
+                    else if ($outputArtifact == $artifact)
+                        $outputArtifactExist = true;
+                }
+                if (!$outputArtifactExist) {
+                    $foo = (array)$task;
+                    $foo['outputArtifacts'] = gettype($foo['outputArtifacts']) == "object" ? (array)($foo['outputArtifacts']) : $foo['outputArtifacts'];
+                    array_push($foo['outputArtifacts'], $artifact);
+                    $task = (object)$foo;
+                }
+            }
+
+            //Check if output artifact needs to deleted
+            if (property_exists($task, "outputArtifacts")) {
+                foreach ($task->outputArtifacts as $key => $outputArtifact) {
+                    $outputArtifactNeedsToBeDeleted = false;
+                    $artifactFilePath = null;
+
+                    if (gettype($outputArtifact) == "object" && !in_array($outputArtifact->name, (array)$block->getOutputArtifacts())) {
+                        $outputArtifactNeedsToBeDeleted = true;
+                        $artifactFilePath = str_replace("/images/artifacts/", "", $outputArtifact->path);
+                    } else if (gettype($outputArtifact) !== "object" && !in_array($outputArtifact, (array)$block->getOutputArtifacts()))
+                        $outputArtifactNeedsToBeDeleted = true;
+
+                    if ($outputArtifactNeedsToBeDeleted) {
+                        unset($task->outputArtifacts[$key]);
+
+                        if ($artifactFilePath) {
+                            $fileSystem = new Filesystem();
+                            $fileSystem->remove($this->parameterBag->get('kernel.project_dir') . "/public/images/artifacts/" . $artifactFilePath);
+                        }
+
+                    }
+                }
+            }
+
 
             array_push($actualizedTasks, $task);
         }
