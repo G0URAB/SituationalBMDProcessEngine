@@ -120,7 +120,8 @@ class BmdGraphController extends AbstractController
                 return $this->render('bmd_graphs/update.html.twig', [
                     'processTypes' => $graphService->getAllProcessTypes(),
                     'situationalFactors' => $graphService->getSituationalChoices(),
-                    'form' => $form->createView()
+                    'form' => $form->createView(),
+                    'graph'=>$bmdGraph
                 ]);
             }
 
