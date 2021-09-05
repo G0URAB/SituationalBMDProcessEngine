@@ -21,7 +21,7 @@ class MethodBuildingBlock
     private $id;
 
     /**
-     * @ORM\OneToOne(targetEntity="Process", cascade={"persist","remove"})
+     * @ORM\OneToOne(targetEntity="Process", cascade={"persist"})
      */
     private $process;
 
@@ -41,12 +41,12 @@ class MethodBuildingBlock
     private $situationalFactors;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Role", cascade={"persist","remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\Role", cascade={"persist"})
      */
     private $roles;
 
     /**
-     * @ORM\ManyToMany(targetEntity="App\Entity\Tool", cascade={"persist","remove"})
+     * @ORM\ManyToMany(targetEntity="App\Entity\Tool", cascade={"persist"})
      */
     private $tools;
 
