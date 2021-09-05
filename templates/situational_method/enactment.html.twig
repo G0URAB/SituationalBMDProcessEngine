@@ -595,7 +595,7 @@
                         });
                     }
 
-                    $("#name-of-method-block").html("<b>Name of method block::</b> " + task.label);
+                    $("#name-of-method-block").html("<b>Name of method block::</b> "+ '<a target="_blank" href="/method/building/block/'+task.tableId+'">'+task.label+"</a>");
                     for (let [key, value] of Object.entries(task)) {
                         if (key === 'inputArtifacts' && task[key] !== "") {
                             task[key].forEach(function (artifact, index) {

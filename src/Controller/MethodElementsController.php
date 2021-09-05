@@ -421,7 +421,7 @@ class MethodElementsController extends AbstractController
     }
 
     /**
-     * @Route("/method_elements/situationa_factor/view/{name?}", name="view_situational_factor")
+     * @Route("/method_elements/situational_factor/view/{name?}", name="view_situational_factor")
      * @param string $name
      * @return Response
      */

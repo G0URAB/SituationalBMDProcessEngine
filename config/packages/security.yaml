@@ -42,7 +42,11 @@ security:
         - { path: ^/situational_method/show, roles: [ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER] }
         - { path: ^/situational_method/modify, roles: ROLE_METHOD_ENGINEER }
         - { path: ^/enactment, roles: [ROLE_PROJECT_MANAGER, ROLE_PROJECT_TEAM_MEMBER ]}
-        - { path: ^(/method_elements/process_type/view/)\w+$, roles: ROLE_PROJECT_TEAM_MEMBER }
+        - { path: ^(/method_elements/process/view/), roles: ROLE_PROJECT_TEAM_MEMBER }
+        - { path: ^(/method_elements/process_type/view/), roles: ROLE_PROJECT_TEAM_MEMBER }
+        - { path: ^(/method_elements/situational_factor/view/), roles: ROLE_PROJECT_TEAM_MEMBER }
+        - { path: ^(/method_elements/role/view/), roles: ROLE_PROJECT_TEAM_MEMBER }
+        - { path: ^(/method_elements/artifact/view/), roles: ROLE_PROJECT_TEAM_MEMBER }
         - { path: ^/method_elements, roles: ROLE_METHOD_ENGINEER }
         - { path: ^(/method/building/block/)\d+$, roles: ROLE_PROJECT_TEAM_MEMBER }
         - { path: ^/method/building/block, roles: ROLE_METHOD_ENGINEER }
