@@ -236,14 +236,6 @@ class MethodConstructionController extends AbstractController
     public function modifySituationalMethod(Request $request, DataService $dataService, int $id): Response
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
-        $entityManager = $this->getDoctrine()->getManager();
-
-        if($request->isXmlHttpRequest() && $request->get("set_enactment"))
-        {
-            $enactment = $request->get("set_enactment")=="true";
-            $situationalMethod->setEnacted($enactment);
-            $entityManager->flush();
-        }
 
         $tools = [];
         $roles = [];
@@ -290,5 +282,28 @@ class MethodConstructionController extends AbstractController
         $entityManager->flush();
 
         return $this->redirectToRoute("situational_methods");
+    }
+
+
+    /**
+     * @Route("/set_enactment/{id}", name="set_enactment")
+     * @param Request $request
+     * @param int $id
+     * @return Response
+     */
+    public function setEnactment(Request $request, int $id)
+    {
+        $entityManager = $this->getDoctrine()->getManager();
+        $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+        if($request->isXmlHttpRequest() && $request->get("set_enactment"))
+        {
+            $enactment = $request->get("set_enactment")=="true";
+            $situationalMethod->setEnacted($enactment);
+            $entityManager->flush();
+
+            return new JsonResponse(['msg'=>"Enactment Updated"]);
+        }
+
+        return new Response("Invalid Request", 400);
     }
 }
