@@ -114,6 +114,25 @@ class MethodConstructionController extends AbstractController
 
             }
 
+            foreach ($processType->getChildProcessKinds() as $childProcessType) {
+
+                foreach ($childProcessType->getProcesses() as $process) {
+
+                    /**
+                     * @var MethodBuildingBlock $methodBlock
+                     */
+                    $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findOneBy([
+                        'process' => $process
+                    ]);
+
+                    if ($dataService->checkIfMethodBlockIsSituationSpecific($methodBlock, $bmdGraph)) {
+                        if ($methodBlock)
+                            $situationSpecificMethodBuildingBlocks[] = $dataService->getMethodBlockObject($methodBlock);
+                    }
+
+                }
+            }
+
             //Also check which other processes can also be used in this process type
             $allProcesses = $this->getDoctrine()->getRepository(Process::class)->findAll();
             foreach ($allProcesses as $process) {
