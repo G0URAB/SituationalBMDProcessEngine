@@ -430,6 +430,14 @@
                                   </button>
                                 </div>
                                 `;
+        let artifactOutputHTMLWithOutRemoveButton = (artifactType, artifact, nodeId, filePath) => `
+                                <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+
+                                  <span style="display: flex; flex-direction: column; justify-content: center; color: #010668; margin-left:1%;">
+                                      <a target="_blank" href="${filePath}" id="${nodeId}">${artifact}</a>
+                                  </span>
+                                </div>
+                                `;
 
         let toBeFilledUpRole = (key, nodeId, selectId) => `
                                <div class="to-be-filled-role d-flex flex-row flex-wrap mb-3">
@@ -603,7 +611,9 @@
                                 let frontendId = Date.now() + index;
 
                                 if (typeof artifact === 'object') {
-                                    let uploadedArtifact = artifactOutputHTML('inputArtifact', artifact.name, nodeId, artifact.path, frontendId);
+                                    let uploadedArtifact = userHasWritePermission(task) ?
+                                        artifactOutputHTML('inputArtifact', artifact.name, nodeId, artifact.path, frontendId) :
+                                        artifactOutputHTMLWithOutRemoveButton('inputArtifact', artifact.name, nodeId, artifact.path);
                                     $(".input-artifacts").append(uploadedArtifact);
 
                                     /* The frontendId here is assigned to a delete button */
@@ -624,7 +634,9 @@
                                 let frontendId = Date.now() + index + 100;
 
                                 if (typeof artifact === 'object') {
-                                    let uploadedArtifact = artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path, frontendId);
+                                    let uploadedArtifact = userHasWritePermission(task) ?
+                                        artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path, frontendId) :
+                                        artifactOutputHTMLWithOutRemoveButton('outputArtifact', artifact.name, nodeId, artifact.path);;
                                     $(".output-artifacts").append(uploadedArtifact);
 
                                     /* The frontendId here is assigned to a delete button */
