@@ -58,10 +58,23 @@
                         <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
                         <b>Situational Factors:</b>
                     </div>
-                    <ul style="height:100px;max-height: 100px; overflow: auto">
+                    <ul style="height:100px;max-height: 100px; overflow: auto; margin-left: 5%;">
                         {% for factor in block.situationalFactors %}
                             <li>
                                 <a class="text-dark" target="_blank" href="{{ path('view_situational_factor',{'name':factor}) }}">{{ factor }}</a>
+                            </li>
+                        {% endfor %}
+                    </ul>
+                </li>
+                <li class="list-group-item d-flex flex-column">
+                    <div class="d-flex flex-row">
+                        <i class="fa fa-briefcase" style="font-size:24px; width: 10%;"></i>
+                        <b>Business Model Segments:</b>
+                    </div>
+                    <ul style="height:100px;max-height: 100px; overflow: auto; margin-left: 5%;">
+                        {% for segment in block.businessModelSegments %}
+                            <li>
+                                <a class="text-dark" target="_blank" href="{{ path('view_business_model_segment',{'name':segment}) }}">{{ segment }}</a>
                             </li>
                         {% endfor %}
                     </ul>

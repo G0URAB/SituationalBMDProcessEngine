@@ -1,4 +1,4 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_fluid.html.twig' %}
 
 {% block title %}Method Building Blocks{% endblock %}
 
@@ -11,11 +11,11 @@
         <a href="{{ path('create_method_building_block') }}" class="btn btn-dark">Create method building block</a>
     </div>
 
-    <div><span>Total Method Building Blocks: <b>{{ buildingBlocks|length }}</b></span></div>
-    <div class="mt-4 d-flex flex-row flex-wrap">
+    <div class="d-flex flex-row justify-content-center mt-3"><span>Total Method Building Blocks: <b>{{ buildingBlocks|length }}</b></span></div>
+    <div class="mt-3 d-flex flex-row flex-wrap justify-content-center">
 
         {% for block in buildingBlocks %}
-            <div class="card" style="width: 31rem; margin:2%; background: #88b2d7;">
+            <div class="card" style="width: 40rem; margin:2%; background: #88b2d7;">
                 <div class="card-header d-flex flex-row" style="max-height: 50px; overflow: auto; min-height: 50px">
                     <i class="fa fa-recycle" style="font-size:24px; width: 10%;"></i>
                     <span><b>Process:</b> <i style="font-size: large"><a target="_blank" class="text-white"
@@ -65,10 +65,23 @@
                             <i class="fa fa-globe" style="font-size:24px; width: 10%;"></i>
                             <b>Situational Factors:</b>
                         </div>
-                        <ul style="height:100px;max-height: 100px; overflow: auto">
+                        <ul style="height:100px;max-height: 100px; overflow: auto; margin-left: 5%;">
                             {% for factor in block.situationalFactors %}
                                 <li>
                                     <a class="text-dark" target="_blank" href="{{ path('view_situational_factor',{'name':factor}) }}">{{ factor }}</a>
+                                </li>
+                            {% endfor %}
+                        </ul>
+                    </li>
+                    <li class="list-group-item d-flex flex-column">
+                        <div class="d-flex flex-row">
+                            <i class="fa fa-briefcase" style="font-size:24px; width: 10%;"></i>
+                            <b>Business Model Segments:</b>
+                        </div>
+                        <ul style="height:100px;max-height: 100px; overflow: auto; margin-left: 5%;">
+                            {% for segment in block.businessModelSegments %}
+                                <li>
+                                    <a class="text-dark" target="_blank" href="{{ path('view_business_model_segment',{'name':segment}) }}">{{ segment }}</a>
                                 </li>
                             {% endfor %}
                         </ul>

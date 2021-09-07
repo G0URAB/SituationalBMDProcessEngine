@@ -3,12 +3,14 @@
 namespace App\Controller;
 
 use App\Entity\Artifact;
+use App\Entity\BusinessModelDefinition;
 use App\Entity\ProcessKind;
 use App\Entity\Process;
 use App\Entity\Role;
 use App\Entity\SituationalFactor;
 use App\Entity\Tool;
 use App\Form\ArtifactType;
+use App\Form\BusinessModelDefinitionType;
 use App\Form\ProcessKindType;
 use App\Form\ProcessType;
 use App\Form\RoleType;
@@ -16,6 +18,7 @@ use App\Form\SituationalFactorType;
 use App\Form\ToolType;
 use App\Service\DataService;
 use Doctrine\ORM\EntityManagerInterface;
+use stdClass;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\SubmitType;
@@ -45,13 +48,28 @@ class MethodElementsController extends AbstractController
      */
     public function index(DataService $dataService): Response
     {
+        $businessModelSegments = [];
+        foreach ($dataService->getAllBusinessModelDefinitions() as $businessModelDefinition)
+        {
+            foreach ($businessModelDefinition->getSegments() as $segment)
+            {
+                $customSegment = new stdClass();
+                $customSegment->type = $businessModelDefinition->getType();
+                $customSegment->name = $segment;
+                $customSegment->id = $businessModelDefinition->getId();
+                $businessModelSegments[] = $customSegment;
+            }
+        }
+
+
         return $this->render('method_elements/index.html.twig', [
             'artifacts' => $dataService->getAllArtifacts(),
             'processes' => $dataService->getAllProcesses(),
             'processTypes' => $dataService->getAllProcessTypes(),
             'roles' => $dataService->getAllRoles(),
             'situationalFactors' => $dataService->getAllSituationalFactors(),
-            'tools' => $dataService->getAllTools()
+            'tools' => $dataService->getAllTools(),
+            'businessModelSegments' => $businessModelSegments
         ]);
     }
 
@@ -487,6 +505,77 @@ class MethodElementsController extends AbstractController
         }
 
         return $this->render('method_elements/tools/update.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/business_model_segment/create", name="create_business_model_segment")
+     * @param Request $request
+     * @param DataService $dataService
+     * @return Response
+     */
+    public function createBusinessModelSegment(Request $request, DataService $dataService): Response
+    {
+        $form = $this->createMultiEntityForm('businessModelSegments', BusinessModelDefinitionType::class);
+        $form->handleRequest($request);
+        if ($form->isSubmitted() && $form->isValid()) {
+            foreach ($form->getData()['businessModelSegments'] as $businessModelDefinition) {
+                foreach ($dataService->getAllBusinessModelDefinitions() as $existingBusinessModelDefinition) {
+                    if (strcasecmp($existingBusinessModelDefinition->getType(), $businessModelDefinition->getType()) === 0) {
+                        $form->addError(new FormError($businessModelDefinition->getType() . ' already exists'));
+                        return $this->render('method_elements/business_model_segments/create.html.twig', [
+                            'form' => $form->createView()
+                        ]);
+                    }
+                }
+                $this->entityManager->persist($businessModelDefinition);
+                $this->entityManager->flush();
+            }
+            return $this->redirectToRoute("method_elements");
+        }
+
+        return $this->render('method_elements/business_model_segments/create.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/business_model_segment/edit/{id?}", name="edit_business_model_segment")
+     * @param Request $request
+     * @param $id
+     * @return Response
+     */
+    public function editBusinessModelSegment(Request $request, $id)
+    {
+        $businessModelDefinition = $this->entityManager->getRepository(BusinessModelDefinition::class)->find($id);
+        $form = $this->createForm(BusinessModelDefinitionType::class, $businessModelDefinition);
+
+        $form->handleRequest($request);
+
+        if ($form->isSubmitted() && $form->isValid()) {
+            $businessModelDefinition->setSegments($businessModelDefinition->getSegments()->toArray());
+            $this->entityManager->flush();
+            return $this->redirectToRoute("method_elements");
+        }
+
+        return $this->render('method_elements/business_model_segments/update.html.twig', [
+            'form' => $form->createView()
+        ]);
+    }
+
+    /**
+     * @Route("/method_elements/business_model_segment/view/{name?}", name="view_business_model_segment")
+     * @param string $name
+     * @return Response
+     */
+    public function viewBusinessModelSegment(string $name)
+    {
+        $name = trim(explode(":", $name)[0]);
+        $definition = $this->getDoctrine()->getRepository(BusinessModelDefinition::class)->findOneBy(['type'=>$name]);
+        $form = $this->createForm(BusinessModelDefinitionType::class, $definition);
+
+        return $this->render('method_elements/business_model_segments/view.html.twig', [
             'form' => $form->createView()
         ]);
     }

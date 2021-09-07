@@ -1,0 +1,103 @@
+{% extends 'base.html.twig' %}
+
+{% block title %} Create Business Model Segments {% endblock %}
+
+{% block body %}
+
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
+
+    {# Form box #}
+    <div class="card mt-4" data-prototype="{{ form_widget(form.businessModelSegments.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.businessModelSegments | length }}">
+        <div class="card-header bg-danger">
+            <b>Create New Business Model Segments</b>
+        </div>
+        <div class="card-body">
+            {{ form_errors(form) }}
+            {{ form_start(form) }}
+            <div class="d-flex flex-row justify-content-center">
+                <button type="button" class="btn btn-success" id="add-new-businessModelDefinition">Add New Business Model Definition
+                </button>
+            </div>
+
+
+            {{ form_row(form.businessModelSegments) }}
+
+
+            {{ form_end(form) }}
+
+        </div>
+    </div>
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        let card = $(".card");
+        let businessModelSegments = $("#form_businessModelSegments");
+        let removeBusinessModelDefinitionButton = `<div class="d-flex flex-row justify-content-center m-1">
+                                       <button type="button" class="btn btn-danger">Remove Business Model Definition</button>
+                                   </div>`;
+
+
+        $("#add-new-businessModelDefinition").on("click", function () {
+            let businessModelSegmentCounter = card.data("index");
+            let artifactPrototype = card.data("prototype");
+            let newArtifact = artifactPrototype.replace(/__name__/g, businessModelSegmentCounter);
+            businessModelSegments.append(newArtifact);
+            $("#form_businessModelSegments_" + businessModelSegmentCounter).append(removeBusinessModelDefinitionButton);
+            card.data('index', businessModelSegmentCounter + 1);
+
+            formatBusinessModelSegmentSections(businessModelSegmentCounter);
+            listenForRemoval();
+
+            let segmentsContainer = $("#form_businessModelSegments_" + businessModelSegmentCounter + "_segments");
+            let segmentPrototype = (factorCount, variantCount) => `
+                    <div class="form-group d-flex flex-row">
+                      <input type="text" id="form_businessModelSegments_0_segments_0" name="form[businessModelSegments][${factorCount}][segments][${variantCount}]" required="required" class="form-control" />
+                      <div><button type="button" class="btn btn-danger">Remove</button></div>
+                    </div>`;
+            let addSegmentButton = $("#form_businessModelSegments_" + businessModelSegmentCounter + "_add_segment");
+            addSegmentButton.on("click", function () {
+                let totalSegments = segmentsContainer.children().length;
+                segmentsContainer.append(segmentPrototype(businessModelSegmentCounter, totalSegments));
+                listenForRemoval();
+            });
+        });
+
+        if (card.data("index") !== 0) {
+            for (let i = 0; i < card.data("index"); i++) {
+                formatBusinessModelSegmentSections(i);
+                $("#form_businessModelSegments_" + i).append(removeBusinessModelDefinitionButton);
+                listenForRemoval();
+            }
+        }
+
+        function formatBusinessModelSegmentSections(counter) {
+            $("#form_businessModelSegments_" + counter).css({
+                "padding": "2%",
+                "border": "1px solid #cacaca",
+                "border-radius": "1%",
+                "margin-top": "2%",
+                "margin-bottom": "2%"
+            });
+        }
+        function listenForRemoval()
+        {
+            $(".btn-danger").on("click", function () {
+                $(this).parent().parent().remove();
+            });
+        }
+
+    </script>
+{% endblock %}

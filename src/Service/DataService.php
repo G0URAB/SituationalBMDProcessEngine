@@ -4,6 +4,7 @@ namespace App\Service;
 
 use App\Entity\Artifact;
 use App\Entity\BmdGraph;
+use App\Entity\BusinessModelDefinition;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
@@ -31,6 +32,7 @@ class DataService
     private $situationalFactors;
     private $situationalMethods;
     private $parameterBag;
+    private $businessModelDefinitions;
 
     public function __construct(EntityManagerInterface $em, ParameterBagInterface $parameterBag)
     {
@@ -43,7 +45,7 @@ class DataService
         $this->tools = $em->getRepository(Tool::class)->findAll();
         $this->situationalFactors = $em->getRepository(SituationalFactor::class)->findAll();
         $this->situationalMethods = $em->getRepository(SituationalMethod::class)->findAll();
-
+        $this->businessModelDefinitions = $em->getRepository(BusinessModelDefinition::class)->findAll();
     }
 
     public function getAllProcessTypes()
@@ -54,6 +56,11 @@ class DataService
     public function getAllSituationalFactors()
     {
         return $this->situationalFactors;
+    }
+
+    public function getAllBusinessModelDefinitions()
+    {
+        return $this->businessModelDefinitions;
     }
 
     public function getAllProcesses()

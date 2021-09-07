@@ -751,13 +751,13 @@
                             task.status = 0;
                             node.color = "red";
                             methodBlockPopup.find('input[type="file"]').attr('disabled', true);
-                            makeConsecutiveTasksRed(task);
+                            changeAllConsecutiveTasksColorToRed(task);
                         } else if (status === 1) {
                             task.color = "rgba(248,151,8,0.76)";
                             task.status = 1;
                             node.color = "rgba(248,151,8,0.76)";
                             methodBlockPopup.find('input[type="file"]').attr('disabled', false);
-                            makeConsecutiveTasksRed(task);
+                            changeAllConsecutiveTasksColorToRed(task);
                         } else if (status === 2) {
 
                             let outputArtifactsThatHasNotBeenUploaded = []
@@ -1037,10 +1037,15 @@
                     }
                 });
 
-                task.color = "rgba(248,151,8,0.76)";
-                task.status = 1;
-                node.color = "rgba(248,151,8,0.76)";
+                if(parseInt(task.status)!==0)
+                {
+                    task.color = "rgba(248,151,8,0.76)";
+                    task.status = 1;
+                    node.color = "rgba(248,151,8,0.76)";
+                }
+
                 changeParentStatusAfterUpdateOfTaskStatus(task);
+                changeAllConsecutiveTasksColorToRed(task);
                 updateJsonNodes();
                 updateJsonTasks();
             });
@@ -1407,31 +1412,51 @@
             return " (" + dayOfMonth + "-" + months[month] + "-" + year + " " + hour + ":" + minutes + ":" + seconds + ")";
         }
 
-        function checkIfPreviousTasksHaveBeenFinished(canTaskBeStarted, task)
+        function checkIfPreviousTasksHaveBeenFinished(canTaskBeStarted, step)
         {
-            let previousTask = null;
+            let previousNode = null;
             edges.forEach(function (edge, index) {
-                if (edge.arrows === "to" && edge.color === "blue" && parseInt(edge.to) === parseInt(task.id) && !('smooth' in edge)) {
-                    previousTask = getTaskObject(parseInt(edge.from));
+                if (edge.arrows === "to" && edge.color === "blue" && parseInt(edge.to) === parseInt(step.id) && !('smooth' in edge)) {
+                    previousNode = getNodeObject(parseInt(edge.from));
+                }
+            });
+            
+            if(previousNode!==null && (!("color" in previousNode) || previousNode.color!=="#54f856"))
+                canTaskBeStarted.status = false;
+        }
+
+        function changeAllConsecutiveTasksColorToRed(currentTask) {
+            let rootOfTheTask = getParent(currentTask.id);
+            let nextStep = null;
+            let currentStep = rootOfTheTask.shape==="diamond" ? rootOfTheTask: currentTask;
+            currentStep = getNodeObject(currentStep.id);
+            edges.forEach(function (edge, index) {
+                if (edge.arrows === "to" && edge.color === "blue" && parseInt(edge.from) === parseInt(currentStep.id) && !('smooth' in edge)) {
+                    nextStep = getNodeObject(parseInt(edge.to));
                 }
             });
 
-            //If the previous node is not diamond and it is still pending or under progress then current task can not start
-            if (previousTask!==null && previousTask.shape !== "diamond" && (parseInt(previousTask.status) !== 2 || !('status' in previousTask)))
-                canTaskBeStarted.status = false;
-            else if (previousTask!==null && previousTask.shape === "diamond") {
-                let atleastOneTaskPending = false;
-                getChildren(previousTask.id).forEach(function (childNode, index) {
-                    let respectiveTask = getTaskObject(parseInt(childNode.id));
-                    if (respectiveTask.status !== 2 || !('status' in respectiveTask)) {
-                        atleastOneTaskPending = true;
-                    }
-                });
-                if (atleastOneTaskPending)
-                    canTaskBeStarted.status = false;
+            if(nextStep!==null)
+            {
+                if(nextStep.shape==="diamond"){
+                    nextStep.color="red";
+                    getChildren(nextStep.id).forEach(function (childNode,index) {
+                        childNode.color="red";
+                        let respectiveTask = getTaskObject(childNode.id);
+                        respectiveTask.color= "red";
+                        respectiveTask.status = 0;
+                    });
+                }
+                else {
+                    nextStep.color="red";
+                    let respectiveTask = getTaskObject(nextStep.id);
+                    respectiveTask.color= "red";
+                    respectiveTask.status = 0;
+                }
+                changeAllConsecutiveTasksColorToRed(nextStep);
             }
+            initializeGraph(true);
         }
-
 
     </script>
 {% endblock %}

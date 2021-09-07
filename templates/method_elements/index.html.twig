@@ -8,21 +8,15 @@
         {{ include('@includes/method_base_nav.html.twig') }}
     </div>
 
-    <div class="w-100 d-flex flex-row justify-content-around" style="margin-top:5%">
-        <div class="d-flex flex-column justify-content-around align-items-center" style="width: 33%">
-            <a href="{{ path('create_process') }}" class="btn btn-sm btn-success"> Create New Processes</a>
-            <a href="{{ path('create_role') }}" class="btn btn-sm btn-warning mt-1"> Create New Roles</a>
+    <div class="w-100 d-flex flex-row justify-content-around flex-wrap" style="margin-top:2%">
 
-        </div>
-        <div class="d-flex flex-column justify-content-around align-items-center" style="width: 33%">
-            <a href="{{ path('create_artifact') }}" class="btn btn-sm btn-info"> Create New Artifacts</a>
-            <a href="{{ path('create_tool') }}" class="btn btn-sm btn-dark mt-1"> Create New Tools</a>
-        </div>
-        <div class="d-flex flex-column justify-content-around align-items-center" style="width: 33%">
-
-            <a href="{{ path('create_process_type') }}" class="btn btn-sm btn-primary"> Create New Process Types</a>
-            <a href="{{ path('create_situational_factor') }}" class="btn btn-sm btn-secondary mt-1"> Create New Situational Factors</a>
-        </div>
+            <a href="{{ path('create_process') }}" class="btn  btn-success"> Create New Processes</a>
+            <a href="{{ path('create_role') }}" class="btn  btn-warning"> Create New Roles</a>
+            <a href="{{ path('create_artifact') }}" class="btn  btn-info"> Create New Artifacts</a>
+            <a href="{{ path('create_tool') }}" class="btn btn-dark"> Create New Tools</a>
+            <a href="{{ path('create_process_type') }}" class="btn  btn-primary"> Create New Process Types</a>
+            <a href="{{ path('create_situational_factor') }}" class="btn btn-secondary"> Create New Situational Factors</a>
+            <a href="{{ path('create_business_model_segment') }}" class="btn btn-danger"> Create New Business Model Segments </a>
     </div>
 
     <div class="card mt-4">
@@ -187,6 +181,35 @@
                         <td>{{ factor.name }}</td>
                         <td>{{ factor.implodedVariants }}</td>
                         <td><a href="{{ path('delete_method_element',{'id':factor.id,'type':'factor'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
+                    </tr>
+                {% endfor %}
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+
+    <div class="card mt-5">
+        <div class="card-header bg-danger">
+            <b>Total Business Model Segments : {{ businessModelSegments|length }}</b>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm table-danger">
+                <thead class="text-center">
+                <tr>
+                    <th scope="col">Index</th>
+                    <th scope="col">Segment Name</th>
+                    <th scope="col">Business Model Type</th>
+                    <th scope="col">Delete</th>
+                </tr>
+                </thead>
+                <tbody class="text-center"> {# test #}
+                {% for segment in businessModelSegments %}
+                    <tr>
+                        <td>{{ loop.index }} </td>
+                        <td>{{ segment.name }}</td>
+                        <td><a href="{{ path('edit_business_model_segment',{'id': segment.id}) }}">{{ segment.type }}</a></td>
+                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

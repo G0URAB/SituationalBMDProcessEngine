@@ -57,6 +57,13 @@ class MethodBuildingBlockType extends AbstractType
                 'placeholder' => 'All situations',
                 'required' => true
             ])
+            ->add('businessModelSegments', ChoiceType::class, [
+                'label' => 'Business Model Segments',
+                'choices' => $options['businessSegmentChoices'],
+                'multiple' => true,
+                'placeholder' => 'All Business Model Segments',
+                'required' => true
+            ])
             ;
     }
 
@@ -65,7 +72,8 @@ class MethodBuildingBlockType extends AbstractType
         $resolver->setDefaults([
             'data_class' => MethodBuildingBlock::class,
             'situationalChoices' => null,
-            'artifactChoices' => null
+            'artifactChoices' => null,
+            'businessSegmentChoices' => null
         ]);
     }
 }

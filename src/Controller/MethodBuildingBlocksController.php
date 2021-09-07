@@ -3,9 +3,11 @@
 namespace App\Controller;
 
 use App\Entity\Artifact;
+use App\Entity\BusinessModelDefinition;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\SituationalFactor;
+use App\Form\BusinessModelDefinitionType;
 use App\Form\MethodBuildingBlockType;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -121,9 +123,11 @@ class MethodBuildingBlocksController extends AbstractController
     public function getFormChoices()
     {
         $situationalFactors = $this->getDoctrine()->getRepository(SituationalFactor::class)->findAll();
+        $businessModelDefinitions = $this->getDoctrine()->getRepository(BusinessModelDefinition::class)->findAll();
         $artifacts = $this->getDoctrine()->getRepository(Artifact::class)->findAll();
         $situationalChoices = [];
         $artifactChoices = [];
+        $businessSegmentChoices = [];
 
         foreach ($artifacts as $artifact)
             $artifactChoices[$artifact->getName()] = $artifact->getName();
@@ -133,12 +137,19 @@ class MethodBuildingBlocksController extends AbstractController
                 $situationalChoices [$situationalFactor->getName() . " : " . $variant] = $situationalFactor->getName() . " : " . $variant;
             }
         }
+        foreach ($businessModelDefinitions as $businessModelDefinition) {
+            foreach ($businessModelDefinition->getSegments() as $segment) {
+                $businessSegmentChoices [$businessModelDefinition->getType() . " : " . $segment] = $businessModelDefinition->getType() . " : " . $segment;
+            }
+        }
         asort($situationalChoices);
         asort($artifactChoices);
+        asort($businessSegmentChoices);
 
         return [
             'situationalChoices' => $situationalChoices,
-            'artifactChoices' => $artifactChoices
+            'artifactChoices' => $artifactChoices,
+            'businessSegmentChoices' => $businessSegmentChoices
         ];
     }
 

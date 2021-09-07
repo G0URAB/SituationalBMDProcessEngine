@@ -41,6 +41,11 @@ class MethodBuildingBlock
     private $situationalFactors;
 
     /**
+     * @ORM\Column(type="array")
+     */
+    private $businessModelSegments;
+
+    /**
      * @ORM\ManyToMany(targetEntity="App\Entity\Role", cascade={"persist"})
      */
     private $roles;
@@ -56,6 +61,7 @@ class MethodBuildingBlock
         $this->inputArtifacts = new ArrayCollection();
         $this->outputArtifacts = new ArrayCollection();
         $this->situationalFactors = new ArrayCollection();
+        $this->businessModelSegments = new ArrayCollection();
         $this->tools = new ArrayCollection();
         $this->roles = new ArrayCollection();
     }
@@ -110,6 +116,16 @@ class MethodBuildingBlock
     public function getSituationalFactors()
     {
         return gettype($this->situationalFactors)=="array"? $this->situationalFactors: $this->situationalFactors->toArray();
+    }
+
+    public function setBusinessModelSegments(array $businessModelSegments)
+    {
+        $this->businessModelSegments = new ArrayCollection($businessModelSegments);
+    }
+
+    public function getBusinessModelSegments()
+    {
+        return gettype($this->businessModelSegments)=="array"? $this->businessModelSegments: ($this->businessModelSegments? $this->businessModelSegments->toArray():[]);
     }
 
     public function getImplodedSituationalFactors()

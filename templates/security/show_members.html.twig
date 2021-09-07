@@ -21,6 +21,21 @@
         <a href="{{ path('change_own_password') }}" class="btn btn-warning ml-3">Change your password</a>
     </div>
 
+    <div class="d-flex flex-row flex-wrap justify-content-around mt-4">
+        <span>
+            <b>My Name :</b>
+            {{ app.user.employeeName }}
+        </span>
+        <span>
+            <b>My Email :</b>
+            {{ app.user.email }}
+        </span>
+        <span>
+            <b>My Roles :</b>
+            {{ app.user.implodedRoles }}
+        </span>
+    </div>
+
     {% if is_granted('ROLE_SUPER_ADMIN') or is_granted('ROLE_PROJECT_MANAGER') %}
         <div class="card mt-4">
             <div class="card-header bg-dark text-white">
