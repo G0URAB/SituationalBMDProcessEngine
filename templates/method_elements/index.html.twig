@@ -200,16 +200,14 @@
                     <th scope="col">Index</th>
                     <th scope="col">Segment Name</th>
                     <th scope="col">Business Model Type</th>
-                    <th scope="col">Delete</th>
                 </tr>
                 </thead>
-                <tbody class="text-center"> {# test #}
+                <tbody class="text-center">
                 {% for segment in businessModelSegments %}
                     <tr>
                         <td>{{ loop.index }} </td>
                         <td>{{ segment.name }}</td>
                         <td><a href="{{ path('edit_business_model_segment',{'id': segment.id}) }}">{{ segment.type }}</a></td>
-                        <td><a href="#" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>
                 {% endfor %}
                 </tbody>

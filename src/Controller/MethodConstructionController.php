@@ -197,7 +197,7 @@ class MethodConstructionController extends AbstractController
             $entityManager = $this->getDoctrine()->getManager();
 
             /* Check if a business model type for the platform owner exists. If not then create one */
-            $businessModel = $entityManager->getRepository(BusinessModel::class)->findOneBy(['platformOwner'=>$platformOwner, 'type'=>$businessModelType]);
+            $businessModel = $entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=>$businessModelType]);
             if(!$businessModel)
             {
                 $businessModel = new BusinessModel();
@@ -208,7 +208,6 @@ class MethodConstructionController extends AbstractController
                     $businessModelSegment->setName($segment);
                     $businessModel->addSegment($businessModelSegment);
                 }
-                $businessModel->setPlatformOwner($platformOwner);
                 $businessModel->setType($businessModelType);
                 $entityManager->persist($businessModel);
             }

@@ -5,12 +5,11 @@ namespace App\Entity;
 use App\Repository\BusinessModelRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
-use Doctrine\ORM\Mapping\JoinColumn;
-use Doctrine\ORM\Mapping\OneToOne;
 use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
 
 /**
  * @ORM\Entity(repositoryClass=BusinessModelRepository::class)
+ * @UniqueEntity("type")
  */
 class BusinessModel
 {
@@ -21,12 +20,6 @@ class BusinessModel
      */
     private $id;
 
-    /**
-     * One Product has One Shipment.
-     * @OneToOne(targetEntity="App\Entity\User")
-     * @JoinColumn(name="user_id", referencedColumnName="id")
-     */
-    private $platformOwner;
 
     /**
      * @ORM\OneToMany(targetEntity="App\Entity\BusinessSegment", mappedBy="businessModel", cascade={"persist","remove"})
@@ -57,22 +50,6 @@ class BusinessModel
     public function setId($id): void
     {
         $this->id = $id;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPlatformOwner()
-    {
-        return $this->platformOwner;
-    }
-
-    /**
-     * @param mixed $platformOwner
-     */
-    public function setPlatformOwner($platformOwner)
-    {
-        $this->platformOwner = $platformOwner;
     }
 
 

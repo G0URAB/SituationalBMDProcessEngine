@@ -19,10 +19,11 @@
                 <a href="{{ path('enactment',{id:method.id}) }}">
                     <i class="fa fa-gears card-img-top d-flex flex-row justify-content-center mt-3" style="font-size:50px;color:#3d8aee"></i>
                 </a>
-                <div class="card-body">
+                <div class="card-body"> {#lol#}
                     <p class="card-text"><b>Method Name</b>:<br> {{ method.name }}</p>
                     <p class="card-text"><b>Platform Owner Name</b>:<br> {{ method.platformOwner.employeeName }}</p>
                     <p class="card-text"><b>Platform Owner Email</b>:<br> {{ method.platformOwner.email }}</p>
+                    <p class="card-text"><b>Business Model Type</b>:<br> {{ method.businessModelType }}</p>
                 </div>
             </div>
         {% endfor %}

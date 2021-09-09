@@ -45,6 +45,7 @@
 
             <div class="d-flex flex-row flex-wrap mt-3 justify-content-between">
                 <button type="submit" class="btn btn-primary">Save</button>
+                <a class="btn btn-warning remove-business-model-type" href="{{ path('delete_method_element',{'type':'definition','id':definition.id}) }}">Remove Business Model Type & All Segments</a>
                 <a class="btn btn-dark" href="{{ path('method_elements') }}"> Go Back To Method Elements</a>
             </div>
 
@@ -62,14 +63,15 @@
         let container = $("#segmentList");
         let card = $(".card");
         let prototype = card.data("prototype");
-        let variants = card.data("index");
+        let counter = card.data("index");
 
         let removeButton = `<div class="d-flex flex-row justify-content-center m-1">
                                        <button type="button" class="btn btn-danger">Remove</button>
                                    </div>`;
 
         $("#business_model_definition_add_segment").on("click", function () {
-            let newLi = $('<li class="d-flex flex-row align-items-center"></li>').append(prototype.replace(/__name__/g, variants));
+            counter++;
+            let newLi = $('<li class="d-flex flex-row align-items-center"></li>').append(prototype.replace(/__name__/g, counter));
             newLi.append(removeButton);
             container.append(newLi);
             listenForRemoval();
@@ -81,6 +83,16 @@
                 $(this).parent().parent().remove();
             });
         }
+
+        $(".remove-business-model-type").on("click",function (e) {
+            e.preventDefault();
+            if(confirm("Are you sure? Any existing business model of this type will also be deleted!!"))
+            {
+                console.log("came here");
+                window.location.href = $(this).attr('href');
+            }
+            return false;
+        });
 
     </script>
 {% endblock %}

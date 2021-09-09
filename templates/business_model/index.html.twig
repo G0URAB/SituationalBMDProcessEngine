@@ -1,20 +1,61 @@
-{% extends 'base.html.twig' %}
+{% extends 'base_fluid.html.twig' %}
 
-{% block title %}Hello BusinessModelController!{% endblock %}
+{% block title %}Business Model{% endblock %}
 
 {% block body %}
-<style>
-    .example-wrapper { margin: 1em auto; max-width: 800px; width: 95%; font: 18px/1.5 sans-serif; }
-    .example-wrapper code { background: #F5F5F5; padding: 2px 6px; }
-</style>
 
-<div class="example-wrapper">
-    <h1>Hello {{ controller_name }}! ✅</h1>
+    {# Warning messages #}
+    <div class="mt-4">
+        {% for label, messages in app.flashes %}
+            {% for message in messages %}
+                <div class="alert alert-{{ label }}">
+                    {{ message }}
+                </div>
+            {% endfor %}
+        {% endfor %}
+    </div>
 
-    This friendly message is coming from:
-    <ul>
-        <li>Your controller at <code><a href="{{ 'C:/wamp64/www/LightWeightEngine/src/Controller/BusinessModelController.php'|file_link(0) }}">src/Controller/BusinessModelController.php</a></code></li>
-        <li>Your template at <code><a href="{{ 'C:/wamp64/www/LightWeightEngine/templates/business_model/index.html.twig'|file_link(0) }}">templates/business_model/index.html.twig</a></code></li>
-    </ul>
-</div>
+    <div class="mt-3">
+        {{ form(business_model_choice_form) }}
+    </div>
+
+    {{ form_start(business_model_form) }}
+    <div class="mt-5">
+        {% for segment in business_model_form.segments %}
+
+            <div class="d-flex flex-column border border-primary rounded mt-2 p-3">
+                <div class="d-flex flex-row">
+                    <div style="width: 20%; min-width: 240px;">
+                        <a target="_blank" href="{{ path('view_business_model_segment',{'name': preferred_business_model_type}) }}">{{ form_widget(segment.name) }}</a>
+                    </div>
+                    <div style="width: 80%; min-width: 400px;">
+                        {{ form_widget(segment.values) }}
+                    </div>
+                </div> {# test #}
+                <div class="d-flex flex-column mt-3" style="min-width: 650px;">
+                    <span><b>Log:</b></span>
+                    {{ form_widget(segment.log) }}
+                </div>
+            </div>
+
+        {% endfor %}
+    </div>
+
+    <div class="mt-3">
+        {% if is_granted('ROLE_PLATFORM_OWNER') or is_granted('ROLE_SUPER_ADMIN') %}
+            {{ form_row(business_model_form.submit) }}
+        {% endif %}
+    </div>
+    {{ form_end(business_model_form,{render_rest:false}) }}
+
+{% endblock %}
+
+{% block javascripts %}
+    {{ parent() }}
+    <script>
+        $("#form_businessModelChoices").on("change",function () {
+            $('form[name="form"]').submit();
+        });
+    </script>
+
 {% endblock %}

@@ -3,7 +3,10 @@
 namespace App\Controller;
 
 use App\Entity\Artifact;
+use App\Entity\BusinessModel;
 use App\Entity\BusinessModelDefinition;
+use App\Entity\BusinessSegment;
+use App\Entity\MethodBuildingBlock;
 use App\Entity\ProcessKind;
 use App\Entity\Process;
 use App\Entity\Role;
@@ -551,15 +554,67 @@ class MethodElementsController extends AbstractController
         $businessModelDefinition = $this->entityManager->getRepository(BusinessModelDefinition::class)->find($id);
         $form = $this->createForm(BusinessModelDefinitionType::class, $businessModelDefinition);
 
+        $originalSegments = $businessModelDefinition->getSegments()->toArray();
+
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
+
+            /**@var BusinessModel $affectedBusinessModel **/
+            $affectedBusinessModel = $this->entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=> $businessModelDefinition->getType()]);
+
+            /* Check if any segment has been remove from the definition. If yes then remove it from the respective
+            business model also */
+            if(sizeof($originalSegments)> sizeof($businessModelDefinition->getSegments()->toArray()))
+            {
+                $removedSegments = array_diff($originalSegments,$businessModelDefinition->getSegments()->toArray());
+
+                foreach ($removedSegments as $removedSegment)
+                {
+                    foreach ($affectedBusinessModel->getSegments() as $segmentEntity)
+                    {
+                        if($segmentEntity->getName()===$removedSegment)
+                        {
+                            $affectedBusinessModel->removeSegment($segmentEntity);
+                            $this->entityManager->remove($segmentEntity);
+                        }
+                    }
+                    /* Also remove the business segments from any related method blocks */
+                    foreach ($this->entityManager->getRepository(MethodBuildingBlock::class)->findAll() as $methodBuildingBlock)
+                    {
+                        $businessModelSegments = $methodBuildingBlock->getBusinessModelSegments();
+                        foreach($businessModelSegments as $key => $businessModelSegment)
+                        {
+                            $explodedSegment = explode(":", $businessModelSegment);
+                            if($affectedBusinessModel->getType()===trim($explodedSegment[0]) && $removedSegment===trim($explodedSegment[1]))
+                                unset($businessModelSegments[$key]);
+                        }
+                        $methodBuildingBlock->setBusinessModelSegments($businessModelSegments);
+                    }
+                }
+                $this->entityManager->persist($affectedBusinessModel);
+            }
+            /* Check if a new segment has been added to the definition. If yes then add it to the respective
+            business model also */
+            if(sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray()))
+            {
+                $newSegments = array_diff($businessModelDefinition->getSegments()->toArray(),$originalSegments);
+
+                foreach ($newSegments as $newSegment)
+                {
+                    $segmentEntity = new BusinessSegment();
+                    $segmentEntity->setName($newSegment);
+                    $affectedBusinessModel->addSegment($segmentEntity);
+                }
+                $this->entityManager->persist($affectedBusinessModel);
+            }
             $businessModelDefinition->setSegments($businessModelDefinition->getSegments()->toArray());
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
         return $this->render('method_elements/business_model_segments/update.html.twig', [
+            'definition' => $businessModelDefinition,
             'form' => $form->createView()
         ]);
     }
@@ -603,9 +658,18 @@ class MethodElementsController extends AbstractController
             $entityType = SituationalFactor::class;
         else if ($type == 'artifact')
             $entityType = Artifact::class;
+        else if ($type == 'definition')
+        {
+            $entityType = BusinessModelDefinition::class;
+        }
 
         $entityManager = $this->getDoctrine()->getManager();
         $entity = $entityManager->getRepository($entityType)->find($id);
+        if($type == 'definition')
+        {
+            $businessModelToDelete = $entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=>$entity->getType()]);
+            $entityManager->remove($businessModelToDelete);
+        }
         $entityManager->remove($entity);
         $entityManager->flush();
 

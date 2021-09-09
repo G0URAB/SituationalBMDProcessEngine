@@ -66,6 +66,7 @@
                                    </div>`;
 
         $("#tool_add_variant").on("click", function () {
+            variants++;
             let newLi = $('<li class="d-flex flex-row"></li>').append(prototype.replace(/__name__/g, variants));
             newLi.append(removeButton);
             container.append(newLi);

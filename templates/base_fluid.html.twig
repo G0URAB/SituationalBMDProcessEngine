@@ -47,6 +47,11 @@
                     </a>
                 </li>
                 <li class="nav-item">
+                    <a class="nav-link {% if 'model' in app.request.uri %}active{% endif %}" href="{{ path('show_business_model') }}">
+                        Business Model
+                    </a>
+                </li>
+                <li class="nav-item">
                     <a class="nav-link" href="{{ path('app_logout') }}">Logout</a>
                 </li>
             </ul>
