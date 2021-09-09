@@ -112,31 +112,32 @@
 
             </div>
 
-            {# Hilfreiches Symbol #}
-            <div style="width: 20%; height: 93%;; border: 1px solid black; display:flex; flex-direction: column;
-             align-items: center; min-width: 260px;">
+            <div style="display: flex; flex-direction: column; height: 93%;">
 
-                <h5 class="mt-3"><u>Helpful Information</u></h5>
+                {# Hilfreiches legend #}
+                <div style="border: 1px solid black; display:flex; flex-direction: column;align-items: center; min-width: 260px;">
 
-                <div style="width: 145px; height: 60px; background: red; border-radius: 5px; margin-top:15%;
+                    <h5 class="mt-3"><u>Legend</u></h5>
+
+                    <div style="width: 145px; height: 60px; background: red; border-radius: 5px; margin-top:15%;
                     display: flex; flex-direction: column; justify-content: center; align-items: center;
                      color: white; font-size: larger">
-                    <span><b>ToDo</b></span>
-                </div>
+                        <span><b>ToDo</b></span>
+                    </div>
 
-                <div style="width: 145px; height: 60px; background: rgba(248,151,8,0.76); border-radius: 5px; margin-top:15%;
+                    <div style="width: 145px; height: 60px; background: rgba(248,151,8,0.76); border-radius: 5px; margin-top:15%;
                     display: flex; flex-direction: column; justify-content: center; align-items: center;
                      color: #0c0c0c; font-size: larger">
-                    <span><b>Under Progress</b></span>
-                </div>
+                        <span><b>Under Progress</b></span>
+                    </div>
 
-                <div style="width: 145px; height: 60px; background: #54f856; border-radius: 5px; margin-top:15%;
+                    <div style="width: 145px; height: 60px; background: #54f856; border-radius: 5px; margin-top:15%;
                     display: flex; flex-direction: column; justify-content: center; align-items: center;
                      color: #000000; font-size: larger">
-                    <span><b>Finished</b></span>
-                </div>
+                        <span><b>Finished</b></span>
+                    </div>
 
-                <div style="width: 145px; height: 60px; background: #0796f8; border-radius: 5px; margin-top:15%;
+                    <div style="width: 145px; height: 60px; background: #0796f8; border-radius: 5px; margin-top:15%;
                     display: flex; flex-direction: column; justify-content: center; align-items: center;
                      color: white; font-size: larger">
                     <span>
@@ -145,19 +146,25 @@
                             <b>Canceled</b>
                         </a>
                     </span>
+                    </div>
+
+                    <div style="align-items: center;display: flex;">
+                        <span style="color: black; font-size: larger; margin-top:6%; "><b>Sub Task</b></span>
+                        <span style="color: red; font-size: xxx-large;"><b>&rarr;</b></span>
+                    </div>
+
+                    <div style="align-items: center;display: flex;">
+                        <span style="color: black; font-size: larger; margin-top:6%; "><b>Prerequisite</b></span>
+                        <span style="color: #0040ff; font-size: xxx-large;"><b>&rarr;</b></span>
+                    </div>
                 </div>
 
-                <div style="align-items: center;display: flex;">
-                    <span style="color: black; font-size: larger; margin-top:6%; "><b>Sub Task</b></span>
-                    <span style="color: red; font-size: xxx-large;"><b>&rarr;</b></span>
+                {# Show Business Model  #}
+                <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height:30%; border:1px solid #000000">
+                    <a href="#" class="btn btn-outline-info">Show Business Model</a>
                 </div>
-
-                <div style="align-items: center;display: flex;">
-                    <span style="color: black; font-size: larger; margin-top:6%; "><b>Prerequisite</b></span>
-                    <span style="color: #0040ff; font-size: xxx-large;"><b>&rarr;</b></span>
-                </div>
-
             </div>
+
 
         </div>
     </div>
@@ -237,6 +244,25 @@
                 </button>
             </div>
 
+        </div>
+    </div>
+
+    {# Business Model Popup #}
+    <div class="card text-white bg-dark mb-3" style="width: 40rem; position: absolute; top:15%; right:30%; display: none;"
+         id="business-model-popup" data-taskId="">
+        <div class="card-header text-primary font-weight-bold">Header</div>
+        <div class="card-body">
+            <h5 class="card-title">Please fill up the following business model segments. Otherwise the task will not
+                complete!</h5>
+            <form id="segments-form" autocomplete="off">
+                <div id="business-model-segments">
+
+                </div>
+                <div class="d-flex flex-row">
+                    <button id="submit-segments" class="btn btn-success">Save</button>
+                    <button id="cancel-segments" class="btn btn-warning">Cancel</button>
+                </div>
+            </form>
         </div>
     </div>
 
@@ -603,7 +629,7 @@
                         });
                     }
 
-                    $("#name-of-method-block").html("<b>Name of method block::</b> "+ '<a target="_blank" href="/method/building/block/'+task.tableId+'">'+task.label+"</a>");
+                    $("#name-of-method-block").html("<b>Name of method block::</b> " + '<a target="_blank" href="/method/building/block/' + task.tableId + '">' + task.label + "</a>");
                     for (let [key, value] of Object.entries(task)) {
                         if (key === 'inputArtifacts' && task[key] !== "") {
                             task[key].forEach(function (artifact, index) {
@@ -636,7 +662,8 @@
                                 if (typeof artifact === 'object') {
                                     let uploadedArtifact = userHasWritePermission(task) ?
                                         artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path, frontendId) :
-                                        artifactOutputHTMLWithOutRemoveButton('outputArtifact', artifact.name, nodeId, artifact.path);;
+                                        artifactOutputHTMLWithOutRemoveButton('outputArtifact', artifact.name, nodeId, artifact.path);
+                                    ;
                                     $(".output-artifacts").append(uploadedArtifact);
 
                                     /* The frontendId here is assigned to a delete button */
@@ -735,12 +762,13 @@
                     //Logic to update task status
                     let previousStatusText;
                     let previousStatusValue;
+                    let currentStatus;
                     $(".status-select").on("focus click", function () {
                         previousStatusText = $(this).find('option:selected').text();
                         previousStatusValue = $(this).find('option:selected').val();
 
                     }).change(function () {
-
+                        currentStatus = $(this);
                         let taskId = $(this).attr("data-nodeId");
                         /* ToDo=0, Under Progress=1, Finished=2 */
                         let status = parseInt($(this).find('option:selected').val());
@@ -786,9 +814,76 @@
                                 return false;
                             }
 
-                            task.color = "#54f856";
-                            task.status = 2;
-                            node.color = "#54f856";
+                            $(this).val(previousStatusValue);
+                            let segmentTemplate = (name) => `
+                                    <div class="input-group mb-3 mt-3">
+                                        <div class="input-group-prepend">
+                                            <span class="input-group-text" id="${name}"><a target="_blank" href="{{ path('view_business_model_segment',{'name':situationalMethod.businessModelType}) }}">${name}</a></span>
+                                        </div>
+                                        <input name="${name}" type="text" class="form-control" placeholder="Provide Information" aria-label="${name}" required>
+                                    </div>`;
+                            $.ajax({
+                                type: 'POST',
+                                url: '{{ path('business_model_ajax') }}',
+                                data: {
+                                    method_block_id: task.tableId,
+                                    situational_method_id: "{{ situationalMethod.id }}",
+                                    request_type: 'get_segments'
+                                },
+                                success: function (response) {
+                                    let obj = JSON.parse(JSON.stringify(response));
+                                    closeNodePopup(nodePopupToRefer);
+                                    $(".container-fluid").children().not("#business-model-popup").css({
+                                        "pointer-events": "none",
+                                        "opacity": "0.4"
+                                    });
+                                    $("#business-model-popup").css("display","block");
+
+                                    let segments = obj.segments;
+                                    $("#business-model-segments").children().remove();
+                                    $("#business-model-popup").find(".card-header").html("{{ 'Business Model Type : '~ situationalMethod.businessModelType }}");
+                                    segments.forEach(function (segment, index) {
+                                        $("#business-model-segments").append(segmentTemplate(segment));
+                                    });
+                                    $("#segments-form").on("submit", function (e) {
+                                        e.preventDefault();
+                                        let segmentsData = [];
+                                        $("#business-model-segments :input").each(function () {
+                                            let segment = {name: $(this).attr("name"), value: $(this).val()};
+                                            segmentsData.push(segment);
+                                        });
+
+                                        $.ajax({
+                                            type: 'POST',
+                                            url: '{{ path('business_model_ajax') }}',
+                                            data: {
+                                                segments_data: segmentsData,
+                                                log: "Updated by " + "{{ app.user.employeeName }}" + ". Source methodBlock is '" + task.label +
+                                                    "' from situationalMethod:" + "{{ situationalMethod.name }}." +
+                                                    " Date of update:" + "{{ 'now'|date('d.m.Y') }}",
+                                                situational_method_id: "{{ situationalMethod.id }}",
+                                                request_type: 'update_segments'
+                                            },
+                                            success: function (response) {
+                                                let obj = JSON.parse(JSON.stringify(response));
+                                                if (obj.status === "success") {
+                                                    task.color = "#54f856";
+                                                    task.status = 2;
+                                                    node.color = "#54f856";
+                                                    currentStatus.val(2);
+                                                }
+                                                closeBusinessModelPopup();
+                                                changeParentStatusAfterUpdateOfTaskStatus(task);
+                                                updateJsonNodes();
+                                                updateJsonTasks();
+                                            }
+                                        });
+                                    });
+                                    $("#cancel-segments").on("click",function () {
+                                        closeBusinessModelPopup();
+                                    });
+                                }
+                            });
                         }
 
                         changeParentStatusAfterUpdateOfTaskStatus(task);
@@ -807,6 +902,18 @@
 
 
         /*-----------------------------Helper Functions ----------------------------------*/
+
+
+        function closeBusinessModelPopup()
+        {
+            $(".container-fluid").children().not("#business-model-popup").css({
+                "pointer-events": "auto",
+                "opacity": "1"
+            });
+            $("#business-model-popup").css("display","none");
+            showNodePopup(nodePopupToRefer);
+        }
+
 
         function getNodeObject(nodeId) {
             let node = null;
@@ -1037,8 +1144,7 @@
                     }
                 });
 
-                if(parseInt(task.status)!==0)
-                {
+                if (parseInt(task.status) !== 0) {
                     task.color = "rgba(248,151,8,0.76)";
                     task.status = 1;
                     node.color = "rgba(248,151,8,0.76)";
@@ -1316,9 +1422,9 @@
 
                                 value.forEach(function (inputArtifact, index) {
                                     if ((typeof inputArtifact === "string" && typeof outputArtifact === "string" && outputArtifact === inputArtifact) ||
-                                        (typeof outputArtifact === "object" && typeof inputArtifact === "object" && outputArtifact.name=== inputArtifact.name) ||
-                                        (typeof outputArtifact === "object" && typeof inputArtifact === "string" && outputArtifact.name=== inputArtifact)) {
-                                        let artifactName = typeof outputArtifact==="object" ? outputArtifact.name : outputArtifact;
+                                        (typeof outputArtifact === "object" && typeof inputArtifact === "object" && outputArtifact.name === inputArtifact.name) ||
+                                        (typeof outputArtifact === "object" && typeof inputArtifact === "string" && outputArtifact.name === inputArtifact)) {
+                                        let artifactName = typeof outputArtifact === "object" ? outputArtifact.name : outputArtifact;
                                         taskCanBeStarted.outputArtifactMessages += "'" + artifactName + "' is used in step '" + myTask.label + "'.";
                                     }
                                 });
@@ -1333,11 +1439,9 @@
 
             if (rootOfTheTask.shape !== "diamond") {
 
-                checkIfPreviousTasksHaveBeenFinished(taskCanBeStarted,task)
-            }
-            else if(rootOfTheTask.shape === "diamond")
-            {
-                checkIfPreviousTasksHaveBeenFinished(taskCanBeStarted,rootOfTheTask);
+                checkIfPreviousTasksHaveBeenFinished(taskCanBeStarted, task)
+            } else if (rootOfTheTask.shape === "diamond") {
+                checkIfPreviousTasksHaveBeenFinished(taskCanBeStarted, rootOfTheTask);
             }
 
             return taskCanBeStarted;
@@ -1412,23 +1516,22 @@
             return " (" + dayOfMonth + "-" + months[month] + "-" + year + " " + hour + ":" + minutes + ":" + seconds + ")";
         }
 
-        function checkIfPreviousTasksHaveBeenFinished(canTaskBeStarted, step)
-        {
+        function checkIfPreviousTasksHaveBeenFinished(canTaskBeStarted, step) {
             let previousNode = null;
             edges.forEach(function (edge, index) {
                 if (edge.arrows === "to" && edge.color === "blue" && parseInt(edge.to) === parseInt(step.id) && !('smooth' in edge)) {
                     previousNode = getNodeObject(parseInt(edge.from));
                 }
             });
-            
-            if(previousNode!==null && (!("color" in previousNode) || previousNode.color!=="#54f856"))
+
+            if (previousNode !== null && (!("color" in previousNode) || previousNode.color !== "#54f856"))
                 canTaskBeStarted.status = false;
         }
 
         function changeAllConsecutiveTasksColorToRed(currentTask) {
             let rootOfTheTask = getParent(currentTask.id);
             let nextStep = null;
-            let currentStep = rootOfTheTask.shape==="diamond" ? rootOfTheTask: currentTask;
+            let currentStep = rootOfTheTask.shape === "diamond" ? rootOfTheTask : currentTask;
             currentStep = getNodeObject(currentStep.id);
             edges.forEach(function (edge, index) {
                 if (edge.arrows === "to" && edge.color === "blue" && parseInt(edge.from) === parseInt(currentStep.id) && !('smooth' in edge)) {
@@ -1436,21 +1539,19 @@
                 }
             });
 
-            if(nextStep!==null)
-            {
-                if(nextStep.shape==="diamond"){
-                    nextStep.color="red";
-                    getChildren(nextStep.id).forEach(function (childNode,index) {
-                        childNode.color="red";
+            if (nextStep !== null) {
+                if (nextStep.shape === "diamond") {
+                    nextStep.color = "red";
+                    getChildren(nextStep.id).forEach(function (childNode, index) {
+                        childNode.color = "red";
                         let respectiveTask = getTaskObject(childNode.id);
-                        respectiveTask.color= "red";
+                        respectiveTask.color = "red";
                         respectiveTask.status = 0;
                     });
-                }
-                else {
-                    nextStep.color="red";
+                } else {
+                    nextStep.color = "red";
                     let respectiveTask = getTaskObject(nextStep.id);
-                    respectiveTask.color= "red";
+                    respectiveTask.color = "red";
                     respectiveTask.status = 0;
                 }
                 changeAllConsecutiveTasksColorToRed(nextStep);

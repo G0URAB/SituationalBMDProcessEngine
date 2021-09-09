@@ -3,11 +3,16 @@
 namespace App\Controller;
 
 use App\Entity\BmdGraph;
+use App\Entity\BusinessModel;
+use App\Entity\BusinessModelDefinition;
+use App\Entity\BusinessSegment;
 use App\Entity\CancelledMethodBlock;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
 use App\Entity\SituationalMethod;
+use App\Entity\User;
+use App\Repository\BusinessModelRepository;
 use App\Service\DataService;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -51,10 +56,13 @@ class MethodConstructionController extends AbstractController
             foreach ($dataService->getAllRoles() as $role)
                 $roles [] = $role->getName();
 
+
             return $this->render('situational_method/construct.html.twig', [
                 'situationalFactors' => $situationalFactors,
                 'tools' => $tools,
                 'roles' => $roles,
+                'platform_owners' => $dataService->getAllPlatformOwners(),
+                'business_model_types' => $dataService->getAllBusinessModelTypes()
             ]);
         }
 
@@ -180,14 +188,30 @@ class MethodConstructionController extends AbstractController
             $edges = $request->get("edges");
             $tasks = $request->get("tasks");
             $nameOfSituationalMethod = $request->get("name_of_situational_method");
-            $nameOfPlatformOwner = $request->get("platform_owner_name");
-            $phoneOfPlatformOwner = $request->get("platform_owner_phone");
-            $addressOfPlatformOwner = $request->get("platform_owner_address");
-            $emailOfPlatformOwner = $request->get("platform_owner_email");
+            $platformOwner = $this->getDoctrine()->getRepository(User::class)
+                ->findOneBy(['id'=>$request->get("platform_owner_id")]);
+            $businessModelType = $request->get("business_model_type");
             $bmdGraphsBeingUsed = $request->get("bmd_graphs_being_used");
             $graphsAndTheirSituationalFactors = $request->get("graphs_and_their_factors");
 
             $entityManager = $this->getDoctrine()->getManager();
+
+            /* Check if a business model type for the platform owner exists. If not then create one */
+            $businessModel = $entityManager->getRepository(BusinessModel::class)->findOneBy(['platformOwner'=>$platformOwner, 'type'=>$businessModelType]);
+            if(!$businessModel)
+            {
+                $businessModel = new BusinessModel();
+                $businessModelDefinition = $entityManager->getRepository(BusinessModelDefinition::class)->findOneBy(['type'=>$businessModelType]);
+                foreach ($businessModelDefinition->getSegments() as $segment)
+                {
+                    $businessModelSegment = new BusinessSegment();
+                    $businessModelSegment->setName($segment);
+                    $businessModel->addSegment($businessModelSegment);
+                }
+                $businessModel->setPlatformOwner($platformOwner);
+                $businessModel->setType($businessModelType);
+                $entityManager->persist($businessModel);
+            }
 
             $allRoles = [];
             foreach ($dataService->getAllRoles() as $role)
@@ -221,10 +245,8 @@ class MethodConstructionController extends AbstractController
             }
 
             $situationalMethod->setName($nameOfSituationalMethod);
-            $situationalMethod->setPlatformOwnerName($nameOfPlatformOwner);
-            $situationalMethod->setPlatformOwnerPhone($phoneOfPlatformOwner);
-            $situationalMethod->setPlatformOwnerAddress($addressOfPlatformOwner);
-            $situationalMethod->setPlatformOwnerEmail($emailOfPlatformOwner);
+            $situationalMethod->setPlatformOwner($platformOwner);
+            $situationalMethod->setBusinessModelType($businessModelType);
             $situationalMethod->setBmdGraphsBeingUsed($bmdGraphsBeingUsed);
             $situationalMethod->setJsonNodes(json_encode($nodes));
             $situationalMethod->setJsonEdges(json_encode($edges));
@@ -254,6 +276,7 @@ class MethodConstructionController extends AbstractController
      */
     public function modifySituationalMethod(Request $request, DataService $dataService, int $id): Response
     {
+        /** @var SituationalMethod $situationalMethod **/
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
         $tools = [];
@@ -269,6 +292,8 @@ class MethodConstructionController extends AbstractController
             'graphsAndTheirSituationalFactors'=> $situationalMethod->getGraphsAndTheirSituationalFactors(),
             'tools' => $tools,
             'roles' => $roles,
+            'platform_owners' => $dataService->getAllPlatformOwners(),
+            'business_model_types' => $dataService->getAllBusinessModelTypes()
         ]);
     }
 

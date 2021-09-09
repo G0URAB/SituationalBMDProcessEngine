@@ -61,34 +61,26 @@
         <div class="d-flex flex-row">
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <span class="input-group-text">Name of the platform owner</span>
+                    <label class="input-group-text" for="platform-owner-name">Select a platform owner</label>
                 </div>
-                <input type="text" class="form-control" placeholder="Elon Musk" aria-label="Username"
-                       id="platform-owner-name" value="{{ situationalMethod.platformOwnerName }}">
+                <select class="custom-select" id="platform-owner-name">
+                    <option selected>Choose...</option>
+                    {% for platform_owner in platform_owners %}
+                        <option value="{{ platform_owner.id }}" {% if platform_owner==situationalMethod.platformOwner %} selected{% endif %}> {{ platform_owner.employeeName }}</option>
+                    {% endfor %}
+                </select>
             </div>
+
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <span class="input-group-text">Phone number of platform owner</span>
+                    <label class="input-group-text" for="business-model-type">Select a business model type</label>
                 </div>
-                <input type="number" class="form-control" placeholder="12312345" aria-label="Username"
-                       id="platform-owner-phone-number" value="{{ situationalMethod.platformOwnerPhone }}">
-            </div>
-        </div>
-        <div class="d-flex flex-row">
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Address of platform owner</span>
-                </div>
-                <input type="text" class="form-control" placeholder="Ludwigstraße 45, Paderborn 33098"
-                       aria-label="Username" id="platform-owner-address"
-                       value="{{ situationalMethod.platformOwnerAddress }}">
-            </div>
-            <div class="input-group mb-3">
-                <div class="input-group-prepend">
-                    <span class="input-group-text">Email of platform owner</span>
-                </div>
-                <input type="email" class="form-control" placeholder="elon@spaceX.com" aria-label="Username"
-                       id="platform-owner-email" value="{{ situationalMethod.platformOwnerEmail }}">
+                <select class="custom-select" id="business-model-type">
+                    <option>Choose...</option>
+                    {% for type in business_model_types %}
+                        <option value="{{ type }}" {% if type==situationalMethod.businessModelType %} selected{% endif %}> {{ type }}</option>
+                    {% endfor %}
+                </select>
             </div>
         </div>
 
@@ -716,19 +708,12 @@
                 if (!allStepsHaveBeenFilled)
                     return;
 
-                if (($("#platform-owner-name").val()).length < 5) {
-                    alert("Please provide name of the platform owner!!");
-                    return;
-                } else if (($("#platform-owner-phone-number").val()).length < 7) {
-                    alert("Please provide a valid phone number for the platform owner!");
-                    return;
-                } else if (($("#platform-owner-address").val()).length < 7) {
-                    alert("Please provide a valid address for the platform owner!");
+                if (($("#platform-owner-name").val())==="Choose...") {
+                    alert("Please select a platform owner!!");
                     return;
                 }
-                let emailRegex = /^[a-zA-Z0-9]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/;
-                if (!($("#platform-owner-email").val().match(emailRegex))) {
-                    alert("Please provide an email address for the platform owner!");
+                if (($("#business-model-type").val())==="Choose...") {
+                    alert("Please select a business model type !!");
                     return;
                 }
 
@@ -742,10 +727,8 @@
                         edges: edges,
                         tasks: tasks,
                         name_of_situational_method: nameOfRootNode.val(),
-                        platform_owner_name: $("#platform-owner-name").val(),
-                        platform_owner_phone: $("#platform-owner-phone-number").val(),
-                        platform_owner_address: $("#platform-owner-address").val(),
-                        platform_owner_email: $("#platform-owner-email").val(),
+                        platform_owner_id: $("#platform-owner-name").val(),
+                        business_model_type: $("#business-model-type").val(),
                         bmd_graphs_being_used: bmdGraphsBeingUsed,
                         graphs_and_their_factors: graphsAndTheirSituationalFactors,
                         type: 'edit_situational_method',

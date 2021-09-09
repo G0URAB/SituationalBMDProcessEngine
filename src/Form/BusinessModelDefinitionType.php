@@ -38,7 +38,12 @@ class BusinessModelDefinitionType extends AbstractType
             ->add("add_segment",ButtonType::class,[
                 'label'=>'Add Segment'
             ])
-            ->add('description',CKEditorType::class)
+            ->add('description',CKEditorType::class,[
+                'config' => array(
+                    'height' => '350px',
+                    //...
+                ),
+            ])
         ;
     }
 

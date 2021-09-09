@@ -5,6 +5,8 @@ namespace App\Entity;
 use App\Repository\SituationalMethodRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
+use Doctrine\ORM\Mapping\JoinColumn;
+use Doctrine\ORM\Mapping\OneToOne;
 
 /**
  * @ORM\Entity(repositoryClass=SituationalMethodRepository::class)
@@ -26,22 +28,14 @@ class SituationalMethod
     /**
      * @ORM\Column(type="string", length=255)
      */
-    private $platformOwnerName;
+    private $businessModelType;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * One Product has One Shipment.
+     * @OneToOne(targetEntity="App\Entity\User")
+     * @JoinColumn(name="user_id", referencedColumnName="id")
      */
-    private $platformOwnerPhone;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $platformOwnerAddress;
-
-    /**
-     * @ORM\Column(type="string", length=255)
-     */
-    private $platformOwnerEmail;
+    private $platformOwner;
 
 
     /**
@@ -109,49 +103,17 @@ class SituationalMethod
     /**
      * @return mixed
      */
-    public function getPlatformOwnerName()
+    public function getPlatformOwner()
     {
-        return $this->platformOwnerName;
+        return $this->platformOwner;
     }
 
     /**
-     * @param mixed $platformOwnerName
+     * @param mixed $platformOwner
      */
-    public function setPlatformOwnerName($platformOwnerName): void
+    public function setPlatformOwner($platformOwner)
     {
-        $this->platformOwnerName = $platformOwnerName;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPlatformOwnerPhone()
-    {
-        return $this->platformOwnerPhone;
-    }
-
-    /**
-     * @param mixed $platformOwnerPhone
-     */
-    public function setPlatformOwnerPhone($platformOwnerPhone): void
-    {
-        $this->platformOwnerPhone = $platformOwnerPhone;
-    }
-
-    /**
-     * @return mixed
-     */
-    public function getPlatformOwnerAddress()
-    {
-        return $this->platformOwnerAddress;
-    }
-
-    /**
-     * @param mixed $platformOwnerAddress
-     */
-    public function setPlatformOwnerAddress($platformOwnerAddress): void
-    {
-        $this->platformOwnerAddress = $platformOwnerAddress;
+        $this->platformOwner = $platformOwner;
     }
 
 
@@ -203,21 +165,6 @@ class SituationalMethod
         $this->jsonTasks = $jsonTasks;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getPlatformOwnerEmail()
-    {
-        return $this->platformOwnerEmail;
-    }
-
-    /**
-     * @param mixed $platformOwnerEmail
-     */
-    public function setPlatformOwnerEmail($platformOwnerEmail): void
-    {
-        $this->platformOwnerEmail = $platformOwnerEmail;
-    }
 
     /**
      * @return mixed
@@ -289,4 +236,21 @@ class SituationalMethod
     {
         return $this->cancelledMethodBlocks;
     }
+
+    /**
+     * @return mixed
+     */
+    public function getBusinessModelType()
+    {
+        return $this->businessModelType;
+    }
+
+    /**
+     * @param mixed $businessModelType
+     */
+    public function setBusinessModelType($businessModelType)
+    {
+        $this->businessModelType = $businessModelType;
+    }
+
 }

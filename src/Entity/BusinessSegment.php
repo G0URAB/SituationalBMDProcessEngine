@@ -29,9 +29,14 @@ class BusinessSegment
     private $businessModel;
 
     /**
-     * @ORM\Column(type="string", length=255)
+     * @ORM\Column(name="`values`",type="string", length=255, nullable=true)
      */
     private $values;
+
+    /**
+     * @ORM\Column(type="string", length=255, nullable=true)
+     */
+    private $log;
 
 
     public function getId(): ?int
@@ -81,5 +86,21 @@ class BusinessSegment
     public function setValues($values)
     {
         $this->values = $values;
+    }
+
+    /**
+     * @return mixed
+     */
+    public function getLog()
+    {
+        return $this->log;
+    }
+
+    /**
+     * @param mixed $log
+     */
+    public function setLog($log)
+    {
+        $this->log = $log;
     }
 }

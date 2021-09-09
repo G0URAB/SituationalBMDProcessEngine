@@ -12,6 +12,7 @@ use App\Entity\Role;
 use App\Entity\SituationalFactor;
 use App\Entity\SituationalMethod;
 use App\Entity\Tool;
+use App\Entity\User;
 use Doctrine\ORM\EntityManagerInterface;
 use stdClass;
 use Symfony\Component\DependencyInjection\ParameterBag\ParameterBagInterface;
@@ -387,4 +388,28 @@ class DataService
         return $applicable;
     }
 
+    public function getAllPlatformOwners()
+    {
+        $allUsers = $this->entityManager->getRepository(User::class)->findAll();
+        $platformOwners = [];
+        foreach ($allUsers as $user)
+        {
+            if(in_array('ROLE_PLATFORM_OWNER',$user->getRoles()))
+                $platformOwners [] = $user;
+        }
+        return $platformOwners;
+    }
+
+    public function getAllBusinessModelTypes()
+    {
+        $businessModelTypes = [];
+        $allBusinessModelDefinitions = $this->entityManager->getRepository(BusinessModelDefinition::class)->findAll();
+        foreach ($allBusinessModelDefinitions as $definition)
+        {
+            if(!in_array($definition->getType(),$businessModelTypes))
+                $businessModelTypes[] = $definition->getType();
+        }
+
+        return $businessModelTypes;
+    }
 }
