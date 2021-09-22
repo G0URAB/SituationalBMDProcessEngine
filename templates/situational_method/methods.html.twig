@@ -24,21 +24,21 @@
                         <div class="input-group-prepend">
                             <span class="input-group-text">Name of platform owner</span>
                         </div>
-                        <input type="text" class="form-control" aria-label="Username" value="{{ method.platformOwner.employeeName }}" disabled>
+                        <input type="text" class="form-control" aria-label="Username" {% if method.platformOwner %} value="{{ method.platformOwner.employeeName }}" {% endif %} disabled>
                     </div>
 
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">Email</span>
                         </div>
-                        <input type="email" class="form-control" aria-label="Username" value="{{ method.platformOwner.email }}" disabled>
+                        <input type="email" class="form-control" aria-label="Username" {% if method.platformOwner %} value="{{ method.platformOwner.email }}" {% endif %} disabled>
                     </div>
 
                     <div class="input-group mb-3">
                         <div class="input-group-prepend">
                             <span class="input-group-text">Business Model Type</span>
                         </div>
-                        <input type="text" class="form-control" aria-label="Username" value="{{ method.businessModelType }}" disabled>
+                        <input type="text" class="form-control" aria-label="Username" {% if method.businessModelType %} value="{{ method.businessModelType }}"  {% endif %} disabled>
                     </div>
 
                     <div class="d-flex flex-row justify-content-between">
