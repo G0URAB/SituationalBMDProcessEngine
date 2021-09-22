@@ -21,9 +21,9 @@
                 </a>
                 <div class="card-body"> {#lol#}
                     <p class="card-text"><b>Method Name</b>:<br> {{ method.name }}</p>
-                    <p class="card-text"><b>Platform Owner Name</b>:<br> {{ method.platformOwner.employeeName }}</p>
-                    <p class="card-text"><b>Platform Owner Email</b>:<br> {{ method.platformOwner.email }}</p>
-                    <p class="card-text"><b>Business Model Type</b>:<br> {{ method.businessModelType }}</p>
+                    <p class="card-text"><b>Platform Owner Name</b>:<br> {% if method.platformOwner %} {{ method.platformOwner.employeeName }}  {% endif %}</p>
+                    <p class="card-text"><b>Platform Owner Email</b>:<br> {% if method.platformOwner %} {{ method.platformOwner.email }}  {% endif %}</p>
+                    <p class="card-text"><b>Business Model Type</b>:<br> {% if method.businessModelType %} {{ method.businessModelType }}  {% endif %}</p>
                 </div>
             </div>
         {% endfor %}
