@@ -19,7 +19,7 @@ class BusinessModelDefinitionType extends AbstractType
     {
         $builder
             ->add('type',TextType::class,[
-                'label'=> "Business Model Type",
+                'label'=> "Name Of Business Model Definition",
                 'constraints' => [
                     new NotBlank(),
                     new Length(['min' => 5]),

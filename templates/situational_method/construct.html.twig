@@ -74,7 +74,7 @@
 
             <div class="input-group mb-3">
                 <div class="input-group-prepend">
-                    <label class="input-group-text" for="business-model-type">Select a business model type</label>
+                    <label class="input-group-text" for="business-model-type">Select a business model definition</label>
                 </div>
                 <select class="custom-select" id="business-model-type">
                     <option selected>Choose...</option>
@@ -650,7 +650,7 @@
                     return;
                 }
                 if (($("#business-model-type").val())==="Choose...") {
-                    alert("Please select a business model type !!");
+                    alert("Please select a business model definition that will be used to generate a business model !!");
                     return;
                 }
 
