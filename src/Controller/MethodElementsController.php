@@ -565,7 +565,7 @@ class MethodElementsController extends AbstractController
 
             /* Check if any segment has been remove from the definition. If yes then remove it from the respective
             business model also */
-            if(sizeof($originalSegments)> sizeof($businessModelDefinition->getSegments()->toArray()))
+            if( (sizeof($originalSegments)> sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel)
             {
                 $removedSegments = array_diff($originalSegments,$businessModelDefinition->getSegments()->toArray());
 
@@ -596,7 +596,7 @@ class MethodElementsController extends AbstractController
             }
             /* Check if a new segment has been added to the definition. If yes then add it to the respective
             business model also */
-            if(sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray()))
+            if((sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel)
             {
                 $newSegments = array_diff($businessModelDefinition->getSegments()->toArray(),$originalSegments);
 

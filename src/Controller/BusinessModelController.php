@@ -43,7 +43,9 @@ class BusinessModelController extends AbstractController
                     $explodedBusinessModelSegment = explode(":",$segment);
                     if(trim($explodedBusinessModelSegment[0]) == $situationalMethod->getBusinessModelType())
                     {
-                        $businessModelSegments[] = trim($explodedBusinessModelSegment[1]);
+                        $segmentName = trim($explodedBusinessModelSegment[1]);
+                        $businessSegment = $this->getDoctrine()->getRepository(BusinessSegment::class)->findOneBy(['name'=>$segmentName]);
+                        $businessModelSegments[] = ['name'=>$segmentName, 'value'=> $businessSegment->getValues()];
                     }
                 }
                 return new JsonResponse(['segments'=>$businessModelSegments]);
@@ -63,8 +65,12 @@ class BusinessModelController extends AbstractController
 
                 foreach ($businessModel->getSegments() as $segment)
                 {
-                    $segment->setValues(array_column($segmentsData,"value","name")[$segment->getName()]);
-                    $segment->setLog($request->get("log"));
+                    /* If the segment exists in the submitted data */
+                    if(in_array($segment->getName(), array_column($segmentsData,"name")))
+                    {
+                        $segment->setValues(array_column($segmentsData,"value","name")[$segment->getName()]);
+                        $segment->setLog($request->get("log"));
+                    }
                 }
                 $entityManager->flush();
                 return new JsonResponse(['status'=>'success','msg'=>'Business Segments Updated!!']);
@@ -102,7 +108,7 @@ class BusinessModelController extends AbstractController
             $allBusinessModelTypes[$businessModel->getType()]= $businessModel->getType();
         }
 
-        $allBusinessModelTypes["A dummy choice"]="A dummy choice";
+        /*$allBusinessModelTypes["A dummy choice"]="A dummy choice";*/
 
         $preferredBusinessModelType = $methodId ? $situationalMethod->getBusinessModelType(): $preferredBusinessModelType;
 

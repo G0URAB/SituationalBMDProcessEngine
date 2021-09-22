@@ -196,7 +196,7 @@ class MethodConstructionController extends AbstractController
 
             $entityManager = $this->getDoctrine()->getManager();
 
-            /* Check if a business model type for the platform owner exists. If not then create one */
+            /* Check if a business model with the type exists. If not then create one */
             $businessModel = $entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=>$businessModelType]);
             if(!$businessModel)
             {

@@ -248,7 +248,8 @@
     </div>
 
     {# Business Model Popup #}
-    <div class="card text-white bg-dark mb-3" style="width: 40rem; position: absolute; top:15%; right:30%; display: none;"
+    <div class="card text-white bg-dark mb-3"
+         style="width: 60rem; position: absolute; top:15%; left:10%; display: none;"
          id="business-model-popup" data-taskId="">
         <div class="card-header text-primary font-weight-bold">Header</div>
         <div class="card-body">
@@ -815,12 +816,12 @@
                             }
 
                             $(this).val(previousStatusValue);
-                            let segmentTemplate = (name) => `
+                            let segmentTemplate = (name, value) => `
                                     <div class="input-group mb-3 mt-3">
                                         <div class="input-group-prepend">
                                             <span class="input-group-text" id="${name}"><a target="_blank" href="{{ path('view_business_model_segment',{'name':situationalMethod.businessModelType}) }}">${name}</a></span>
                                         </div>
-                                        <input name="${name}" type="text" class="form-control" placeholder="Provide Information" aria-label="${name}" required>
+                                        <input name="${name}" type="text" class="form-control" placeholder="Provide Information" aria-label="${name}" value="${value}" required>
                                     </div>`;
                             $.ajax({
                                 type: 'POST',
@@ -833,55 +834,69 @@
                                 success: function (response) {
                                     let obj = JSON.parse(JSON.stringify(response));
                                     closeNodePopup(nodePopupToRefer);
-                                    $(".container-fluid").children().not("#business-model-popup").css({
-                                        "pointer-events": "none",
-                                        "opacity": "0.4"
-                                    });
-                                    $("#business-model-popup").css("display","block");
 
-                                    let segments = obj.segments;
-                                    $("#business-model-segments").children().remove();
-                                    $("#business-model-popup").find(".card-header").html("{{ 'Business Model Type : '~ situationalMethod.businessModelType }}");
-                                    segments.forEach(function (segment, index) {
-                                        $("#business-model-segments").append(segmentTemplate(segment));
-                                    });
-                                    $("#segments-form").on("submit", function (e) {
-                                        e.preventDefault();
-                                        let segmentsData = [];
-                                        $("#business-model-segments :input").each(function () {
-                                            let segment = {name: $(this).attr("name"), value: $(this).val()};
-                                            segmentsData.push(segment);
+                                    if (obj.segments.length !== 0) {
+
+                                        $(".container-fluid").children().not("#business-model-popup").css({
+                                            "pointer-events": "none",
+                                            "opacity": "0.4"
                                         });
+                                        $("#business-model-popup").css("display", "block");
 
-                                        $.ajax({
-                                            type: 'POST',
-                                            url: '{{ path('business_model_ajax') }}',
-                                            data: {
-                                                segments_data: segmentsData,
-                                                log: "Updated by " + "{{ app.user.employeeName }}" + ". Source methodBlock is '" + task.label +
-                                                    "' from situationalMethod:" + "{{ situationalMethod.name }}." +
-                                                    " Date of update:" + "{{ 'now'|date('d.m.Y') }}",
-                                                situational_method_id: "{{ situationalMethod.id }}",
-                                                request_type: 'update_segments'
-                                            },
-                                            success: function (response) {
-                                                let obj = JSON.parse(JSON.stringify(response));
-                                                if (obj.status === "success") {
-                                                    task.color = "#54f856";
-                                                    task.status = 2;
-                                                    node.color = "#54f856";
-                                                    currentStatus.val(2);
+                                        let segments = obj.segments;
+                                        $("#business-model-segments").children().remove();
+                                        $("#business-model-popup").find(".card-header").html("{{ 'Business Model Type : '~ situationalMethod.businessModelType }}");
+                                        segments.forEach(function (segment, index) {
+                                            $("#business-model-segments").append(segmentTemplate(segment.name, segment.value));
+                                        });
+                                        $("#segments-form").on("submit", function (e) {
+                                            e.preventDefault();
+                                            let segmentsData = [];
+                                            $("#business-model-segments :input").each(function () {
+                                                let segment = {name: $(this).attr("name"), value: $(this).val()};
+                                                segmentsData.push(segment);
+                                            });
+
+                                            $.ajax({
+                                                type: 'POST',
+                                                url: '{{ path('business_model_ajax') }}',
+                                                data: {
+                                                    segments_data: segmentsData,
+                                                    log: "Updated by " + "{{ app.user.employeeName }}" + ". Source methodBlock is '" + task.label +
+                                                        "' from situationalMethod:" + "{{ situationalMethod.name }}." +
+                                                        " Date of update:" + "{{ 'now'|date('d.m.Y') }}",
+                                                    situational_method_id: "{{ situationalMethod.id }}",
+                                                    request_type: 'update_segments'
+                                                },
+                                                success: function (response) {
+                                                    let obj = JSON.parse(JSON.stringify(response));
+                                                    if (obj.status === "success") {
+                                                        task.color = "#54f856";
+                                                        task.status = 2;
+                                                        node.color = "#54f856";
+                                                        currentStatus.val(2);
+                                                    }
+                                                    closeBusinessModelPopup();
+                                                    changeParentStatusAfterUpdateOfTaskStatus(task);
+                                                    updateJsonNodes();
+                                                    updateJsonTasks();
                                                 }
-                                                closeBusinessModelPopup();
-                                                changeParentStatusAfterUpdateOfTaskStatus(task);
-                                                updateJsonNodes();
-                                                updateJsonTasks();
-                                            }
+                                            });
                                         });
-                                    });
-                                    $("#cancel-segments").on("click",function () {
+                                        $("#cancel-segments").on("click", function () {
+                                            closeBusinessModelPopup();
+                                        });
+                                    } else {
+                                        task.color = "#54f856";
+                                        task.status = 2;
+                                        node.color = "#54f856";
+                                        currentStatus.val(2);
                                         closeBusinessModelPopup();
-                                    });
+                                        changeParentStatusAfterUpdateOfTaskStatus(task);
+                                        console.log(tasks);
+                                        updateJsonNodes();
+                                        updateJsonTasks();
+                                    }
                                 }
                             });
                         }
@@ -904,13 +919,12 @@
         /*-----------------------------Helper Functions ----------------------------------*/
 
 
-        function closeBusinessModelPopup()
-        {
+        function closeBusinessModelPopup() {
             $(".container-fluid").children().not("#business-model-popup").css({
                 "pointer-events": "auto",
                 "opacity": "1"
             });
-            $("#business-model-popup").css("display","none");
+            $("#business-model-popup").css("display", "none");
             showNodePopup(nodePopupToRefer);
         }
 
