@@ -31,39 +31,31 @@
         </div>
     </div>
 
-    <!-- Show comments modal -->
-    <div class="modal fade" id="comments" tabindex="-1" role="dialog"
+    <!-- Show artifact-text modal -->
+    <div class="modal fade" id="artifact-text" tabindex="-1" role="dialog"
          aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-taskId="">
-        <div class="modal-dialog modal-dialog-centered" role="document">
-            <div class="modal-content">
+        <div class="modal-dialog-centered" role="document">
+            <div class="modal-dialog modal-content" style="max-width: 90%;">
 
                 <div class="modal-header">
-                    <h5 class="modal-title" id="logger-title">Comments</h5>
+                    <h5 class="modal-title" id="logger-title">Artifact Comments</h5>
                 </div>
 
                 <div class="modal-body">
-
-                    <ul>
-
-                    </ul>
-
-                    <div class="input-group">
-                        <div class="input-group-prepend">
-                            <span class="input-group-text">New Comment</span>
-                        </div>
-                        <textarea class="form-control" aria-label="New Comment" id="new-comment"></textarea>
-                    </div>
-                    <button type="button" class="btn btn-primary mt-1" id="add-comment">Add a Comment</button>
+                    <textarea class="form-control" aria-label="Artifact Comment" id="artifact-comment"></textarea>
+                    <button type="button" class="btn btn-primary mt-1" id="add-modify-comment">
+                        Add/modify Comment
+                    </button>
                 </div>
 
                 <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-secondary close-ckEditor" data-dismiss="modal">Close</button>
                 </div>
             </div>
         </div>
     </div>
 
-    <!-- Show comments modal -->
+    <!-- Show dependencies modal -->
     <div class="modal fade" id="dependencies" tabindex="-1" role="dialog"
          aria-labelledby="exampleModalCenterTitle" aria-hidden="true" data-taskId="">
         <div class="modal-dialog modal-dialog-centered" role="document">
@@ -161,7 +153,8 @@
 
                 {# Show Business Model  #}
                 <div style="display: flex; flex-direction: column; justify-content: center; align-items: center; height:30%; border:1px solid #000000">
-                    <a href="{{ path('show_business_model',{'methodId':situationalMethod.id}) }}" class="btn btn-outline-info" target="_blank">Show Business Model</a>
+                    <a href="{{ path('show_business_model',{'methodId':situationalMethod.id}) }}"
+                       class="btn btn-outline-info" target="_blank">Show Business Model</a>
                 </div>
             </div>
 
@@ -172,7 +165,7 @@
 
     {# Modal 3 : Popup For Method Block View #}
     <div id="method-block-popup" tabindex="-1"
-         style="position: fixed;top: 4%; left:10%;display: none; background: #a4cbf8"
+         style="position: fixed;top: 4%; left:10%;display: none; background: #a4cbf8; width:70%;"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
         <div class="modal-content" style="max-height: 600px; background: #a8a6a3">
 
@@ -199,43 +192,127 @@
 
                 </div>
 
+                <!-- Collaboration Place -->
+                <div id="comments" tabindex="-1" role="dialog"
+                     aria-labelledby="exampleModalCenterTitle" data-taskId="">
+                    <div class="modal-dialog-centered" role="document">
+                        <div class="modal-content" style="background-color: #a9d28c">
 
-                {# input artifacts, output artifacts, roles and tools come here #}
-                <div class="d-flex flex-column border rounded p-2 mt-2">
-                    <h5>Input Artifacts</h5>
-                    <div class="input-artifacts">
+                            <div class="modal-header">
+                                <h5 class="modal-title" id="logger-title">Comments</h5>
+                            </div>
 
+                            <div class="modal-body">
+
+                                <ul>
+
+                                </ul>
+
+                                <div class="input-group">
+                                    <div class="input-group-prepend">
+                                        <span class="input-group-text">New Comment</span>
+                                    </div>
+                                    <textarea class="form-control" aria-label="New Comment" id="new-comment"></textarea>
+                                </div>
+                                <input type="file" name="comment_file" id="comment-file" style="width: 40%;">
+                                <button type="button" class="btn btn-primary mt-1" id="add-comment">
+                                    Add a Comment
+                                </button>
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex flex-column border rounded p-2 mt-2">
-                    <h5>Output Artifacts</h5>
-                    <div class="output-artifacts">
 
+                <div id="artifacts-accordion" class="mt-2">
+                    <div class="card">
+                        <div class="card-header" id="headingOne" style="background:#04f3ff">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link text-dark" data-toggle="collapse"
+                                        data-target="#collapseArtifacts" aria-expanded="true"
+                                        aria-controls="collapseOne" id="button-to-collapse-artifacts">
+                                    Artifacts
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="collapseArtifacts" class="collapse" aria-labelledby="headingOne"
+                             data-parent="#artifacts-accordion">
+                            <div class="card-body" style="background: #6c8b91">
+
+                                {# input artifacts, output artifacts, roles and tools come here #}
+                                <div class="d-flex flex-column border rounded p-2 mt-2">
+                                    <h5>Input Artifacts</h5>
+                                    <div class="input-artifacts">
+
+                                    </div>
+                                </div>
+
+                                <div class="d-flex flex-column border rounded p-2 mt-2">
+                                    <h5>Output Artifacts</h5>
+                                    <div class="output-artifacts">
+
+                                    </div>
+                                </div>
+
+                            </div>
+                        </div>
                     </div>
                 </div>
 
-                <div class="d-flex flex-column border rounded p-2 mt-2">
+                {#<div class="d-flex flex-column border rounded p-2 mt-2">
                     <h5>Roles</h5>
                     <div class="roles">
 
                     </div>
+                </div>#}
+
+                <div id="roles-accordion" class="mt-2">
+                    <div class="card">
+                        <div class="card-header" id="headingOne" style="background: yellow">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link" data-toggle="collapse" data-target="#collapseRoles"
+                                        aria-expanded="true" aria-controls="collapseOne">
+                                    Roles
+                                </button>
+                            </h5>
+                        </div>
+
+                        <div id="collapseRoles" class="collapse" aria-labelledby="headingOne"
+                             data-parent="#roles-accordion" style="background:#acac83">
+                            <div class="card-body roles">
+
+                            </div>
+                        </div>
+                    </div>
                 </div>
 
-                <div class="d-flex flex-column border rounded p-2 mt-2">
-                    <h5>Tools</h5>
-                    <div class="tools">
+                <div id="tools-accordion" class="mt-2">
+                    <div class="card">
+                        <div class="card-header" id="headingOne" style="background: #520030">
+                            <h5 class="mb-0">
+                                <button class="btn btn-link text-white" data-toggle="collapse"
+                                        data-target="#collapseTools" aria-expanded="true" aria-controls="collapseOne">
+                                    Tools
+                                </button>
+                            </h5>
+                        </div>
 
+                        <div id="collapseTools" class="collapse" aria-labelledby="headingOne"
+                             data-parent="#tools-accordion"
+                             style="background:rgb(227, 165, 203) none repeat scroll 0% 0%">
+                            <div class="card-body tools">
+
+
+                            </div>
+                        </div>
                     </div>
                 </div>
 
             </div>
 
             {# Footer #}
-            <div class="modal-footer">
-                <button type="button" class="btn btn-primary" data-toggle="modal"
-                        data-target="#comments" id="show-add-comments">Show/Add Comments
-                </button>
+            <div class="modal-footer d-flex flex-row justify-content-center">
                 <div id="status-box">
 
                 </div>
@@ -274,7 +351,7 @@
     <script>
 
         let commentTemplate = (taskId, commentId, user, text, time) => `
-                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between align-items-center">
                                     <span> ${user} ${time} : ${text}</span>
                                     <button id="${commentId}" class="btn btn-danger delete-comment" data-commentId="${commentId}" data-taskId="${taskId}">Remove</button>
                                </div>
@@ -302,14 +379,14 @@
 
         });
 
-        $("#show-add-comments").on("click", function () {
+        function showAndAddMainComments(taskId) {
 
             let enteredComment = $("#new-comment");
             enteredComment.val("");
 
             let commentsBox = $("#comments");
-            commentsBox.css("opacity", 1);
-            let taskId = $(this).parent().parent().parent().attr("data-nodeId");
+            /*commentsBox.css("opacity", 1);*/
+            /*let taskId = $(this).parent().parent().parent().attr("data-nodeId");*/
             commentsBox.attr("data-taskId", taskId);
 
             let task = getTaskObject(parseInt(taskId));
@@ -351,7 +428,65 @@
                 }
             });
             handleDeleteCommentEvent();
-        });
+        }
+
+        function showAndModifyArtifactComments(taskId) {
+            $(".add-show-artifact-text").on("click", function (e) {
+
+                let task = getTaskObject(parseInt(taskId));
+                let artifact = $(this).attr("data-artifact");
+                let artifactType = $(this).attr("data-artifactType");
+                let artifactTextBox = $("#artifact-text");
+                artifactTextBox.css("opacity", 1);
+                artifactTextBox.attr("data-taskId", taskId);
+
+                let editor = CKEDITOR.replace('artifact-comment');
+                CKEDITOR.on("instanceReady", function (event) {
+                    editor.setData(getArtifactText(task, artifact, artifactType));
+                });
+
+                editor.on( 'change', function( evt ) {
+                    $("#add-modify-comment").prop("disabled",false);
+                });
+
+                $(".close-ckEditor").on("click", function () {
+                    editor.destroy();
+                });
+
+                $("#add-modify-comment").on("click", function () {
+                    let taskId = parseInt($(this).parent().parent().parent().parent().attr("data-taskId"));
+                    let task = getTaskObject(taskId);
+
+                    let textData = editor.getData();
+
+                    if (artifactType === 'inputArtifact') {
+                        for (let [key, value] of Object.entries(task)) {
+                            if (key === 'inputArtifacts' && task[key] !== "") {
+                                task[key].forEach(function (ourArtifact, index) {
+                                    if (typeof ourArtifact !== 'object' && ourArtifact === artifact)
+                                        task[key].splice(index, 1, {name: artifact, text: textData});
+                                    else if (typeof ourArtifact == 'object' && ourArtifact.name === artifact)
+                                        ourArtifact.text = textData;
+                                });
+                            }
+                        }
+                    } else if (artifactType === 'outputArtifact') {
+                        for (let [key, value] of Object.entries(task)) {
+                            if (key === 'outputArtifacts' && task[key] !== "") {
+                                task[key].forEach(function (ourArtifact, index) {
+                                    if (typeof ourArtifact !== 'object' && ourArtifact === artifact)
+                                        task[key].splice(index, 1, {name: artifact, text: textData});
+                                    else if (typeof ourArtifact == 'object' && ourArtifact.name === artifact)
+                                        ourArtifact.text = textData;
+                                });
+                            }
+                        }
+                    }
+                    $(this).prop("disabled",true);
+                    updateJsonTasks();
+                });
+            });
+        }
 
         let nodes = [];
         let edges = [];
@@ -431,15 +566,18 @@
         validateGraph();
 
         let artifactInputHTML = (artifactType, artifact, nodeId, frontendId) => `
-                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between">
-                                    <div class="input-group mb-3">
-                                      <div class="input-group-prepend">
-                                        <span class="input-group-text">${artifact}</span>
-                                      </div>
-                                      <div class="custom-file">
-                                        <input type="file" id="${frontendId}" class="custom-file-input" data-nodeId="${nodeId}" data-artifact="${artifact}" data-artifactType="${artifactType}">
-                                        <label class="custom-file-label">Choose file</label>
-                                      </div>
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between align-items-center">
+                                    <div class="input-group">
+                                          <div class="input-group-prepend">
+                                            <span class="input-group-text">${artifact}</span>
+                                          </div>
+                                          <div class="custom-file">
+                                            <input type="file" id="${frontendId}" class="custom-file-input" data-nodeId="${nodeId}" data-artifact="${artifact}" data-artifactType="${artifactType}">
+                                            <label class="custom-file-label">Choose file</label>
+                                          </div>
+                                          <button type="button" class="btn btn-info add-show-artifact-text" data-toggle="modal" data-target="#artifact-text" data-artifactType="${artifactType}" data-artifact="${artifact}">
+                                                Add/Show Text
+                                          </button>
                                     </div>
                                </div>
                                 `;
@@ -453,7 +591,10 @@
 
                                   <button class="remove-artifact btn btn-warning ml-3"
                                    data-id="${nodeId}" data-artifactType="${artifactType}" data-artifact="${artifact}"  data-filePath="${filePath}" id="${removalId}">
-                                        Remove
+                                        Remove Artifact
+                                  </button>
+                                  <button type="button" class="btn btn-info add-show-artifact-text" data-toggle="modal" data-target="#artifact-text" data-artifactType="${artifactType}" data-artifact="${artifact}">
+                                        Add/Show Text
                                   </button>
                                 </div>
                                 `;
@@ -595,6 +736,8 @@
                     let task = getTaskObject(parseInt(node.id));
                     methodBlockPopup.attr("data-nodeId", node.id);
 
+                    $('.collapse').collapse('hide');
+
                     //Clear previous contents from the dom
                     $(".input-artifacts").children().remove();
                     $(".output-artifacts").children().remove();
@@ -610,6 +753,14 @@
                         $("#task-can-be-started").prop('checked', false);
                     }
 
+                    $("#button-to-collapse-artifacts").on("click", function () {
+                        if (!userHasWritePermission(task) || logs.length > 0 || canStartThisTask(task).status === false)
+                            $(".add-show-artifact-text").prop('disabled', true);
+                        else
+                            $(".add-show-artifact-text").prop('disabled', false);
+                    });
+
+
                     /* Code to implement status of the task */
                     let taskStatusId = Date.now() - 230; //230 just a random number to differentiate Date.now function
                     $("#status-box").append(taskStatus(taskStatusId, task.id));
@@ -618,7 +769,10 @@
                         $("#" + taskStatusId).css("width", "150px");
                         $("#" + taskStatusId).attr('disabled', true);
                         $("#add-comment").attr('disabled', true);
+
                     } else {
+
+                        $("#add-comment").prop('disabled', false);
 
                         let options = [{status: 1, text: 'Under Progress'}, {status: 2, text: 'Finished'}];
 
@@ -637,7 +791,7 @@
 
                                 let frontendId = Date.now() + index;
 
-                                if (typeof artifact === 'object') {
+                                if (typeof artifact === 'object' && 'path' in artifact) {
                                     let uploadedArtifact = userHasWritePermission(task) ?
                                         artifactOutputHTML('inputArtifact', artifact.name, nodeId, artifact.path, frontendId) :
                                         artifactOutputHTMLWithOutRemoveButton('inputArtifact', artifact.name, nodeId, artifact.path);
@@ -647,7 +801,9 @@
 
                                     handleArtifactRemoval('inputArtifact', frontendId);
                                 } else if (artifact !== "") {
-                                    methodBlockPopup.find(".input-artifacts").append(artifactInputHTML('inputArtifact', artifact, task.id, frontendId));
+
+                                    let nameOfArtifact = (typeof artifact === 'object') ? artifact.name : artifact;
+                                    methodBlockPopup.find(".input-artifacts").append(artifactInputHTML('inputArtifact', nameOfArtifact, task.id, frontendId));
                                 }
 
                                 if (!userHasWritePermission(task) || canStartThisTask(task).status === false || !('status' in task) || parseInt(task.status) === 0 || parseInt(task.status) === 2)
@@ -660,11 +816,11 @@
 
                                 let frontendId = Date.now() + index + 100;
 
-                                if (typeof artifact === 'object') {
+                                if (typeof artifact === 'object' && 'path' in artifact) {
                                     let uploadedArtifact = userHasWritePermission(task) ?
                                         artifactOutputHTML('outputArtifact', artifact.name, nodeId, artifact.path, frontendId) :
                                         artifactOutputHTMLWithOutRemoveButton('outputArtifact', artifact.name, nodeId, artifact.path);
-                                    ;
+
                                     $(".output-artifacts").append(uploadedArtifact);
 
                                     /* The frontendId here is assigned to a delete button */
@@ -672,7 +828,8 @@
                                     handleArtifactRemoval('outputArtifact', frontendId);
                                 } else if (artifact !== "") {
 
-                                    methodBlockPopup.find(".output-artifacts").append(artifactInputHTML('outputArtifact', artifact, task.id, frontendId));
+                                    let nameOfArtifact = (typeof artifact === 'object') ? artifact.name : artifact;
+                                    methodBlockPopup.find(".output-artifacts").append(artifactInputHTML('outputArtifact', nameOfArtifact, task.id, frontendId));
 
                                     if (!userHasWritePermission(task) || canStartThisTask(task).status === false || !('status' in task) || parseInt(task.status) === 0 || parseInt(task.status) === 2)
                                         $("#" + frontendId).attr('disabled', true);
@@ -795,8 +952,14 @@
                             for (let [key, value] of Object.entries(task)) {
                                 if (key === 'outputArtifacts' && value !== "") {
                                     value.forEach(function (artifact, index) {
-                                        if (typeof artifact !== 'object')
+                                        if (typeof artifact !== 'object'){
                                             outputArtifactsThatHasNotBeenUploaded.push(artifact);
+                                        }
+                                        else if (typeof artifact === 'object' && !('path' in artifact))
+                                        {
+                                            if (('text' in artifact && (artifact.text).length<12) || !('text' in artifact))
+                                                outputArtifactsThatHasNotBeenUploaded.push(artifact.name);
+                                        }
                                     });
                                 }
                             }
@@ -809,7 +972,7 @@
                                     else
                                         message = message + "," + artifact;
                                 });
-                                message = message + " has not been uploaded and hence status can not be changed to finished.";
+                                message = message + " has not been uploaded or written. Therefore status can not be changed to finished.";
                                 alert(message);
                                 $(this).val(previousStatusValue);
                                 return false;
@@ -906,6 +1069,9 @@
                         updateJsonNodes();
                         updateJsonTasks();
                     });
+
+                    showAndAddMainComments(task.id);
+                    showAndModifyArtifactComments(task.id);
                 }
 
                 $(".close").on("click", function (e) {
@@ -1139,10 +1305,13 @@
                 task[artifactPlural].forEach(function (artifact, index) {
 
                     if (typeof artifact === 'object' && artifact.name === artifactName && artifact.path === filePath) {
-                        task[artifactPlural].splice(index, 1, artifactName);
+                        /*task[artifactPlural].splice(index, 1, artifactName);*/
+                        delete artifact.path;
+
+
                     }
                 });
-
+                showAndModifyArtifactComments(taskId);
                 $.ajax({
                     type: 'POST',
                     url: '{{ path('task_update') }}',
@@ -1206,6 +1375,7 @@
                                 $(".output-artifacts").append(uploadedArtifact);
 
                             handleArtifactRemoval(artifactType, removeButtonId);
+                            showAndModifyArtifactComments(task.id);
 
                             if (artifactType === 'inputArtifact') {
                                 for (let [key, value] of Object.entries(task)) {
@@ -1221,8 +1391,10 @@
                                 for (let [key, value] of Object.entries(task)) {
                                     if (key === 'outputArtifacts' && task[key] !== "") {
                                         task[key].forEach(function (ourArtifact, index) {
-                                            if (ourArtifact === artifact)
+                                            if (typeof ourArtifact !== 'object' && ourArtifact === artifact)
                                                 task[key].splice(index, 1, {name: artifact, path: filePath});
+                                            else if (typeof ourArtifact == 'object' && ourArtifact.name === artifact)
+                                                ourArtifact.path = filePath;
                                         });
                                     }
                                 }
@@ -1571,6 +1743,32 @@
                 changeAllConsecutiveTasksColorToRed(nextStep);
             }
             initializeGraph(true);
+        }
+
+        function getArtifactText(task, artifact, artifactType) {
+            let text = "";
+
+            if (artifactType === 'inputArtifact') {
+                for (let [key, value] of Object.entries(task)) {
+                    if (key === 'inputArtifacts' && task[key] !== "") {
+                        task[key].forEach(function (ourArtifact, index) {
+                            if (typeof ourArtifact === "object" && ourArtifact.name === artifact)
+                                text = ourArtifact.text;
+                        });
+                    }
+                }
+            }
+            if (artifactType === 'outputArtifact' && task!==null) {
+                for (let [key, value] of Object.entries(task)) {
+                    if (key === 'outputArtifacts' && task[key] !== "") {
+                        task[key].forEach(function (ourArtifact, index) {
+                            if (typeof ourArtifact === "object" && ourArtifact.name === artifact)
+                                text = ourArtifact.text;
+                        });
+                    }
+                }
+            }
+            return text;
         }
 
     </script>
