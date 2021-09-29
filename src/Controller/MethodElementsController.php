@@ -431,7 +431,11 @@ class MethodElementsController extends AbstractController
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
-            $situationalFactor->setVariants($situationalFactor->getVariants()->toArray());
+
+            $variants = !is_array($situationalFactor->getVariants()) ?
+                $situationalFactor->getVariants()->toArray() : $situationalFactor->getVariants();
+
+            $situationalFactor->setVariants($variants);
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
