@@ -58,7 +58,9 @@ class SituationalFactor
 
     public function addVariant(string $variant)
     {
-        if(!$this->variants->contains($variant))
+        $variants = is_array($this->variants) ? $this->variants : $this->variants->toArray();
+
+        if(!in_array($variant, $variants))
         {
             $this->variants[] = $variant;
         }
