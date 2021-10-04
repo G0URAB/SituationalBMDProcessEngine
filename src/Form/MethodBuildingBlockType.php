@@ -62,7 +62,7 @@ class MethodBuildingBlockType extends AbstractType
                 'choices' => $options['businessSegmentChoices'],
                 'multiple' => true,
                 'placeholder' => 'All Business Model Segments',
-                'required' => true
+                'required' => false
             ])
             ;
     }
