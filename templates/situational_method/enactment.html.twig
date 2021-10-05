@@ -165,7 +165,7 @@
 
     {# Modal 3 : Popup For Method Block View #}
     <div id="method-block-popup" tabindex="-1"
-         style="position: fixed;top: 4%; left:10%;display: none; background: #a4cbf8; width:70%;"
+         style="position: fixed;top: 4%; left:10%;display: none; background: #a4cbf8; width:70%; min-width: 750px;"
          role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true" data-nodeId="">
         <div class="modal-content" style="max-height: 600px; background: #a8a6a3">
 
@@ -204,7 +204,7 @@
 
                             <div class="modal-body">
 
-                                <ul>
+                                <ul style="margin-left: -5%; min-width: 700px">
 
                                 </ul>
 
@@ -351,9 +351,18 @@
     <script>
 
         let commentTemplate = (taskId, commentId, user, text, time) => `
-                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between align-items-center">
+                               <div class="d-flex flex-row flex-wrap mb-2 justify-content-between align-items-center p-2 border border-primary">
                                     <span> ${user} ${time} : ${text}</span>
                                     <button id="${commentId}" class="btn btn-danger delete-comment" data-commentId="${commentId}" data-taskId="${taskId}">Remove</button>
+                               </div>
+                                `;
+        let commentTemplateWithFile = (taskId, commentId, user, text, time, oldFileName, filePath) => `
+                               <div class="d-flex flex-column mt-2 p-2 border border-primary">
+                                   <div class="d-flex flex-row flex-wrap mb-2 justify-content-between align-items-center">
+                                        <span> ${user} ${time} : ${text}</span>
+                                        <button id="${commentId}" class="btn btn-danger delete-comment" data-commentId="${commentId}" data-taskId="${taskId}">Remove</button>
+                                   </div>
+                                   <a href="${filePath}" target="_blank">${oldFileName}</a>
                                </div>
                                 `;
 
@@ -388,6 +397,7 @@
             /*commentsBox.css("opacity", 1);*/
             /*let taskId = $(this).parent().parent().parent().attr("data-nodeId");*/
             commentsBox.attr("data-taskId", taskId);
+            commentsBox.find("#comment-file").val(null);
 
             let task = getTaskObject(parseInt(taskId));
             commentsBox.find(".modal-body").find("ul").children().remove();
@@ -399,7 +409,10 @@
                     let text = comment.text;
                     let time = comment.time;
 
-                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, commentId, user, text, time));
+                    if (!('filePath' in comment))
+                        commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, commentId, user, text, time));
+                    else
+                        commentsBox.find(".modal-body").find("ul").append(commentTemplateWithFile(taskId, commentId, user, text, time, comment.oldFileName, comment.filePath));
 
                     if (!userHasWritePermission(task) || user !== "{{ app.user.employeeName }}")
                         $("#" + commentId).attr('disabled', true);
@@ -420,10 +433,43 @@
                         text: $("#new-comment").val(),
                         time: getDateTime()
                     }
+
+                    let commentFileUploaded = $("#comment-file")[0].files.length > 0;
+
+                    if (commentFileUploaded) {
+                        let form = new FormData();
+                        form.append("file_name", $("#comment-file")[0].files[0]);
+                        form.append('update_type', 'upload_comment_file');
+
+                        $.ajax({
+                            type: 'post',
+                            url: '{{ path('task_update') }}',
+                            processData: false,
+                            contentType: false,
+                            data: form,
+                            async: false,
+                            success: function (response) {
+                                let obj = JSON.parse(JSON.stringify(response));
+                                if (obj.status === 'success') {
+                                    let filePath = "{{ asset('images/commentFiles') }}" + "/" + obj.fileName;
+                                    newComment.oldFileName = obj.oldFileName;
+                                    newComment.newFileName = obj.fileName;
+                                    newComment.filePath = filePath;
+
+                                    updateJsonTasks();
+                                }
+                            }
+                        });
+                    }
+
                     task.comments.push(newComment);
-                    commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, newComment.id, newComment.user, newComment.text, newComment.time));
+                    if(commentFileUploaded)
+                        commentsBox.find(".modal-body").find("ul").append(commentTemplateWithFile(taskId, newComment.id, newComment.user, newComment.text, newComment.time, newComment.oldFileName, newComment.filePath));
+                    else
+                        commentsBox.find(".modal-body").find("ul").append(commentTemplate(taskId, newComment.id, newComment.user, newComment.text, newComment.time));
                     updateJsonTasks();
                     enteredComment.val("");
+                    $("#comment-file").val(null);
                     handleDeleteCommentEvent();
                 }
             });
@@ -445,8 +491,8 @@
                     editor.setData(getArtifactText(task, artifact, artifactType));
                 });
 
-                editor.on( 'change', function( evt ) {
-                    $("#add-modify-comment").prop("disabled",false);
+                editor.on('change', function (evt) {
+                    $("#add-modify-comment").prop("disabled", false);
                 });
 
                 $(".close-ckEditor").on("click", function () {
@@ -482,7 +528,7 @@
                             }
                         }
                     }
-                    $(this).prop("disabled",true);
+                    $(this).prop("disabled", true);
                     updateJsonTasks();
                 });
             });
@@ -952,12 +998,10 @@
                             for (let [key, value] of Object.entries(task)) {
                                 if (key === 'outputArtifacts' && value !== "") {
                                     value.forEach(function (artifact, index) {
-                                        if (typeof artifact !== 'object'){
+                                        if (typeof artifact !== 'object') {
                                             outputArtifactsThatHasNotBeenUploaded.push(artifact);
-                                        }
-                                        else if (typeof artifact === 'object' && !('path' in artifact))
-                                        {
-                                            if (('text' in artifact && (artifact.text).length<12) || !('text' in artifact))
+                                        } else if (typeof artifact === 'object' && !('path' in artifact)) {
+                                            if (('text' in artifact && (artifact.text).length < 12) || !('text' in artifact))
                                                 outputArtifactsThatHasNotBeenUploaded.push(artifact.name);
                                         }
                                     });
@@ -977,91 +1021,8 @@
                                 $(this).val(previousStatusValue);
                                 return false;
                             }
-
                             $(this).val(previousStatusValue);
-                            let segmentTemplate = (name, value) => `
-                                    <div class="input-group mb-3 mt-3">
-                                        <div class="input-group-prepend">
-                                            <span class="input-group-text" id="${name}"><a target="_blank" href="{{ path('view_business_model_segment',{'name':situationalMethod.businessModelType}) }}">${name}</a></span>
-                                        </div>
-                                        <input name="${name}" type="text" class="form-control" placeholder="Provide Information" aria-label="${name}" value="${value}" required>
-                                    </div>`;
-                            $.ajax({
-                                type: 'POST',
-                                url: '{{ path('business_model_ajax') }}',
-                                data: {
-                                    method_block_id: task.tableId,
-                                    situational_method_id: "{{ situationalMethod.id }}",
-                                    request_type: 'get_segments'
-                                },
-                                success: function (response) {
-                                    let obj = JSON.parse(JSON.stringify(response));
-                                    closeNodePopup(nodePopupToRefer);
-
-                                    if (obj.segments.length !== 0) {
-
-                                        $(".container-fluid").children().not("#business-model-popup").css({
-                                            "pointer-events": "none",
-                                            "opacity": "0.4"
-                                        });
-                                        $("#business-model-popup").css("display", "block");
-
-                                        let segments = obj.segments;
-                                        $("#business-model-segments").children().remove();
-                                        $("#business-model-popup").find(".card-header").html("{{ 'Business Model Type : '~ situationalMethod.businessModelType }}");
-                                        segments.forEach(function (segment, index) {
-                                            $("#business-model-segments").append(segmentTemplate(segment.name, segment.value));
-                                        });
-                                        $("#segments-form").on("submit", function (e) {
-                                            e.preventDefault();
-                                            let segmentsData = [];
-                                            $("#business-model-segments :input").each(function () {
-                                                let segment = {name: $(this).attr("name"), value: $(this).val()};
-                                                segmentsData.push(segment);
-                                            });
-
-                                            $.ajax({
-                                                type: 'POST',
-                                                url: '{{ path('business_model_ajax') }}',
-                                                data: {
-                                                    segments_data: segmentsData,
-                                                    log: "Updated by " + "{{ app.user.employeeName }}" + ". Source methodBlock is '" + task.label +
-                                                        "' from situationalMethod:" + "{{ situationalMethod.name }}." +
-                                                        " Date of update:" + "{{ 'now'|date('d.m.Y') }}",
-                                                    situational_method_id: "{{ situationalMethod.id }}",
-                                                    request_type: 'update_segments'
-                                                },
-                                                success: function (response) {
-                                                    let obj = JSON.parse(JSON.stringify(response));
-                                                    if (obj.status === "success") {
-                                                        task.color = "#54f856";
-                                                        task.status = 2;
-                                                        node.color = "#54f856";
-                                                        currentStatus.val(2);
-                                                    }
-                                                    closeBusinessModelPopup();
-                                                    changeParentStatusAfterUpdateOfTaskStatus(task);
-                                                    updateJsonNodes();
-                                                    updateJsonTasks();
-                                                }
-                                            });
-                                        });
-                                        $("#cancel-segments").on("click", function () {
-                                            closeBusinessModelPopup();
-                                        });
-                                    } else {
-                                        task.color = "#54f856";
-                                        task.status = 2;
-                                        node.color = "#54f856";
-                                        currentStatus.val(2);
-                                        closeBusinessModelPopup();
-                                        changeParentStatusAfterUpdateOfTaskStatus(task);
-                                        console.log(tasks);
-                                        updateJsonNodes();
-                                        updateJsonTasks();
-                                    }
-                                }
-                            });
+                            window.location.href = "/update/business_model_segments/{{ situationalMethod.id }}" + "/" + task.id + "/" + task.tableId;
                         }
 
                         changeParentStatusAfterUpdateOfTaskStatus(task);
@@ -1678,10 +1639,27 @@
                 let respectiveTask = getTaskObject(taskId);
                 respectiveTask.comments.forEach(function (comment, index) {
                     if (parseInt(comment.id) === commentId) {
+                        if ('filePath' in comment) {
+                            $.ajax({
+                                type: 'POST',
+                                url: '{{ path('task_update') }}',
+                                data: {
+                                    fileName: comment.newFileName,
+                                    update_type: 'delete_comment_file',
+                                    method_id: "{{ situationalMethod.id }}"
+                                },
+                                success: function (response) {
+                                    let obj = JSON.parse(JSON.stringify(response));
+                                    if (obj.status === "success")
+                                        updateJsonTasks();
+                                }
+                            });
+                        }
+
                         respectiveTask.comments.splice(index, 1);
                     }
                 });
-                $(this).parent().remove();
+                $(this).parent().parent().remove();
                 updateJsonTasks();
                 console.log(tasks);
             });
@@ -1758,7 +1736,7 @@
                     }
                 }
             }
-            if (artifactType === 'outputArtifact' && task!==null) {
+            if (artifactType === 'outputArtifact' && task !== null) {
                 for (let [key, value] of Object.entries(task)) {
                     if (key === 'outputArtifacts' && task[key] !== "") {
                         task[key].forEach(function (ourArtifact, index) {
@@ -1769,6 +1747,20 @@
                 }
             }
             return text;
+        }
+
+        let idOfCompletedTask = parseInt("{{ id_of_completed_task }}");
+        let completedTask = getTaskObject(idOfCompletedTask);
+        if (completedTask) {
+            node = getNodeObject(idOfCompletedTask);
+            completedTask.color = "#54f856";
+            completedTask.status = 2;
+            node.color = "#54f856";
+
+            changeParentStatusAfterUpdateOfTaskStatus(completedTask);
+            console.log(tasks);
+            updateJsonNodes();
+            updateJsonTasks();
         }
 
     </script>

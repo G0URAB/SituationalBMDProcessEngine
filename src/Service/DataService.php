@@ -5,6 +5,7 @@ namespace App\Service;
 use App\Entity\Artifact;
 use App\Entity\BmdGraph;
 use App\Entity\BusinessModelDefinition;
+use App\Entity\BusinessText;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
 use App\Entity\ProcessKind;
@@ -412,4 +413,5 @@ class DataService
 
         return $businessModelTypes;
     }
+
 }

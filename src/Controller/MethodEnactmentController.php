@@ -13,6 +13,7 @@ use Symfony\Component\HttpFoundation\File\Exception\FileException;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
+use Symfony\Component\HttpFoundation\Session\SessionInterface;
 use Symfony\Component\Routing\Annotation\Route;
 use Symfony\Component\String\Slugger\SluggerInterface;
 
@@ -33,23 +34,27 @@ class MethodEnactmentController extends AbstractController
     }
 
     /**
-     * @Route("/enactment/{id}", name="enactment")
+     * @Route("/enactment/{id}/{taskId?}", name="enactment")
      * @param Request $request
      * @param DataService $dataService
      * @param int $id
+     * @param SessionInterface $session
      * @return Response
      */
-    public function enactment(Request $request, DataService $dataService, int $id): Response
+    public function enactment(Request $request, DataService $dataService, int $id, SessionInterface $session): Response
     {
-        /** @var SituationalMethod $situationalMethod **/
+        /** @var SituationalMethod $situationalMethod * */
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
+        $idOfCompletedTask = $session->get('id_of_completed_task') ?? null;
+        if ($idOfCompletedTask)
+            $session->remove('id_of_completed_task');
 
         $teamMembers = [];
         foreach ($this->getDoctrine()->getRepository(User::class)->findAll() as $member) {
 
             if ($member->getImplodedRoles() != 'ROLE_SUPER_ADMIN' && $member->getImplodedRoles() != 'ROLE_METHOD_ENGINEER'
                 && $member->getImplodedRoles() != 'ROLE_PROJECT_MANAGER')
-                $teamMembers[$member->getId()]= $member->getEmployeeName()." : ".$member->getImplodedRoles();
+                $teamMembers[$member->getId()] = $member->getEmployeeName() . " : " . $member->getImplodedRoles();
         }
 
         $tools = [];
@@ -67,7 +72,8 @@ class MethodEnactmentController extends AbstractController
             'graphsAndTheirSituationalFactors' => $situationalMethod->getGraphsAndTheirSituationalFactors(),
             'tools' => $tools,
             'roles' => $roles,
-            'teamMembers'=> $teamMembers
+            'teamMembers' => $teamMembers,
+            'id_of_completed_task' => $idOfCompletedTask
         ]);
     }
 
@@ -82,10 +88,12 @@ class MethodEnactmentController extends AbstractController
         if ($request->isXmlHttpRequest()) {
 
             $entityManager = $this->getDoctrine()->getManager();
+            $updateType = $request->get('update_type');
 
-            if ($request->get('update_type') === 'upload_artifact') {
+            if ($updateType === 'upload_artifact' || $updateType == 'upload_comment_file') {
 
                 $file = $request->files->get('file_name');
+                $uploadDirectory = $updateType === 'upload_artifact' ? 'artifacts_directory' : 'comments_directory';
 
                 $originalFilename = pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME);
                 // this is needed to safely include the file name as part of the URL
@@ -96,14 +104,14 @@ class MethodEnactmentController extends AbstractController
                 // Move the file to the directory where brochures are stored
                 try {
                     $file->move(
-                        $this->getParameter('artifacts_directory'),
+                        $this->getParameter($uploadDirectory),
                         $newFilename
                     );
                 } catch (FileException $e) {
                     // ... handle exception if something happens during file upload
                 }
 
-                return new JsonResponse(['status' => 'success', 'fileName' => $newFilename]);
+                return new JsonResponse(['status' => 'success', 'fileName' => $newFilename, 'oldFileName' => $originalFilename]);
             }
 
             /* @var SituationalMethod $method */
@@ -111,7 +119,7 @@ class MethodEnactmentController extends AbstractController
 
 
             /*-----------------Update Json Tasks----------------------*/
-            if ($request->get('update_type') == "update_jsonTasks") {
+            if ($updateType == "update_jsonTasks") {
 
                 $method->setJsonTasks(json_encode($request->get('tasks')));
 
@@ -119,11 +127,10 @@ class MethodEnactmentController extends AbstractController
                 $memberId = $request->get('memberId');
                 $task = $request->get("task");
                 $graphName = $request->get("graphName");
-                if($memberId && $task && $graphName)
-                {
-                    /**@var User $userToBeNotified**/
+                if ($memberId && $task && $graphName) {
+                    /**@var User $userToBeNotified * */
                     $userToBeNotified = $this->getDoctrine()->getRepository(User::class)->find($memberId);
-                    $message ='You have been assigned to task '."'".$task['label']."' in the graph of '".$graphName."' in method enactment of ".$method->getName();
+                    $message = 'You have been assigned to task ' . "'" . $task['label'] . "' in the graph of '" . $graphName . "' in method enactment of " . $method->getName();
 
                     $newNotification = new Notification();
                     $newNotification->setDatetime(date_create("now"));
@@ -139,7 +146,7 @@ class MethodEnactmentController extends AbstractController
 
 
             /*---------------Update Json Nodes-----------------------*/
-            if ($request->get('update_type') == "update_jsonNodes"){
+            if ($updateType == "update_jsonNodes") {
                 $nodes = $request->get("nodes");
                 $method->setJsonNodes(json_encode($nodes));
 
@@ -148,16 +155,20 @@ class MethodEnactmentController extends AbstractController
             }
 
             //Delete artifact
-            if($request->get('update_type')=="delete_artifact")
-            {
-                $method = $entityManager->getRepository(SituationalMethod::class)->find($request->get('method_id'));
-                $method->setJsonTasks(json_encode($request->get('tasks')));
+            if ($updateType == "delete_artifact" || $updateType == 'delete_comment_file') {
+
+                if ($updateType == 'delete_artifact') {
+                    $method = $entityManager->getRepository(SituationalMethod::class)->find($request->get('method_id'));
+                    $method->setJsonTasks(json_encode($request->get('tasks')));
+                }
+
+                $directory = $updateType === 'delete_artifact' ? 'artifacts_directory' : 'comments_directory';
 
                 $fileSystem = new Filesystem();
-                $fileSystem->remove($this->getParameter('kernel.project_dir')."/public/images/artifacts/".$request->get('fileName'));
+                $fileSystem->remove($this->getParameter($directory) . "/" . $request->get('fileName'));
 
                 $entityManager->flush();
-                return new JsonResponse(['status' => 'success', 'msg' => 'Artifact '.$request->get('fileName')." was removed."]);
+                return new JsonResponse(['status' => 'success', 'msg' => 'File ' . $request->get('fileName') . " was removed."]);
             }
         }
         return new Response("Invalid request", 400);
@@ -167,35 +178,35 @@ class MethodEnactmentController extends AbstractController
      * @Route("/enactment/{id}/cancelled", name="show_cancelled_method_blocks")
      * @param Request $request
      * @param int $id
+     * @param DataService $dataService
+     * @return Response
      */
     public function showCancelledBlocks(Request $request, int $id, DataService $dataService)
     {
         $cancelledBlocks = [];
 
-        /** @var SituationalMethod $situationalMethod **/
+        /** @var SituationalMethod $situationalMethod * */
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
         $cancelledMethods = $situationalMethod->getCancelledMethodBlocks();
         $allRoles = $dataService->getAllRoles();
         $allTools = $dataService->getAllTools();
 
-        foreach ($cancelledMethods as $method)
-        {
+        foreach ($cancelledMethods as $method) {
             $block = new stdClass;
             $block->name = $method->getName();
             $block->reason = $method->getReason();
             $block->dateTime = $method->getDateTime();
             $block->inputArtifacts = json_decode($method->getJsonData())->inputArtifacts;
             $block->outputArtifacts = json_decode($method->getJsonData())->outputArtifacts;
-            $roles = []; $tools = [];
-            foreach($allRoles as $role)
-            {
-                if(property_exists(json_decode($method->getJsonData()),$role->getName()))
-                    $roles[$role->getName()]= json_decode($method->getJsonData(),true)[$role->getName()];
+            $roles = [];
+            $tools = [];
+            foreach ($allRoles as $role) {
+                if (property_exists(json_decode($method->getJsonData()), $role->getName()))
+                    $roles[$role->getName()] = json_decode($method->getJsonData(), true)[$role->getName()];
             }
-            foreach($allTools as $tool)
-            {
-                if(property_exists(json_decode($method->getJsonData()),$tool->getType()))
-                    $tools[$tool->getType()]= json_decode($method->getJsonData(),true)[$tool->getType()];
+            foreach ($allTools as $tool) {
+                if (property_exists(json_decode($method->getJsonData()), $tool->getType()))
+                    $tools[$tool->getType()] = json_decode($method->getJsonData(), true)[$tool->getType()];
             }
             $block->roles = $roles;
             $block->tools = $tools;
@@ -203,9 +214,9 @@ class MethodEnactmentController extends AbstractController
             $cancelledBlocks[] = $block;
         }
 
-        return $this->render("situational_method/cancelled_method_blocks.html.twig",[
-            'cancelledBlocks'=>$cancelledBlocks,
-            'situationalMethod'=>$situationalMethod
+        return $this->render("situational_method/cancelled_method_blocks.html.twig", [
+            'cancelledBlocks' => $cancelledBlocks,
+            'situationalMethod' => $situationalMethod
         ]);
     }
 

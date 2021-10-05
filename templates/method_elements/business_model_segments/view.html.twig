@@ -19,7 +19,7 @@
     <div class="card mt-4" data-prototype="{{ form_widget(form.segments.vars.prototype)|e('html_attr') }}"
          data-index="{{ form.segments| length }}">
         <div class="card-header bg-secondary">
-            <b>View Business Model Segments </b>
+            <b>View Business Model Components </b>
         </div>
         <div class="card-body">
 
@@ -27,7 +27,7 @@
             {{ form_row(form.type, { 'attr':{'disabled':'disabled'}}) }}
 
             {# Values #}
-            <h6>Values</h6>
+            <h6>Components</h6>
             <ul id="variantList">
                 {% for value in form.segments %}
                     <li class="d-flex flex-row">

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} Update Business Model Segments {% endblock %}
+{% block title %} Update Business Model Components {% endblock %}
 
 {% block body %}
 
@@ -18,7 +18,7 @@
     {# Form box #}
     <div class="card mt-4" data-prototype="{{ form_widget(form.segments.vars.prototype)|e('html_attr') }}"
          data-index="{{ form.segments| length }}">
-        <div class="card-header bg-secondary">
+        <div class="card-header bg-danger">
             <b>Update Business Model Segments</b>
         </div>
         <div class="card-body">
@@ -28,8 +28,8 @@
             {#Type#}
             {{ form_row(form.type) }}
 
-            {# Segments #}
-            <h6>Segments</h6>
+            {# Components #}
+            <h6>Components</h6>
             <ul id="segmentList">
                 {% for value in form.segments %}
                     <li class="d-flex flex-row align-items-center">
@@ -40,12 +40,12 @@
                     </li>
                 {% endfor %}
             </ul>
-            {{ form_row(form.add_segment) }}
+            {{ form_row(form.add_segment, {'label':'Add Component'}) }}
             {{ form_row(form.description,{'label':'Description and Examples'}) }}
 
             <div class="d-flex flex-row flex-wrap mt-3 justify-content-between">
                 <button type="submit" class="btn btn-primary">Save</button>
-                <a class="btn btn-warning remove-business-model-type" href="{{ path('delete_method_element',{'type':'definition','id':definition.id}) }}">Remove Business Model Type & All Segments</a>
+                <a class="btn btn-warning remove-business-model-type" href="{{ path('delete_method_element',{'type':'definition','id':definition.id}) }}">Remove Business Model Type & All Components</a>
                 <a class="btn btn-dark" href="{{ path('method_elements') }}"> Go Back To Method Elements</a>
             </div>
 

@@ -3,7 +3,9 @@
 namespace App\Form;
 
 use App\Entity\BusinessSegment;
+use App\Entity\BusinessText;
 use Symfony\Component\Form\AbstractType;
+use Symfony\Component\Form\Extension\Core\Type\CollectionType;
 use Symfony\Component\Form\Extension\Core\Type\TextareaType;
 use Symfony\Component\Form\Extension\Core\Type\TextType;
 use Symfony\Component\Form\FormBuilderInterface;
@@ -19,12 +21,16 @@ class BusinessSegmentType extends AbstractType
             ->add("name",TextType::class,[
                 'disabled'=>true
             ])
-            ->add('values', TextType::class, [
-                'constraints' => [
-                    new NotBlank(),
-                    new Length(['min' => 5]),
+            ->add('businessTexts', CollectionType::class,[
+                'label'=>"Add Values",
+                'entry_type' => BusinessTextType::class,
+                'entry_options'=>[
+                    'label'=>false
                 ],
-                'attr'=> ['autocomplete' => 'off']
+                'allow_add' => true,
+                'allow_delete'=>true,
+                'prototype' => true,
+                'by_reference' => false,
             ])
             ->add("log",TextareaType::class,[
                 'disabled'=>true

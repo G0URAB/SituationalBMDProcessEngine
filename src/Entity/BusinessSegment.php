@@ -29,14 +29,20 @@ class BusinessSegment
     private $businessModel;
 
     /**
-     * @ORM\Column(name="`values`",type="string", length=255, nullable=true)
+     * @ORM\OneToMany(targetEntity="App\Entity\BusinessText", mappedBy="businessSegment", cascade={"persist","remove"})
      */
-    private $values;
+    private $businessTexts;
+
 
     /**
      * @ORM\Column(type="string", length=255, nullable=true)
      */
     private $log;
+
+    public function __construct()
+    {
+        $this->businessTexts = new ArrayCollection();
+    }
 
 
     public function getId(): ?int
@@ -72,21 +78,6 @@ class BusinessSegment
         $this->businessModel = $businessModel;
     }
 
-    /**
-     * @return mixed
-     */
-    public function getValues()
-    {
-        return $this->values;
-    }
-
-    /**
-     * @param mixed $values
-     */
-    public function setValues($values)
-    {
-        $this->values = $values;
-    }
 
     /**
      * @return mixed
@@ -103,4 +94,31 @@ class BusinessSegment
     {
         $this->log = $log;
     }
+
+
+    public function getBusinessTexts()
+    {
+        return $this->businessTexts;
+    }
+
+    public function addBusinessText(BusinessText $businessText)
+    {
+        $newText = true;
+        foreach ($this->businessTexts as $text) {
+            if ($text->getValue() == $businessText->getValue())
+                $newText = false;
+        }
+
+        if ($newText) {
+            $businessText->setBusinessSegment($this);
+            $this->businessTexts->add($businessText);
+        }
+    }
+
+    public function removeBusinessText(BusinessText $businessText)
+    {
+        $businessText->setBusinessSegment(null);
+        $this->businessTexts->removeElement($businessText);
+    }
+
 }
