@@ -428,7 +428,8 @@ class MethodElementsController extends AbstractController
         $originalSituationalFactorName = $situationalFactor->getName();
 
         /** @var array $originalVariants * */
-        $originalVariants = $situationalFactor->getVariants()->toArray();
+        $originalVariants = is_array($situationalFactor->getVariants()) ? $situationalFactor->getVariants() :
+            $situationalFactor->getVariants()->toArray();
 
         $form = $this->createForm(SituationalFactorType::class, $situationalFactor);
 
@@ -441,16 +442,14 @@ class MethodElementsController extends AbstractController
                 $situationalFactor->getVariants()->toArray() : $situationalFactor->getVariants();
 
             $removedVariants = [];
-            foreach ($originalVariants as $originalVariant)
-            {
-                if(!in_array($originalVariant,$variants))
+            foreach ($originalVariants as $originalVariant) {
+                if (!in_array($originalVariant, $variants))
                     $removedVariants[] = $originalVariant;
             }
 
             $addedVariants = [];
-            foreach ($variants as $newVariant)
-            {
-                if(!in_array($newVariant,$originalVariants))
+            foreach ($variants as $newVariant) {
+                if (!in_array($newVariant, $originalVariants))
                     $addedVariants[] = $newVariant;
             }
 
@@ -462,8 +461,7 @@ class MethodElementsController extends AbstractController
                 $this->updateSituationalFactor($methodBlocks, $situationalFactor, $originalSituationalFactorName);
                 $this->updateSituationalFactor($graphs, $situationalFactor, $originalSituationalFactorName);
             }
-            if (sizeof($removedVariants)>0)
-            {
+            if (sizeof($removedVariants) > 0) {
                 $this->updateSituationalFactor($methodBlocks, $situationalFactor, $originalSituationalFactorName, $removedVariants, $addedVariants);
                 $this->updateSituationalFactor($graphs, $situationalFactor, $originalSituationalFactorName, $removedVariants, $addedVariants);
             }
@@ -478,7 +476,7 @@ class MethodElementsController extends AbstractController
         ]);
     }
 
-    public function updateSituationalFactor($components, $newSituationalFactor, $oldSituationalFactor=null, $removedVariants=null, $addedVariants=null)
+    public function updateSituationalFactor($components, $newSituationalFactor, $oldSituationalFactor = null, $removedVariants = null, $addedVariants = null)
     {
         $needToAddNewVariants = false;
 
@@ -489,21 +487,18 @@ class MethodElementsController extends AbstractController
 
                 if (!$removedVariants && $oldSituationalFactor == trim($componentSituationalFactor[0])) {
                     $variant = trim($componentSituationalFactor[1]);
-                    $newSituationalFactorOfComponent = $newSituationalFactor->getName() . " : " .$variant ;
+                    $newSituationalFactorOfComponent = $newSituationalFactor->getName() . " : " . $variant;
                     unset($componentSituationalFactors[$key]);
                     $componentSituationalFactors[] = $newSituationalFactorOfComponent;
-                }
-                else if($removedVariants && in_array(trim($componentSituationalFactor[1]), $removedVariants)){
+                } else if ($removedVariants && in_array(trim($componentSituationalFactor[1]), $removedVariants)) {
                     $needToAddNewVariants = true;
                     unset($componentSituationalFactors[$key]);
                 }
             }
 
-            if($needToAddNewVariants)
-            {
-                foreach($addedVariants as $newVariant)
-                {
-                    $componentSituationalFactors [] = $newSituationalFactor->getName() . " : " .$newVariant ;
+            if ($needToAddNewVariants) {
+                foreach ($addedVariants as $newVariant) {
+                    $componentSituationalFactors [] = $newSituationalFactor->getName() . " : " . $newVariant;
                 }
 
             }
