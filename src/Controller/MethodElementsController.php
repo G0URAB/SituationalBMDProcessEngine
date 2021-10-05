@@ -3,6 +3,7 @@
 namespace App\Controller;
 
 use App\Entity\Artifact;
+use App\Entity\BmdGraph;
 use App\Entity\BusinessModel;
 use App\Entity\BusinessModelDefinition;
 use App\Entity\BusinessSegment;
@@ -52,10 +53,8 @@ class MethodElementsController extends AbstractController
     public function index(DataService $dataService): Response
     {
         $businessModelSegments = [];
-        foreach ($dataService->getAllBusinessModelDefinitions() as $businessModelDefinition)
-        {
-            foreach ($businessModelDefinition->getSegments() as $segment)
-            {
+        foreach ($dataService->getAllBusinessModelDefinitions() as $businessModelDefinition) {
+            foreach ($businessModelDefinition->getSegments() as $segment) {
                 $customSegment = new stdClass();
                 $customSegment->type = $businessModelDefinition->getType();
                 $customSegment->name = $segment;
@@ -162,11 +161,11 @@ class MethodElementsController extends AbstractController
      */
     public function viewProcess(string $name)
     {
-        $process = $this->getDoctrine()->getRepository(Process::class)->findOneBy(['name'=>$name]);
+        $process = $this->getDoctrine()->getRepository(Process::class)->findOneBy(['name' => $name]);
         $form = $this->createForm(ProcessType::class, $process);
 
         return $this->render('method_elements/processes/view.html.twig', [
-            'process'=> $process,
+            'process' => $process,
             'form' => $form->createView()
         ]);
     }
@@ -234,7 +233,7 @@ class MethodElementsController extends AbstractController
      */
     public function viewRole(string $name)
     {
-        $role = $this->getDoctrine()->getRepository(Role::class)->findOneBy(['name'=>$name]);
+        $role = $this->getDoctrine()->getRepository(Role::class)->findOneBy(['name' => $name]);
         $form = $this->createForm(RoleType::class, $role);
 
         return $this->render('method_elements/roles/view.html.twig', [
@@ -306,7 +305,7 @@ class MethodElementsController extends AbstractController
      */
     public function viewArtifact(string $name)
     {
-        $artifact = $this->getDoctrine()->getRepository(Artifact::class)->findOneBy(['name'=>$name]);
+        $artifact = $this->getDoctrine()->getRepository(Artifact::class)->findOneBy(['name' => $name]);
         $form = $this->createForm(ArtifactType::class, $artifact);
 
         return $this->render('method_elements/artifacts/view.html.twig', [
@@ -377,7 +376,7 @@ class MethodElementsController extends AbstractController
      */
     public function viewProcessKind(string $name)
     {
-        $processType = $this->getDoctrine()->getRepository(ProcessKind::class)->findOneBy(['name'=>$name]);
+        $processType = $this->getDoctrine()->getRepository(ProcessKind::class)->findOneBy(['name' => $name]);
         $form = $this->createForm(ProcessKindType::class, $processType);
 
         return $this->render('method_elements/process_types/view.html.twig', [
@@ -426,14 +425,48 @@ class MethodElementsController extends AbstractController
     public function editSituationalFactor(Request $request, $id)
     {
         $situationalFactor = $this->entityManager->getRepository(SituationalFactor::class)->find($id);
+        $originalSituationalFactorName = $situationalFactor->getName();
+
+        /** @var array $originalVariants * */
+        $originalVariants = $situationalFactor->getVariants()->toArray();
+
         $form = $this->createForm(SituationalFactorType::class, $situationalFactor);
 
         $form->handleRequest($request);
 
         if ($form->isSubmitted() && $form->isValid()) {
 
+            /** @var array $variants * */
             $variants = !is_array($situationalFactor->getVariants()) ?
                 $situationalFactor->getVariants()->toArray() : $situationalFactor->getVariants();
+
+            $removedVariants = [];
+            foreach ($originalVariants as $originalVariant)
+            {
+                if(!in_array($originalVariant,$variants))
+                    $removedVariants[] = $originalVariant;
+            }
+
+            $addedVariants = [];
+            foreach ($variants as $newVariant)
+            {
+                if(!in_array($newVariant,$originalVariants))
+                    $addedVariants[] = $newVariant;
+            }
+
+
+            $methodBlocks = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findAll();
+            $graphs = $this->getDoctrine()->getRepository(BmdGraph::class)->findAll();
+
+            if ($originalSituationalFactorName !== $situationalFactor->getName()) {
+                $this->updateSituationalFactor($methodBlocks, $situationalFactor, $originalSituationalFactorName);
+                $this->updateSituationalFactor($graphs, $situationalFactor, $originalSituationalFactorName);
+            }
+            if (sizeof($removedVariants)>0)
+            {
+                $this->updateSituationalFactor($methodBlocks, $situationalFactor, $originalSituationalFactorName, $removedVariants, $addedVariants);
+                $this->updateSituationalFactor($graphs, $situationalFactor, $originalSituationalFactorName, $removedVariants, $addedVariants);
+            }
 
             $situationalFactor->setVariants($variants);
             $this->entityManager->flush();
@@ -445,6 +478,40 @@ class MethodElementsController extends AbstractController
         ]);
     }
 
+    public function updateSituationalFactor($components, $newSituationalFactor, $oldSituationalFactor=null, $removedVariants=null, $addedVariants=null)
+    {
+        $needToAddNewVariants = false;
+
+        foreach ($components as $component) {
+            $componentSituationalFactors = $component->getSituationalFactors();
+            foreach ($componentSituationalFactors as $key => $componentSituationalFactor) {
+                $componentSituationalFactor = explode(":", $componentSituationalFactor);
+
+                if (!$removedVariants && $oldSituationalFactor == trim($componentSituationalFactor[0])) {
+                    $variant = trim($componentSituationalFactor[1]);
+                    $newSituationalFactorOfComponent = $newSituationalFactor->getName() . " : " .$variant ;
+                    unset($componentSituationalFactors[$key]);
+                    $componentSituationalFactors[] = $newSituationalFactorOfComponent;
+                }
+                else if($removedVariants && in_array(trim($componentSituationalFactor[1]), $removedVariants)){
+                    $needToAddNewVariants = true;
+                    unset($componentSituationalFactors[$key]);
+                }
+            }
+
+            if($needToAddNewVariants)
+            {
+                foreach($addedVariants as $newVariant)
+                {
+                    $componentSituationalFactors [] = $newSituationalFactor->getName() . " : " .$newVariant ;
+                }
+
+            }
+            $needToAddNewVariants = false;
+            $component->setSituationalFactors($componentSituationalFactors);
+        }
+    }
+
     /**
      * @Route("/method_elements/situational_factor/view/{name?}", name="view_situational_factor")
      * @param string $name
@@ -453,7 +520,7 @@ class MethodElementsController extends AbstractController
     public function viewSituationalFactor(string $name)
     {
         $name = trim(explode(":", $name)[0]);
-        $factor = $this->getDoctrine()->getRepository(SituationalFactor::class)->findOneBy(['name'=>$name]);
+        $factor = $this->getDoctrine()->getRepository(SituationalFactor::class)->findOneBy(['name' => $name]);
         $form = $this->createForm(SituationalFactorType::class, $factor);
 
         return $this->render('method_elements/situational_factors/view.html.twig', [
@@ -564,33 +631,27 @@ class MethodElementsController extends AbstractController
 
         if ($form->isSubmitted() && $form->isValid()) {
 
-            /**@var BusinessModel $affectedBusinessModel **/
-            $affectedBusinessModel = $this->entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=> $businessModelDefinition->getType()]);
+            /**@var BusinessModel $affectedBusinessModel * */
+            $affectedBusinessModel = $this->entityManager->getRepository(BusinessModel::class)->findOneBy(['type' => $businessModelDefinition->getType()]);
 
             /* Check if any segment has been remove from the definition. If yes then remove it from the respective
             business model also */
-            if( (sizeof($originalSegments)> sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel)
-            {
-                $removedSegments = array_diff($originalSegments,$businessModelDefinition->getSegments()->toArray());
+            if ((sizeof($originalSegments) > sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel) {
+                $removedSegments = array_diff($originalSegments, $businessModelDefinition->getSegments()->toArray());
 
-                foreach ($removedSegments as $removedSegment)
-                {
-                    foreach ($affectedBusinessModel->getSegments() as $segmentEntity)
-                    {
-                        if($segmentEntity->getName()===$removedSegment)
-                        {
+                foreach ($removedSegments as $removedSegment) {
+                    foreach ($affectedBusinessModel->getSegments() as $segmentEntity) {
+                        if ($segmentEntity->getName() === $removedSegment) {
                             $affectedBusinessModel->removeSegment($segmentEntity);
                             $this->entityManager->remove($segmentEntity);
                         }
                     }
                     /* Also remove the business segments from any related method blocks */
-                    foreach ($this->entityManager->getRepository(MethodBuildingBlock::class)->findAll() as $methodBuildingBlock)
-                    {
+                    foreach ($this->entityManager->getRepository(MethodBuildingBlock::class)->findAll() as $methodBuildingBlock) {
                         $businessModelSegments = $methodBuildingBlock->getBusinessModelSegments();
-                        foreach($businessModelSegments as $key => $businessModelSegment)
-                        {
+                        foreach ($businessModelSegments as $key => $businessModelSegment) {
                             $explodedSegment = explode(":", $businessModelSegment);
-                            if($affectedBusinessModel->getType()===trim($explodedSegment[0]) && $removedSegment===trim($explodedSegment[1]))
+                            if ($affectedBusinessModel->getType() === trim($explodedSegment[0]) && $removedSegment === trim($explodedSegment[1]))
                                 unset($businessModelSegments[$key]);
                         }
                         $methodBuildingBlock->setBusinessModelSegments($businessModelSegments);
@@ -600,12 +661,10 @@ class MethodElementsController extends AbstractController
             }
             /* Check if a new segment has been added to the definition. If yes then add it to the respective
             business model also */
-            if((sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel)
-            {
-                $newSegments = array_diff($businessModelDefinition->getSegments()->toArray(),$originalSegments);
+            if ((sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel) {
+                $newSegments = array_diff($businessModelDefinition->getSegments()->toArray(), $originalSegments);
 
-                foreach ($newSegments as $newSegment)
-                {
+                foreach ($newSegments as $newSegment) {
                     $segmentEntity = new BusinessSegment();
                     $segmentEntity->setName($newSegment);
                     $affectedBusinessModel->addSegment($segmentEntity);
@@ -631,7 +690,7 @@ class MethodElementsController extends AbstractController
     public function viewBusinessModelSegment(string $name)
     {
         $name = trim(explode(":", $name)[0]);
-        $definition = $this->getDoctrine()->getRepository(BusinessModelDefinition::class)->findOneBy(['type'=>$name]);
+        $definition = $this->getDoctrine()->getRepository(BusinessModelDefinition::class)->findOneBy(['type' => $name]);
         $form = $this->createForm(BusinessModelDefinitionType::class, $definition);
 
         return $this->render('method_elements/business_model_segments/view.html.twig', [
@@ -662,16 +721,14 @@ class MethodElementsController extends AbstractController
             $entityType = SituationalFactor::class;
         else if ($type == 'artifact')
             $entityType = Artifact::class;
-        else if ($type == 'definition')
-        {
+        else if ($type == 'definition') {
             $entityType = BusinessModelDefinition::class;
         }
 
         $entityManager = $this->getDoctrine()->getManager();
         $entity = $entityManager->getRepository($entityType)->find($id);
-        if($type == 'definition')
-        {
-            $businessModelToDelete = $entityManager->getRepository(BusinessModel::class)->findOneBy(['type'=>$entity->getType()]);
+        if ($type == 'definition') {
+            $businessModelToDelete = $entityManager->getRepository(BusinessModel::class)->findOneBy(['type' => $entity->getType()]);
             $entityManager->remove($businessModelToDelete);
         }
         $entityManager->remove($entity);
