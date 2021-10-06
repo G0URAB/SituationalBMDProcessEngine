@@ -14,8 +14,8 @@ class BusinessModelType extends AbstractType
     public function buildForm(FormBuilderInterface $builder, array $options)
     {
         $builder
-            ->add('segments', CollectionType::class,[
-                'entry_type' => BusinessSegmentType::class,
+            ->add('components', CollectionType::class,[
+                'entry_type' => BusinessComponentType::class,
                 'entry_options' => ['label' => false],
                 'allow_add' => false,
                 'allow_delete' => false,

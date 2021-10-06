@@ -21,21 +21,21 @@
 
     {{ form_start(business_model_form) }}
     <div class="mt-5">
-        {% for segment in business_model_form.segments %}
+        {% for component in business_model_form.components %}
 
             <div class="d-flex flex-column border border-primary rounded mt-2 p-3">
                 <div class="d-flex flex-row">
                     <div style="width: 20%; min-width: 240px;" class="d-flex flex-column justify-content-start">
                         <div class="d-flex flex-row align-items-center">
-                            {{ form_widget(segment.name) }}
-                            <a target="_blank" href="{{ path('view_business_model_segment',{'name': preferred_business_model_type}) }}">
+                            {{ form_widget(component.name) }}
+                            <a target="_blank" href="{{ path('view_business_model_component',{'name': preferred_business_model_type}) }}">
                                 <i class="fa fa-question-circle ml-2" style="font-size:24px"></i>
                             </a>
                         </div>
                     </div>
-                    <div style="width: 80%; min-width: 400px;" class="pl-5" data-textIndex="{{ segment.businessTexts | length }}" data-segmentIndex="{{ segment.vars.name }}">
+                    <div style="width: 80%; min-width: 400px;" class="pl-5" data-textIndex="{{ component.businessTexts | length }}" data-componentIndex="{{ component.vars.name }}">
                         <div class="texts">
-                            {% for text in segment.businessTexts %}
+                            {% for text in component.businessTexts %}
                                 <div style="display: flex; flex-direction: row">
                                     <div class="w-50">
                                         {{ form_widget(text) }}
@@ -52,7 +52,7 @@
                 </div> {# test #}
                 <div class="d-flex flex-column mt-3" style="min-width: 650px;">
                     <span><b>Log:</b></span>
-                    {{ form_widget(segment.log) }}
+                    {{ form_widget(component.log) }}
                 </div>
             </div>
 
@@ -75,13 +75,13 @@
             $('form[name="form"]').submit();
         });
 
-        let textTemplate = (segmentIndex,businessTextIndex) =>`
+        let textTemplate = (componentIndex,businessTextIndex) =>`
                                    <div class="d-flex flex-row">
                                        <fieldset class="form-group w-50">
-                                            <div id="business_model_segments_${segmentIndex}_businessTexts_${businessTextIndex}">
+                                            <div id="business_model_components_${componentIndex}_businessTexts_${businessTextIndex}">
                                                  <div class="form-group">
-                                                    <label for="business_model_segments_${segmentIndex}_businessTexts_${businessTextIndex}_value" class="required">Value</label>
-                                                    <input type="text" id="business_model_segments_${segmentIndex}_businessTexts_${businessTextIndex}_value" name="business_model[segments][${segmentIndex}][businessTexts][${businessTextIndex}][value]" required="required" class="form-control" />
+                                                    <label for="business_model_components_${componentIndex}_businessTexts_${businessTextIndex}_value" class="required">Value</label>
+                                                    <input type="text" id="business_model_components_${componentIndex}_businessTexts_${businessTextIndex}_value" name="business_model[components][${componentIndex}][businessTexts][${businessTextIndex}][value]" required="required" class="form-control" />
                                                  </div>
                                             </div>
                                        </fieldset>
@@ -93,8 +93,8 @@
 
         $(".add-text").on("click", function () {
             let textIndex = $(this).parent().attr("data-textIndex");
-            let segmentIndex = $(this).parent().attr("data-segmentIndex");
-            $(this).parent().find(".texts").append(textTemplate(segmentIndex,textIndex));
+            let componentIndex = $(this).parent().attr("data-componentIndex");
+            $(this).parent().find(".texts").append(textTemplate(componentIndex,textIndex));
             textIndex++;
             $(this).parent().attr("data-textIndex", textIndex);
 

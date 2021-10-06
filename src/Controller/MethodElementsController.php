@@ -6,7 +6,7 @@ use App\Entity\Artifact;
 use App\Entity\BmdGraph;
 use App\Entity\BusinessModel;
 use App\Entity\BusinessModelDefinition;
-use App\Entity\BusinessSegment;
+use App\Entity\BusinessComponent;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\ProcessKind;
 use App\Entity\Process;
@@ -52,14 +52,21 @@ class MethodElementsController extends AbstractController
      */
     public function index(DataService $dataService): Response
     {
-        $businessModelSegments = [];
+        $businessModelComponents = [];
+        $businessModelDefinitions = [];
         foreach ($dataService->getAllBusinessModelDefinitions() as $businessModelDefinition) {
-            foreach ($businessModelDefinition->getSegments() as $segment) {
-                $customSegment = new stdClass();
-                $customSegment->type = $businessModelDefinition->getType();
-                $customSegment->name = $segment;
-                $customSegment->id = $businessModelDefinition->getId();
-                $businessModelSegments[] = $customSegment;
+            if ($businessModelDefinition->getComponents()) {
+                foreach ($businessModelDefinition->getComponents() as $component) {
+                    $customComponent = new stdClass();
+                    $customComponent->type = $businessModelDefinition->getType();
+                    $customComponent->name = $component;
+                    $customComponent->id = $businessModelDefinition->getId();
+                    $businessModelComponents[] = $customComponent;
+                }
+            }
+            else
+            {
+                $businessModelDefinitions[] = $businessModelDefinition;
             }
         }
 
@@ -71,7 +78,8 @@ class MethodElementsController extends AbstractController
             'roles' => $dataService->getAllRoles(),
             'situationalFactors' => $dataService->getAllSituationalFactors(),
             'tools' => $dataService->getAllTools(),
-            'businessModelSegments' => $businessModelSegments
+            'businessModelComponents' => $businessModelComponents,
+            'businessModelDefinitions' => $businessModelDefinitions
         ]);
     }
 
@@ -579,21 +587,21 @@ class MethodElementsController extends AbstractController
     }
 
     /**
-     * @Route("/method_elements/business_model_segment/create", name="create_business_model_segment")
+     * @Route("/method_elements/business_model_component/create", name="create_business_model_component")
      * @param Request $request
      * @param DataService $dataService
      * @return Response
      */
-    public function createBusinessModelSegment(Request $request, DataService $dataService): Response
+    public function createBusinessModelComponent(Request $request, DataService $dataService): Response
     {
-        $form = $this->createMultiEntityForm('businessModelSegments', BusinessModelDefinitionType::class);
+        $form = $this->createMultiEntityForm('businessModelComponents', BusinessModelDefinitionType::class);
         $form->handleRequest($request);
         if ($form->isSubmitted() && $form->isValid()) {
-            foreach ($form->getData()['businessModelSegments'] as $businessModelDefinition) {
+            foreach ($form->getData()['businessModelComponents'] as $businessModelDefinition) {
                 foreach ($dataService->getAllBusinessModelDefinitions() as $existingBusinessModelDefinition) {
                     if (strcasecmp($existingBusinessModelDefinition->getType(), $businessModelDefinition->getType()) === 0) {
                         $form->addError(new FormError($businessModelDefinition->getType() . ' already exists'));
-                        return $this->render('method_elements/business_model_segments/create.html.twig', [
+                        return $this->render('method_elements/business_model_components/create.html.twig', [
                             'form' => $form->createView()
                         ]);
                     }
@@ -604,23 +612,23 @@ class MethodElementsController extends AbstractController
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/business_model_segments/create.html.twig', [
+        return $this->render('method_elements/business_model_components/create.html.twig', [
             'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/method_elements/business_model_segment/edit/{id?}", name="edit_business_model_segment")
+     * @Route("/method_elements/business_model_component/edit/{id?}", name="edit_business_model_component")
      * @param Request $request
      * @param $id
      * @return Response
      */
-    public function editBusinessModelSegment(Request $request, $id)
+    public function editBusinessModelComponent(Request $request, $id)
     {
         $businessModelDefinition = $this->entityManager->getRepository(BusinessModelDefinition::class)->find($id);
         $form = $this->createForm(BusinessModelDefinitionType::class, $businessModelDefinition);
 
-        $originalSegments = $businessModelDefinition->getSegments()->toArray();
+        $originalComponents = $businessModelDefinition->getComponents() ? $businessModelDefinition->getComponents()->toArray(): [];
 
         $form->handleRequest($request);
 
@@ -629,66 +637,66 @@ class MethodElementsController extends AbstractController
             /**@var BusinessModel $affectedBusinessModel * */
             $affectedBusinessModel = $this->entityManager->getRepository(BusinessModel::class)->findOneBy(['type' => $businessModelDefinition->getType()]);
 
-            /* Check if any segment has been remove from the definition. If yes then remove it from the respective
+            /* Check if any component has been remove from the definition. If yes then remove it from the respective
             business model also */
-            if ((sizeof($originalSegments) > sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel) {
-                $removedSegments = array_diff($originalSegments, $businessModelDefinition->getSegments()->toArray());
+            if ((sizeof($originalComponents) > sizeof($businessModelDefinition->getComponents()->toArray())) && $affectedBusinessModel) {
+                $removedComponents = array_diff($originalComponents, $businessModelDefinition->getComponents()->toArray());
 
-                foreach ($removedSegments as $removedSegment) {
-                    foreach ($affectedBusinessModel->getSegments() as $segmentEntity) {
-                        if ($segmentEntity->getName() === $removedSegment) {
-                            $affectedBusinessModel->removeSegment($segmentEntity);
-                            $this->entityManager->remove($segmentEntity);
+                foreach ($removedComponents as $removedComponent) {
+                    foreach ($affectedBusinessModel->getComponents() as $componentEntity) {
+                        if ($componentEntity->getName() === $removedComponent) {
+                            $affectedBusinessModel->removeComponent($componentEntity);
+                            $this->entityManager->remove($componentEntity);
                         }
                     }
-                    /* Also remove the business segments from any related method blocks */
+                    /* Also remove the business components from any related method blocks */
                     foreach ($this->entityManager->getRepository(MethodBuildingBlock::class)->findAll() as $methodBuildingBlock) {
-                        $businessModelSegments = $methodBuildingBlock->getBusinessModelSegments();
-                        foreach ($businessModelSegments as $key => $businessModelSegment) {
-                            $explodedSegment = explode(":", $businessModelSegment);
-                            if ($affectedBusinessModel->getType() === trim($explodedSegment[0]) && $removedSegment === trim($explodedSegment[1]))
-                                unset($businessModelSegments[$key]);
+                        $businessModelComponents = $methodBuildingBlock->getBusinessModelComponents();
+                        foreach ($businessModelComponents as $key => $businessModelComponent) {
+                            $explodedComponent = explode(":", $businessModelComponent);
+                            if ($affectedBusinessModel->getType() === trim($explodedComponent[0]) && $removedComponent === trim($explodedComponent[1]))
+                                unset($businessModelComponents[$key]);
                         }
-                        $methodBuildingBlock->setBusinessModelSegments($businessModelSegments);
+                        $methodBuildingBlock->setBusinessModelComponents($businessModelComponents);
                     }
                 }
                 $this->entityManager->persist($affectedBusinessModel);
             }
-            /* Check if a new segment has been added to the definition. If yes then add it to the respective
+            /* Check if a new component has been added to the definition. If yes then add it to the respective
             business model also */
-            if ((sizeof($originalSegments) < sizeof($businessModelDefinition->getSegments()->toArray())) && $affectedBusinessModel) {
-                $newSegments = array_diff($businessModelDefinition->getSegments()->toArray(), $originalSegments);
+            if ((sizeof($originalComponents) < sizeof($businessModelDefinition->getComponents()->toArray())) && $affectedBusinessModel) {
+                $newComponents = array_diff($businessModelDefinition->getComponents()->toArray(), $originalComponents);
 
-                foreach ($newSegments as $newSegment) {
-                    $segmentEntity = new BusinessSegment();
-                    $segmentEntity->setName($newSegment);
-                    $affectedBusinessModel->addSegment($segmentEntity);
+                foreach ($newComponents as $newComponent) {
+                    $componentEntity = new BusinessComponent();
+                    $componentEntity->setName($newComponent);
+                    $affectedBusinessModel->addComponent($componentEntity);
                 }
                 $this->entityManager->persist($affectedBusinessModel);
             }
-            $businessModelDefinition->setSegments($businessModelDefinition->getSegments()->toArray());
+            $businessModelDefinition->setComponents($businessModelDefinition->getComponents()->toArray());
             $this->entityManager->flush();
             return $this->redirectToRoute("method_elements");
         }
 
-        return $this->render('method_elements/business_model_segments/update.html.twig', [
+        return $this->render('method_elements/business_model_components/update.html.twig', [
             'definition' => $businessModelDefinition,
             'form' => $form->createView()
         ]);
     }
 
     /**
-     * @Route("/method_elements/business_model_segment/view/{name?}", name="view_business_model_segment")
+     * @Route("/method_elements/business_model_component/view/{name?}", name="view_business_model_component")
      * @param string $name
      * @return Response
      */
-    public function viewBusinessModelSegment(string $name)
+    public function viewBusinessModelComponent(string $name)
     {
         $name = trim(explode(":", $name)[0]);
         $definition = $this->getDoctrine()->getRepository(BusinessModelDefinition::class)->findOneBy(['type' => $name]);
         $form = $this->createForm(BusinessModelDefinitionType::class, $definition);
 
-        return $this->render('method_elements/business_model_segments/view.html.twig', [
+        return $this->render('method_elements/business_model_components/view.html.twig', [
             'form' => $form->createView()
         ]);
     }

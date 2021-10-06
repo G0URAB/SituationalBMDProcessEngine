@@ -28,7 +28,7 @@ class BusinessModelDefinition
     /**
      * @ORM\Column(type="array", nullable=true)
      */
-    private $segments;
+    private $components;
 
     /**
      * @ORM\Column(type="text", nullable=true)
@@ -38,40 +38,43 @@ class BusinessModelDefinition
 
     public function __construct()
     {
-        $this->segments = new ArrayCollection();
+        $this->components = new ArrayCollection();
     }
 
-    public function addSegment(string $segment)
+    public function addComponent(string $component)
     {
-        if(!$this->segments->contains($segment))
+        if (is_array($this->components) || $this->components==null)
         {
-            $this->segments[] = $segment;
+            $this->components = new ArrayCollection();
+        }
+
+        if (!$this->components->contains($component)) {
+            $this->components[] = $component;
         }
     }
 
-    public function removeSegment(string $segment)
+    public function removeComponent(string $component)
     {
-        if($this->segments->contains($segment))
-        {
-            $this->segments->removeElement($segment);
+        if ($this->components->contains($component)) {
+            $this->components->removeElement($component);
         }
     }
 
-    public function getImplodedSegments()
+    public function getImplodedComponents()
     {
-        $segmentsArray = gettype($this->segments)=="array"? $this->segments: $this->segments->toArray();
-        return implode(", ",$segmentsArray);
+        $componentsArray = gettype($this->components) == "array" ? $this->components : $this->components->toArray();
+        return implode(", ", $componentsArray);
     }
 
 
-    public function getSegments()
+    public function getComponents()
     {
-        return $this->segments;
+        return $this->components;
     }
 
-    public function setSegments(array $segments)
+    public function setComponents(array $components)
     {
-        $this->segments = new ArrayCollection($segments);
+        $this->components = new ArrayCollection($components);
     }
 
     public function __toString()

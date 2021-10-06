@@ -5,7 +5,7 @@ namespace App\Controller;
 use App\Entity\BmdGraph;
 use App\Entity\BusinessModel;
 use App\Entity\BusinessModelDefinition;
-use App\Entity\BusinessSegment;
+use App\Entity\BusinessComponent;
 use App\Entity\CancelledMethodBlock;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\Process;
@@ -202,11 +202,11 @@ class MethodConstructionController extends AbstractController
             {
                 $businessModel = new BusinessModel();
                 $businessModelDefinition = $entityManager->getRepository(BusinessModelDefinition::class)->findOneBy(['type'=>$businessModelType]);
-                foreach ($businessModelDefinition->getSegments() as $segment)
+                foreach ($businessModelDefinition->getComponents() as $component)
                 {
-                    $businessModelSegment = new BusinessSegment();
-                    $businessModelSegment->setName($segment);
-                    $businessModel->addSegment($businessModelSegment);
+                    $businessModelComponent = new BusinessComponent();
+                    $businessModelComponent->setName($component);
+                    $businessModel->addComponent($businessModelComponent);
                 }
                 $businessModel->setType($businessModelType);
                 $entityManager->persist($businessModel);

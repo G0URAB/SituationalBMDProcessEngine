@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} View Business Model Segments {% endblock %}
+{% block title %} View Business Model Components {% endblock %}
 
 {% block body %}
 
@@ -16,8 +16,8 @@
     </div>
 
     {# Form box #}
-    <div class="card mt-4" data-prototype="{{ form_widget(form.segments.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.segments| length }}">
+    <div class="card mt-4" data-prototype="{{ form_widget(form.components.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.components| length }}">
         <div class="card-header bg-secondary">
             <b>View Business Model Components </b>
         </div>
@@ -29,7 +29,7 @@
             {# Values #}
             <h6>Components</h6>
             <ul id="variantList">
-                {% for value in form.segments %}
+                {% for value in form.components %}
                     <li class="d-flex flex-row">
                         {{ form_widget(value, { 'attr':{'disabled':'disabled'}}) }}
                     </li>

@@ -127,7 +127,7 @@ class MethodBuildingBlocksController extends AbstractController
         $artifacts = $this->getDoctrine()->getRepository(Artifact::class)->findAll();
         $situationalChoices = [];
         $artifactChoices = [];
-        $businessSegmentChoices = [];
+        $businessComponentChoices = [];
 
         foreach ($artifacts as $artifact)
             $artifactChoices[$artifact->getName()] = $artifact->getName();
@@ -138,18 +138,18 @@ class MethodBuildingBlocksController extends AbstractController
             }
         }
         foreach ($businessModelDefinitions as $businessModelDefinition) {
-            foreach ($businessModelDefinition->getSegments() as $segment) {
-                $businessSegmentChoices [$businessModelDefinition->getType() . " : " . $segment] = $businessModelDefinition->getType() . " : " . $segment;
+            foreach ($businessModelDefinition->getComponents() as $component) {
+                $businessComponentChoices [$businessModelDefinition->getType() . " : " . $component] = $businessModelDefinition->getType() . " : " . $component;
             }
         }
         asort($situationalChoices);
         asort($artifactChoices);
-        asort($businessSegmentChoices);
+        asort($businessComponentChoices);
 
         return [
             'situationalChoices' => $situationalChoices,
             'artifactChoices' => $artifactChoices,
-            'businessSegmentChoices' => $businessSegmentChoices
+            'businessComponentChoices' => $businessComponentChoices
         ];
     }
 

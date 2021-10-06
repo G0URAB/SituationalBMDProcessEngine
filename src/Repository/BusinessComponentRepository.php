@@ -2,21 +2,21 @@
 
 namespace App\Repository;
 
-use App\Entity\BusinessSegment;
+use App\Entity\BusinessComponent;
 use Doctrine\Bundle\DoctrineBundle\Repository\ServiceEntityRepository;
 use Doctrine\Persistence\ManagerRegistry;
 
 /**
- * @method BusinessSegment|null find($id, $lockMode = null, $lockVersion = null)
- * @method BusinessSegment|null findOneBy(array $criteria, array $orderBy = null)
- * @method BusinessSegment[]    findAll()
- * @method BusinessSegment[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
+ * @method BusinessComponent|null find($id, $lockMode = null, $lockVersion = null)
+ * @method BusinessComponent|null findOneBy(array $criteria, array $orderBy = null)
+ * @method BusinessComponent[]    findAll()
+ * @method BusinessComponent[]    findBy(array $criteria, array $orderBy = null, $limit = null, $offset = null)
  */
-class BusinessSegmentRepository extends ServiceEntityRepository
+class BusinessComponentRepository extends ServiceEntityRepository
 {
     public function __construct(ManagerRegistry $registry)
     {
-        parent::__construct($registry, BusinessSegment::class);
+        parent::__construct($registry, BusinessComponent::class);
     }
 
     // /**

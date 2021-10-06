@@ -16,10 +16,10 @@
     </div>
 
     {# Form box #}
-    <div class="card mt-4" data-prototype="{{ form_widget(form.segments.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.segments| length }}">
+    <div class="card mt-4" data-prototype="{{ form_widget(form.components.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.components| length }}">
         <div class="card-header bg-danger">
-            <b>Update Business Model Segments</b>
+            <b>Update Business Model Components</b>
         </div>
         <div class="card-body">
             {{ form_errors(form) }}
@@ -30,8 +30,8 @@
 
             {# Components #}
             <h6>Components</h6>
-            <ul id="segmentList">
-                {% for value in form.segments %}
+            <ul id="componentList">
+                {% for value in form.components %}
                     <li class="d-flex flex-row align-items-center">
                         {{ form_widget(value) }}
                         <div class="d-flex flex-row justify-content-center m-1">
@@ -40,7 +40,7 @@
                     </li>
                 {% endfor %}
             </ul>
-            {{ form_row(form.add_segment, {'label':'Add Component'}) }}
+            {{ form_row(form.add_component, {'label':'Add Component'}) }}
             {{ form_row(form.description,{'label':'Description and Examples'}) }}
 
             <div class="d-flex flex-row flex-wrap mt-3 justify-content-between">
@@ -60,7 +60,7 @@
     {{ parent() }}
     <script>
         $("legend").remove();
-        let container = $("#segmentList");
+        let container = $("#componentList");
         let card = $(".card");
         let prototype = card.data("prototype");
         let counter = card.data("index");
@@ -69,7 +69,7 @@
                                        <button type="button" class="btn btn-danger">Remove</button>
                                    </div>`;
 
-        $("#business_model_definition_add_segment").on("click", function () {
+        $("#business_model_definition_add_component").on("click", function () {
             counter++;
             let newLi = $('<li class="d-flex flex-row align-items-center"></li>').append(prototype.replace(/__name__/g, counter));
             newLi.append(removeButton);

@@ -1,6 +1,6 @@
 {% extends 'base.html.twig' %}
 
-{% block title %} Create Business Model Segments {% endblock %}
+{% block title %} Create Business Model Components {% endblock %}
 
 {% block body %}
 
@@ -16,10 +16,10 @@
     </div>
 
     {# Form box #}
-    <div class="card mt-4" data-prototype="{{ form_widget(form.businessModelSegments.vars.prototype)|e('html_attr') }}"
-         data-index="{{ form.businessModelSegments | length }}">
+    <div class="card mt-4" data-prototype="{{ form_widget(form.businessModelComponents.vars.prototype)|e('html_attr') }}"
+         data-index="{{ form.businessModelComponents | length }}">
         <div class="card-header bg-danger">
-            <b>Create New Business Model Segments</b>
+            <b>Create New Business Model Components</b>
         </div>
         <div class="card-body">
             {{ form_errors(form) }}
@@ -30,7 +30,7 @@
             </div>
 
 
-            {{ form_row(form.businessModelSegments) }}
+            {{ form_row(form.businessModelComponents) }}
 
 
             {{ form_end(form) }}
@@ -44,47 +44,47 @@
     {{ parent() }}
     <script>
         let card = $(".card");
-        let businessModelSegments = $("#form_businessModelSegments");
+        let businessModelComponents = $("#form_businessModelComponents");
         let removeBusinessModelDefinitionButton = `<div class="d-flex flex-row justify-content-center m-1">
                                        <button type="button" class="btn btn-danger">Remove Business Model Definition</button>
                                    </div>`;
 
 
         $("#add-new-businessModelDefinition").on("click", function () {
-            let businessModelSegmentCounter = card.data("index");
+            let businessModelComponentCounter = card.data("index");
             let artifactPrototype = card.data("prototype");
-            let newArtifact = artifactPrototype.replace(/__name__/g, businessModelSegmentCounter);
-            businessModelSegments.append(newArtifact);
-            $("#form_businessModelSegments_" + businessModelSegmentCounter).append(removeBusinessModelDefinitionButton);
-            card.data('index', businessModelSegmentCounter + 1);
+            let newArtifact = artifactPrototype.replace(/__name__/g, businessModelComponentCounter);
+            businessModelComponents.append(newArtifact);
+            $("#form_businessModelComponents_" + businessModelComponentCounter).append(removeBusinessModelDefinitionButton);
+            card.data('index', businessModelComponentCounter + 1);
 
-            formatBusinessModelSegmentSections(businessModelSegmentCounter);
+            formatBusinessModelComponentSections(businessModelComponentCounter);
             listenForRemoval();
 
-            let segmentsContainer = $("#form_businessModelSegments_" + businessModelSegmentCounter + "_segments");
-            let segmentPrototype = (factorCount, variantCount) => `
+            let componentsContainer = $("#form_businessModelComponents_" + businessModelComponentCounter + "_components");
+            let componentPrototype = (factorCount, variantCount) => `
                     <div class="form-group d-flex flex-row">
-                      <input type="text" id="form_businessModelSegments_0_segments_0" name="form[businessModelSegments][${factorCount}][segments][${variantCount}]" required="required" class="form-control" />
+                      <input type="text" id="form_businessModelComponents_0_components_0" name="form[businessModelComponents][${factorCount}][components][${variantCount}]" required="required" class="form-control" />
                       <div><button type="button" class="btn btn-danger">Remove</button></div>
                     </div>`;
-            let addSegmentButton = $("#form_businessModelSegments_" + businessModelSegmentCounter + "_add_segment");
-            addSegmentButton.on("click", function () {
-                let totalSegments = segmentsContainer.children().length;
-                segmentsContainer.append(segmentPrototype(businessModelSegmentCounter, totalSegments));
+            let addComponentButton = $("#form_businessModelComponents_" + businessModelComponentCounter + "_add_component");
+            addComponentButton.on("click", function () {
+                let totalComponents = componentsContainer.children().length;
+                componentsContainer.append(componentPrototype(businessModelComponentCounter, totalComponents));
                 listenForRemoval();
             });
         });
 
         if (card.data("index") !== 0) {
             for (let i = 0; i < card.data("index"); i++) {
-                formatBusinessModelSegmentSections(i);
-                $("#form_businessModelSegments_" + i).append(removeBusinessModelDefinitionButton);
+                formatBusinessModelComponentSections(i);
+                $("#form_businessModelComponents_" + i).append(removeBusinessModelDefinitionButton);
                 listenForRemoval();
             }
         }
 
-        function formatBusinessModelSegmentSections(counter) {
-            $("#form_businessModelSegments_" + counter).css({
+        function formatBusinessModelComponentSections(counter) {
+            $("#form_businessModelComponents_" + counter).css({
                 "padding": "2%",
                 "border": "1px solid #cacaca",
                 "border-radius": "1%",

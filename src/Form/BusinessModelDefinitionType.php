@@ -25,8 +25,8 @@ class BusinessModelDefinitionType extends AbstractType
                     new Length(['min' => 5]),
                 ],
             ])
-            ->add('segments',CollectionType::class,[
-                'label'=>"Business Model Segments",
+            ->add('components',CollectionType::class,[
+                'label'=>"Business Model Components",
                 'entry_type' => TextType::class,
                 'entry_options'=>[
                     'label'=>false
@@ -36,8 +36,8 @@ class BusinessModelDefinitionType extends AbstractType
                 'prototype' => true,
                 'by_reference' => false
             ])
-            ->add("add_segment",ButtonType::class,[
-                'label'=>'Add Segment'
+            ->add("add_component",ButtonType::class,[
+                'label'=>'Add Component'
             ])
             ->add('description',CKEditorType::class,[
                 'config' => array(

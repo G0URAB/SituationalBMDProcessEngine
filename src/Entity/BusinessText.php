@@ -23,9 +23,9 @@ class BusinessText
     private $value;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\BusinessSegment", inversedBy="businessTexts")
+     * @ORM\ManyToOne(targetEntity="BusinessComponent", inversedBy="businessTexts")
      */
-    private $businessSegment;
+    private $businessComponent;
 
     public function getId(): ?int
     {
@@ -52,16 +52,16 @@ class BusinessText
     /**
      * @return mixed
      */
-    public function getBusinessSegment()
+    public function getBusinessComponent()
     {
-        return $this->businessSegment;
+        return $this->businessComponent;
     }
 
     /**
-     * @param mixed $businessSegment
+     * @param mixed $businessComponent
      */
-    public function setBusinessSegment($businessSegment)
+    public function setBusinessComponent($businessComponent)
     {
-        $this->businessSegment = $businessSegment;
+        $this->businessComponent = $businessComponent;
     }
 }

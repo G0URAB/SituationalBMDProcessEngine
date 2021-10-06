@@ -22,9 +22,9 @@ class BusinessModel
 
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BusinessSegment", mappedBy="businessModel", cascade={"persist","remove"})
+     * @ORM\OneToMany(targetEntity="BusinessComponent", mappedBy="businessModel", cascade={"persist","remove"})
      */
-    private $segments;
+    private $components;
 
     /**
      * @ORM\Column(type="string", length=255)
@@ -33,7 +33,7 @@ class BusinessModel
 
     public function __construct()
     {
-        $this->segments = new ArrayCollection();
+        $this->components = new ArrayCollection();
     }
 
     /**
@@ -53,26 +53,26 @@ class BusinessModel
     }
 
 
-    public function getSegments()
+    public function getComponents()
     {
-        return $this->segments;
+        return $this->components;
     }
 
-    public function addSegment(BusinessSegment $segment)
+    public function addComponent(BusinessComponent $component)
     {
-        if(!$this->segments->contains($segment))
+        if(!$this->components->contains($component))
         {
-            $this->segments->add($segment);
-            $segment->setBusinessModel($this);
+            $this->components->add($component);
+            $component->setBusinessModel($this);
         }
     }
 
-    public function removeSegment(BusinessSegment $segment)
+    public function removeComponent(BusinessComponent $component)
     {
-        if($this->segments->contains($segment))
+        if($this->components->contains($component))
         {
-            $segment->setBusinessModel(null);
-            $this->segments->removeElement($segment);
+            $component->setBusinessModel(null);
+            $this->components->removeElement($component);
         }
     }
 

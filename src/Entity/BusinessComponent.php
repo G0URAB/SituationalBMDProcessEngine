@@ -2,14 +2,14 @@
 
 namespace App\Entity;
 
-use App\Repository\BusinessSegmentRepository;
+use App\Repository\BusinessComponentRepository;
 use Doctrine\Common\Collections\ArrayCollection;
 use Doctrine\ORM\Mapping as ORM;
 
 /**
- * @ORM\Entity(repositoryClass=BusinessSegmentRepository::class)
+ * @ORM\Entity(repositoryClass=BusinessComponentRepository::class)
  */
-class BusinessSegment
+class BusinessComponent
 {
     /**
      * @ORM\Id
@@ -24,12 +24,12 @@ class BusinessSegment
     private $name;
 
     /**
-     * @ORM\ManyToOne(targetEntity="App\Entity\BusinessModel", inversedBy="segments")
+     * @ORM\ManyToOne(targetEntity="App\Entity\BusinessModel", inversedBy="components")
      */
     private $businessModel;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BusinessText", mappedBy="businessSegment", cascade={"persist","remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\BusinessText", mappedBy="businessComponent", cascade={"persist","remove"})
      */
     private $businessTexts;
 
@@ -110,14 +110,14 @@ class BusinessSegment
         }
 
         if ($newText) {
-            $businessText->setBusinessSegment($this);
+            $businessText->setBusinessComponent($this);
             $this->businessTexts->add($businessText);
         }
     }
 
     public function removeBusinessText(BusinessText $businessText)
     {
-        $businessText->setBusinessSegment(null);
+        $businessText->setBusinessComponent(null);
         $this->businessTexts->removeElement($businessText);
     }
 

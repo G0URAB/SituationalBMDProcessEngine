@@ -3,13 +3,13 @@
 namespace App\Controller;
 
 use App\Entity\BusinessModel;
-use App\Entity\BusinessSegment;
+use App\Entity\BusinessComponent;
 use App\Entity\BusinessText;
 use App\Entity\MethodBuildingBlock;
 use App\Entity\SituationalMethod;
 use App\Entity\User;
 use App\Form\BusinessModelType;
-use App\Form\BusinessSegmentType;
+use App\Form\BusinessComponentType;
 use Doctrine\Common\Collections\ArrayCollection;
 use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\Form\Extension\Core\Type\ChoiceType;
@@ -31,8 +31,8 @@ class BusinessModelController extends AbstractController
     public function businessModelAjax(Request $request): Response
     {
         if ($request->isXmlHttpRequest()) {
-            if ($request->get("request_type") == "get_segments") {
-                $businessModelSegments = [];
+            if ($request->get("request_type") == "get_components") {
+                $businessModelComponents = [];
 
                 /**@var MethodBuildingBlock * */
                 $methodBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)
@@ -42,19 +42,19 @@ class BusinessModelController extends AbstractController
                 $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)
                     ->findOneBy(["id" => $request->get("situational_method_id")]);
 
-                foreach ($methodBlock->getBusinessModelSegments() as $segment) {
-                    $explodedBusinessModelSegment = explode(":", $segment);
-                    if (trim($explodedBusinessModelSegment[0]) == $situationalMethod->getBusinessModelType()) {
-                        $segmentName = trim($explodedBusinessModelSegment[1]);
-                        $businessSegment = $this->getDoctrine()->getRepository(BusinessSegment::class)->findOneBy(['name' => $segmentName]);
-                        $businessModelSegments[] = ['name' => $segmentName, 'value' => $businessSegment->getValues()];
+                foreach ($methodBlock->getBusinessModelComponents() as $component) {
+                    $explodedBusinessModelComponent = explode(":", $component);
+                    if (trim($explodedBusinessModelComponent[0]) == $situationalMethod->getBusinessModelType()) {
+                        $componentName = trim($explodedBusinessModelComponent[1]);
+                        $businessComponent = $this->getDoctrine()->getRepository(BusinessComponent::class)->findOneBy(['name' => $componentName]);
+                        $businessModelComponents[] = ['name' => $componentName, 'value' => $businessComponent->getValues()];
                     }
                 }
-                return new JsonResponse(['segments' => $businessModelSegments]);
+                return new JsonResponse(['components' => $businessModelComponents]);
             }
-            if ($request->get("request_type") == "update_segments") {
+            if ($request->get("request_type") == "update_components") {
                 $entityManager = $this->getDoctrine()->getManager();
-                $segmentsData = $request->get("segments_data");
+                $componentsData = $request->get("components_data");
 
                 /**@var SituationalMethod * */
                 $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)
@@ -64,15 +64,15 @@ class BusinessModelController extends AbstractController
                 $businessModel = $entityManager->getRepository(BusinessModel::class)
                     ->findOneBy(['type' => $situationalMethod->getBusinessModelType()]);
 
-                foreach ($businessModel->getSegments() as $segment) {
-                    /* If the segment exists in the submitted data */
-                    if (in_array($segment->getName(), array_column($segmentsData, "name"))) {
-                        $segment->setValues(array_column($segmentsData, "value", "name")[$segment->getName()]);
-                        $segment->setLog($request->get("log"));
+                foreach ($businessModel->getComponents() as $component) {
+                    /* If the component exists in the submitted data */
+                    if (in_array($component->getName(), array_column($componentsData, "name"))) {
+                        $component->setValues(array_column($componentsData, "value", "name")[$component->getName()]);
+                        $component->setLog($request->get("log"));
                     }
                 }
                 $entityManager->flush();
-                return new JsonResponse(['status' => 'success', 'msg' => 'Business Segments Updated!!']);
+                return new JsonResponse(['status' => 'success', 'msg' => 'Business Components Updated!!']);
             }
         }
 
@@ -130,18 +130,18 @@ class BusinessModelController extends AbstractController
         $businessModelForm->handleRequest($request);
 
         if ($businessModelForm->isSubmitted() && $businessModelForm->isValid()) {
-            /* Add a log that if the segments are going to be updated by a super admin or any platform owner */
+            /* Add a log that if the components are going to be updated by a super admin or any platform owner */
             if ($this->isGranted('ROLE_SUPER_ADMIN') || $this->isGranted('ROLE_PLATFORM_OWNER')) {
                 $date = date_create("today");
-                foreach ($businessModel->getSegments() as $segment)
-                    $segment->setLog("Modified directly by " . $this->getUser()->getEmployeeName() . " on " . date_format($date, "d.m.Y"));
+                foreach ($businessModel->getComponents() as $component)
+                    $component->setLog("Modified directly by " . $this->getUser()->getEmployeeName() . " on " . date_format($date, "d.m.Y"));
             }
 
             $entityManager->persist($businessModel);
 
             $businessTexts = $entityManager->getRepository(BusinessText::class)->findAll();
             foreach ($businessTexts as $businessText) {
-                if (!$businessText->getBusinessSegment()) {
+                if (!$businessText->getBusinessComponent()) {
                     $entityManager->remove($businessText);
                 }
             }
@@ -159,7 +159,7 @@ class BusinessModelController extends AbstractController
     }
 
     /**
-     * @Route("/update/business_model_segments/{methodId}/{taskId}/{blockId}", name="update_business_model_segments")
+     * @Route("/update/business_model_components/{methodId}/{taskId}/{blockId}", name="update_business_model_components")
      * @param Request $request
      * @param int $methodId
      * @param int $taskId
@@ -167,7 +167,7 @@ class BusinessModelController extends AbstractController
      * @param SessionInterface $session
      * @return Response
      */
-    public function updateBusinessModelSegments(Request $request, int $methodId, int $taskId, int $blockId, SessionInterface $session)
+    public function updateBusinessModelComponents(Request $request, int $methodId, int $taskId, int $blockId, SessionInterface $session)
     {
         $entityManager = $this->getDoctrine()->getManager();
 
@@ -183,35 +183,35 @@ class BusinessModelController extends AbstractController
         $businessModel = $entityManager->getRepository(BusinessModel::class)
             ->findOneBy(['type' => $defaultModelType]);
 
-        $businessSegments = [];
+        $businessComponents = [];
 
-        foreach ($methodBuildingBlock->getBusinessModelSegments() as $segment) {
-            $explodedSegment = explode(":", $segment);
-            $businessModelTypeOfSegment = trim($explodedSegment[0]);
-            $segmentName = trim($explodedSegment[1]);
+        foreach ($methodBuildingBlock->getBusinessModelComponents() as $component) {
+            $explodedComponent = explode(":", $component);
+            $businessModelTypeOfComponent = trim($explodedComponent[0]);
+            $componentName = trim($explodedComponent[1]);
 
-            if ($defaultModelType == $businessModelTypeOfSegment) {
-                $businessSegment = $this->getDoctrine()->getRepository(BusinessSegment::class)->findBy([
-                    'name' => $segmentName, 'businessModel' => $businessModel
+            if ($defaultModelType == $businessModelTypeOfComponent) {
+                $businessComponent = $this->getDoctrine()->getRepository(BusinessComponent::class)->findBy([
+                    'name' => $componentName, 'businessModel' => $businessModel
                 ])[0];
-                $businessSegments[] = $businessSegment;
+                $businessComponents[] = $businessComponent;
             }
         }
 
         $temporaryBusinessModel = new BusinessModel();
-        foreach ($businessSegments as $segment)
-            $temporaryBusinessModel->addSegment($segment);
+        foreach ($businessComponents as $component)
+            $temporaryBusinessModel->addComponent($component);
         $form = $this->createForm(BusinessModelType::class, $temporaryBusinessModel);
 
         $form->handleRequest($request);
 
         if($form->isSubmitted() && $form->isValid())
         {
-            $segments = $temporaryBusinessModel->getSegments();
-            foreach ($segments as $segment)
+            $components = $temporaryBusinessModel->getComponents();
+            foreach ($components as $component)
             {
-                $segment->setBusinessModel($businessModel);
-                $entityManager->persist($segment);
+                $component->setBusinessModel($businessModel);
+                $entityManager->persist($component);
             }
 
             $entityManager->flush();
@@ -221,7 +221,7 @@ class BusinessModelController extends AbstractController
             return $this->redirectToRoute('enactment',['id'=>$situationalMethod->getId()]);
         }
 
-        return $this->render("situational_method/update_business_segments.html.twig", [
+        return $this->render("situational_method/update_business_components.html.twig", [
             'business_model_form' => $form->createView(),
             'preferred_business_model_type' => $defaultModelType,
             'methodBlock' => $methodBuildingBlock,

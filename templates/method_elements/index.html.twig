@@ -16,7 +16,7 @@
             <a href="{{ path('create_tool') }}" class="btn btn-dark"> Create New Tools</a>
             <a href="{{ path('create_process_type') }}" class="btn  btn-primary"> Create New Process Types</a>
             <a href="{{ path('create_situational_factor') }}" class="btn btn-secondary"> Create New Situational Factors</a>
-            <a href="{{ path('create_business_model_segment') }}" class="btn btn-danger"> Create New Business Model Segments </a>
+            <a href="{{ path('create_business_model_component') }}" class="btn btn-danger"> Create New Business Model Components </a>
     </div>
 
     <div class="card mt-4">
@@ -191,7 +191,7 @@
 
     <div class="card mt-5">
         <div class="card-header bg-danger">
-            <b>Total Business Model Components : {{ businessModelSegments|length }}</b>
+            <b>Total Business Model Components : {{ businessModelComponents|length }}</b>
         </div>
         <div class="card-body">
             <table class="table table-sm table-danger">
@@ -203,13 +203,23 @@
                 </tr>
                 </thead>
                 <tbody class="text-center">
-                {% for segment in businessModelSegments %}
-                    <tr>
-                        <td>{{ loop.index }} </td>
-                        <td>{{ segment.name }}</td>
-                        <td><a href="{{ path('edit_business_model_segment',{'id': segment.id}) }}">{{ segment.type }}</a></td>
-                    </tr>
-                {% endfor %}
+                {% if businessModelComponents is not empty %}
+                    {% for component in businessModelComponents %}
+                        <tr>
+                            <td>{{ loop.index }} </td>
+                            <td>{{ component.name }}</td>
+                            <td><a href="{{ path('edit_business_model_component',{'id': component.id}) }}">{{ component.type }}</a></td>
+                        </tr>
+                    {% endfor %}
+                {% else %}
+                    {% for definition in businessModelDefinitions %}
+                        <tr>
+                            <td>{{ loop.index }} </td>
+                            <td>No Components Yet</td>
+                            <td><a href="{{ path('edit_business_model_component',{'id': definition.id}) }}">{{ definition.type }}</a></td>
+                        </tr>
+                    {% endfor %}
+                {% endif %}
                 </tbody>
             </table>
         </div>

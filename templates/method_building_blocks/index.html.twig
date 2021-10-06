@@ -76,12 +76,12 @@
                     <li class="list-group-item d-flex flex-column">
                         <div class="d-flex flex-row">
                             <i class="fa fa-briefcase" style="font-size:24px; width: 10%;"></i>
-                            <b>Business Model Segments:</b>
+                            <b>Business Model Component:</b>
                         </div>
                         <ul style="height:100px;max-height: 100px; overflow: auto; margin-left: 5%;">
-                            {% for segment in block.businessModelSegments %}
+                            {% for component in block.businessModelComponents %}
                                 <li>
-                                    <a class="text-dark" target="_blank" href="{{ path('view_business_model_segment',{'name':segment}) }}">{{ segment }}</a>
+                                    <a class="text-dark" target="_blank" href="{{ path('view_business_model_component',{'name':component}) }}">{{ component }}</a>
                                 </li>
                             {% endfor %}
                         </ul>
