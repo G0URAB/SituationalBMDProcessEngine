@@ -21,7 +21,7 @@ use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
 
-class MethodConstructionController extends AbstractController
+class SituationalMethodController extends AbstractController
 {
 
     /**
@@ -43,7 +43,7 @@ class MethodConstructionController extends AbstractController
      * @param DataService $dataService
      * @return Response
      */
-    public function constructSituationalMethod(Request $request, DataService $dataService): Response
+    public function create(Request $request, DataService $dataService): Response
     {
         if (!$request->isXmlHttpRequest()) {
 
@@ -273,7 +273,7 @@ class MethodConstructionController extends AbstractController
      * @param int $id
      * @return Response
      */
-    public function modifySituationalMethod(Request $request, DataService $dataService, int $id): Response
+    public function modify(Request $request, DataService $dataService, int $id): Response
     {
         /** @var SituationalMethod $situationalMethod **/
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
@@ -302,7 +302,7 @@ class MethodConstructionController extends AbstractController
      * @param int $id
      * @return Response
      */
-    public function showSituationalMethod(Request $request, int $id): Response
+    public function show(Request $request, int $id): Response
     {
         $situationalMethod = $this->getDoctrine()->getRepository(SituationalMethod::class)->find($id);
 
@@ -317,7 +317,7 @@ class MethodConstructionController extends AbstractController
      * @param int $id
      * @return Response
      */
-    public function deleteSituationalMethod(int $id): Response
+    public function delete(int $id): Response
     {
         $entityManager = $this->getDoctrine()->getManager();
         $situationalMethod = $entityManager->getRepository(SituationalMethod::class)->find($id);

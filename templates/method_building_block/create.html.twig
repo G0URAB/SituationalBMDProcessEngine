@@ -20,17 +20,13 @@
     </div>
 
     {# Form box #}
-    <div class="card mt-4" {#data-prototype="{{ form_widget(form.methodBlocks.vars.prototype)|e('html_attr') }}" data-index="{{ form.methodBlocks| length }}"#}>
+    <div class="card mt-4">
         <div class="card-header bg-warning">
             <b>Create Method Building Block</b>
         </div>
         <div class="card-body">
             {{ form_errors(form) }}
             {{ form_start(form) }}
-            {#<div class="d-flex flex-row justify-content-center">
-                <button type="button" class="btn btn-dark" id="add-new-block">Add new method building block</button>
-            </div>#}
-
 
             {{ form_row(form.process) }}
 

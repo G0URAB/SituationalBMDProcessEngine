@@ -11,7 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=ProcessKindRepository::class)
  * @UniqueEntity("name")
  */
-class ProcessKind
+class ProcessKind implements MethodElement
 {
     /**
      * @ORM\Id
@@ -26,12 +26,12 @@ class ProcessKind
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="parentProcessKind", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="parentProcessKind", cascade={"persist"})
      */
     private $processes;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentProcessKind", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\BmdGraph", mappedBy="parentProcessKind", cascade={"persist"})
      */
     private $childBMDGraphs;
 
@@ -41,7 +41,7 @@ class ProcessKind
     private $parentProcessKind;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\ProcessKind", mappedBy="parentProcessKind", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\ProcessKind", mappedBy="parentProcessKind", cascade={"persist"})
      */
     private $childProcessKinds;
 

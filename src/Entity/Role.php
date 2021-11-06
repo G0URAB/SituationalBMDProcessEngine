@@ -10,7 +10,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=RoleRepository::class)
  * @UniqueEntity("name")
  */
-class Role
+class Role implements MethodElement
 {
     /**
      * @ORM\Id

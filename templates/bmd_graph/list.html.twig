@@ -18,12 +18,13 @@
                         <h5 class="card-title">{{ graph.name }}</h5>
                         <p class="card-text">
                             <b>Primary Process Type:</b>
-                            <a class="text-dark" target="_blank"  href="{{ path('view_process_type',{'name':graph.parentProcessKind}) }}">
+                            <a class="text-dark" target="_blank"
+                               href="{{ path('view_process_type',{'name':graph.parentProcessKind}) }}">
                                 {{ graph.parentProcessKind }}
                             </a>
                         </p>
                         <div class="card-text">
-                            <b>Placeholder Process Types:</b>
+                            <b>Steps:</b>
                             <ul style="min-height:120px;max-height: 120px; overflow: auto">
                                 {% for processType in graph.childProcessKinds %}
                                     <li>
@@ -32,6 +33,14 @@
                                             {{ processType.name }}
                                         </a>
                                     </li>
+                                    {% if loop.last %}
+                                        <li>
+                                            <a class="text-dark" target="_blank"
+                                               href="{{ path('view_process_type',{'name':'Prepare'}) }}">
+                                                Prepare
+                                            </a>
+                                        </li>
+                                    {% endif %}
                                 {% endfor %}
                             </ul>
                         </div>
@@ -50,7 +59,8 @@
                         <div class="d-flex flex-row justify-content-between flex-wrap">
                             <a href="{{ path('show_bmd_graph',{id:graph.id}) }}" class="btn btn-dark">Show Graph</a>
                             <a href="{{ path('edit_bmd_graph',{id:graph.id}) }}" class="btn btn-warning">Edit Graph</a>
-                            <a href="{{ path('delete_bmd_graph',{id:graph.id}) }}" class="btn btn-danger">Delete Graph</a>
+                            <a href="{{ path('delete_bmd_graph',{id:graph.id}) }}" class="btn btn-danger">Delete
+                                Graph</a>
                         </div>
                     </div>
                 </div>

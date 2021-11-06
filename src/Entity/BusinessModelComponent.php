@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=BusinessComponentRepository::class)
  */
-class BusinessComponent
+class BusinessModelComponent implements MethodElement
 {
     /**
      * @ORM\Id
@@ -29,7 +29,7 @@ class BusinessComponent
     private $businessModel;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\BusinessText", mappedBy="businessComponent", cascade={"persist","remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\BusinessText", mappedBy="businessModelComponent", cascade={"persist","remove"})
      */
     private $businessTexts;
 

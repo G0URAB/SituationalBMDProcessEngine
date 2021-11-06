@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=ProcessRepository::class)
  * @UniqueEntity("name")
  */
-class Process
+class Process implements MethodElement
 {
     /**
      * @ORM\Id
@@ -31,7 +31,7 @@ class Process
     /**
      * @ORM\ManyToOne(targetEntity="ProcessKind", inversedBy="processes")
      */
-    private $parentProcessKind;
+    private $processKind;
 
     /**
      * @ORM\ManyToMany(targetEntity="ProcessKind")
@@ -58,9 +58,9 @@ class Process
         return $this->id;
     }
 
-    public function getName(): ?string
+    public function getName(): string
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     public function setName(string $name): self
@@ -73,17 +73,17 @@ class Process
     /**
      * @return mixed
      */
-    public function getParentProcessKind()
+    public function getProcessKind()
     {
-        return $this->parentProcessKind;
+        return $this->processKind;
     }
 
     /**
-     * @param mixed $parentProcessKind
+     * @param mixed $processKind
      */
-    public function setParentProcessKind($parentProcessKind)
+    public function setParentProcessKind($processKind)
     {
-        $this->parentProcessKind = $parentProcessKind;
+        $this->processKind = $processKind;
     }
 
 
@@ -117,7 +117,7 @@ class Process
 
     public function __toString()
     {
-        return $this->name;
+        return (string) $this->name;
     }
 
     /**

@@ -121,7 +121,7 @@ class DataService
         return $this->situationalChoices;
     }
 
-    public function processBMDGraph($bmdGraph, $nodes, $edges)
+    public function processBMDGraph($bmdGraph, $nodes, $edges, $oldNameOfGraph = null)
     {
         $id_of_new_process_types = [];
         $id_of_old_process_types = [];
@@ -131,13 +131,16 @@ class DataService
             array_push($id_of_old_process_types, $processKind->getId());
 
         //Add child-processes to the graph
-        foreach ($nodes as $node) {
-            if ($node["shape"] === "box") {
-                array_push($id_of_new_process_types, $node["tableId"]);
-                $childProcessType = $this->entityManager->getRepository(ProcessKind::class)->find($node["tableId"]);
-                $bmdGraph->addChildProcessKind($childProcessType);
+        if ($nodes) {
+            foreach ($nodes as $node) {
+                if ($node["shape"] === "box") {
+                    array_push($id_of_new_process_types, $node["tableId"]);
+                    $childProcessType = $this->entityManager->getRepository(ProcessKind::class)->find($node["tableId"]);
+                    $bmdGraph->addChildProcessKind($childProcessType);
+                }
             }
         }
+
 
         //find old process types that needs to be removed
         foreach ($id_of_old_process_types as $oldId) {
@@ -155,8 +158,28 @@ class DataService
             }
         }
 
-        $bmdGraph->setNodes(json_encode($nodes));
-        $bmdGraph->setEdges(json_encode($edges));
+        if ($nodes)
+            $bmdGraph->setNodes(json_encode($nodes));
+        if ($edges)
+            $bmdGraph->setEdges(json_encode($edges));
+
+        /*if($oldNameOfGraph)
+        {
+            $situationalMethods = $this->getAllSituationalMethods();
+            foreach ($situationalMethods as $situationalMethod)
+            {
+                $nodes = json_decode($situationalMethod->getJsonNodes());
+                foreach ($nodes as $node)
+                {
+                    if(property_exists($node,'graphName'))
+                    {
+                        if($node->graphName===$oldNameOfGraph)
+                            $node->graphName = $bmdGraph->getName();
+                    }
+                }
+                $situationalMethod->setJsonNodes($nodes);
+            }
+        }*/
 
         return $bmdGraph;
     }
@@ -172,21 +195,29 @@ class DataService
         if ($methodBlock) {
 
             $matchedSituationalFactors = 0;
-            $totalSituationalFactors = 0;
+            $totalSituationalFactorsOfGraph = sizeof($bmdGraph->getSituationalFactors());
 
             foreach ($methodBlock->getSituationalFactors() as $factor) {
                 if (in_array($factor, $bmdGraph->getSituationalFactors()))
                     $matchedSituationalFactors++;
-                $totalSituationalFactors++;
             }
 
-            /*
-             * If percentage of situational factors are more than or equal to 50% then recommend the method block.
-             * If the method block can be used in all situation, then recommend it as well.
-             */
-            $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactors) * 100;
-            //dd($matchedSituationalFactors,$totalSituationalFactors,$percentageOfSituationalApplicability);
-            if ($percentageOfSituationalApplicability >= 50 || $this->isApplicableInAllSituations($methodBlock->getSituationalFactors())) {
+            //If the methodBlock has more than one situational factors then calculate the percentage of situational
+            //applicability
+            if (sizeof($methodBlock->getSituationalFactors()) > 1) {
+                /*
+              * If percentage of situational factors are more than or equal to 50% then recommend the method block.
+              * If the method block can be used in all situation, then recommend it as well.
+              */
+                $percentageOfSituationalApplicability = ($matchedSituationalFactors / $totalSituationalFactorsOfGraph) * 100;
+                //dd($matchedSituationalFactors,$totalSituationalFactors,$percentageOfSituationalApplicability);
+                if ($percentageOfSituationalApplicability >= 50) {
+                    $methodBlockIsSituationSpecific = true;
+                }
+            } //Else if the methodBlock has only one situational factor which is present in the BMD graph then the block is situational
+            else if ($matchedSituationalFactors == 1) {
+                $methodBlockIsSituationSpecific = true;
+            } else if ($this->isApplicableInAllSituations($methodBlock->getSituationalFactors())) {
                 $methodBlockIsSituationSpecific = true;
             }
         }
@@ -393,9 +424,8 @@ class DataService
     {
         $allUsers = $this->entityManager->getRepository(User::class)->findAll();
         $platformOwners = [];
-        foreach ($allUsers as $user)
-        {
-            if(in_array('ROLE_PLATFORM_OWNER',$user->getRoles()))
+        foreach ($allUsers as $user) {
+            if (in_array('ROLE_PLATFORM_OWNER', $user->getRoles()))
                 $platformOwners [] = $user;
         }
         return $platformOwners;
@@ -405,9 +435,8 @@ class DataService
     {
         $businessModelTypes = [];
         $allBusinessModelDefinitions = $this->entityManager->getRepository(BusinessModelDefinition::class)->findAll();
-        foreach ($allBusinessModelDefinitions as $definition)
-        {
-            if(!in_array($definition->getType(),$businessModelTypes))
+        foreach ($allBusinessModelDefinitions as $definition) {
+            if (!in_array($definition->getType(), $businessModelTypes))
                 $businessModelTypes[] = $definition->getType();
         }
 

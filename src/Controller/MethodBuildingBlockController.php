@@ -16,40 +16,42 @@ use Symfony\Component\HttpFoundation\Request;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class MethodBuildingBlocksController extends AbstractController
+class MethodBuildingBlockController extends AbstractController
 {
     /**
      * @Route("/method/building/blocks", name="method_building_blocks")
      */
-    public function index(): Response
+    public function list(): Response
     {
         $buildingBlocks = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->findAll();
 
-        return $this->render('method_building_blocks/index.html.twig', [
+        return $this->render('method_building_block/list.html.twig', [
             'buildingBlocks' => $buildingBlocks
         ]);
     }
 
     /**
-     * @Route("/method/building/blocks/create", name="create_method_building_block")
+     * @Route("/method/building/block/create", name="create_method_building_block")
      * @param Request $request
      * @return Response
      */
-    public function createMethodBuildingBlocks(Request $request): Response
+    public function create(Request $request): Response
     {
         if (!$request->isXmlHttpRequest()) {
-            $form = $this->createForm(MethodBuildingBlockType::class, null, $this->getFormChoices());
+
+            $newMethodBuildingBlock = new MethodBuildingBlock();
+            $form = $this->createForm(MethodBuildingBlockType::class, $newMethodBuildingBlock, $this->getFormChoices());
 
             $form->handleRequest($request);
             if ($form->isSubmitted() && $form->isValid()) {
                 $entityManager = $this->getDoctrine()->getManager();
-                $entityManager->persist($form->getData());
+                $entityManager->persist($newMethodBuildingBlock);
                 $entityManager->flush();
 
                 return $this->redirectToRoute("method_building_blocks");
             }
 
-            return $this->render("method_building_blocks/create.html.twig", [
+            return $this->render("method_building_block/create.html.twig", [
                 'form' => $form->createView()
             ]);
         } else if ($request->isXmlHttpRequest()) {
@@ -64,7 +66,7 @@ class MethodBuildingBlocksController extends AbstractController
      * @param int $id
      * @return Response
      */
-    public function editMethodBuildingBlock(Request $request, int $id): Response
+    public function edit(Request $request, int $id): Response
     {
         if (!$request->isXmlHttpRequest()) {
             $buildingBlock = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->find($id);
@@ -81,7 +83,7 @@ class MethodBuildingBlocksController extends AbstractController
 
             $process = $buildingBlock->getProcess();
 
-            return $this->render("method_building_blocks/update.html.twig", [
+            return $this->render("method_building_block/edit.html.twig", [
                 'form' => $form->createView(),
                 'processType' => $process->getParentProcessKind()
             ]);
@@ -96,10 +98,10 @@ class MethodBuildingBlocksController extends AbstractController
      * @param int $id
      * @return Response
      */
-    public function showMethodBuildingBlock(int $id): Response
+    public function show(int $id): Response
     {
         $block = $this->getDoctrine()->getRepository(MethodBuildingBlock::class)->find($id);
-        return $this->render('method_building_blocks/show.html.twig', [
+        return $this->render('method_building_block/show.html.twig', [
             'block' => $block
         ]);
     }
@@ -109,7 +111,7 @@ class MethodBuildingBlocksController extends AbstractController
      * @param int $id
      * @return RedirectResponse
      */
-    public function deleteMethodBlock(int $id)
+    public function delete(int $id)
     {
         $entityManager = $this->getDoctrine()->getManager();
         $block = $entityManager->getRepository(MethodBuildingBlock::class)->find($id);

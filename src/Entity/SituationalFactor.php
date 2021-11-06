@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=SituationalFactorRepository::class)
  */
-class SituationalFactor
+class SituationalFactor implements MethodElement
 {
     /**
      * @ORM\Id

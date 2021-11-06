@@ -6,7 +6,7 @@ use Symfony\Bundle\FrameworkBundle\Controller\AbstractController;
 use Symfony\Component\HttpFoundation\Response;
 use Symfony\Component\Routing\Annotation\Route;
 
-class MethodBaseController extends AbstractController
+class DashboardController extends AbstractController
 {
     /**
      * @Route("/", name="root_path")
@@ -14,16 +14,16 @@ class MethodBaseController extends AbstractController
     public function root(): Response
     {
         if($this->getUser())
-            return $this->redirectToRoute('method_base');
+            return $this->redirectToRoute('index');
         else
             return $this->redirectToRoute('app_login');
     }
 
 
     /**
-     * @Route("/index", name="method_base")
+     * @Route("/index", name="index")
      */
-    public function methodBase(): Response
+    public function index(): Response
     {
 
         $notifications = [];
@@ -34,10 +34,9 @@ class MethodBaseController extends AbstractController
             $today = date_create("now");
             $entityManager = $this->getDoctrine()->getManager();
 
-            if(date_diff($today,$notificationDate)->days<30)
+            if(date_diff($today,$notificationDate)->days<15)
             {
                 $notifications[] = $notification;
-
             }
             else
             {
@@ -47,7 +46,7 @@ class MethodBaseController extends AbstractController
             $entityManager->flush();
         }
 
-        return $this->render('method_base.html.twig', [
+        return $this->render('index.html.twig', [
             'notifications' => $notifications
         ]);
     }

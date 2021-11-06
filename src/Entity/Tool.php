@@ -11,7 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=ToolRepository::class)
  * @UniqueEntity("type")
  */
-class Tool
+class Tool implements MethodElement
 {
     /**
      * @ORM\Id
@@ -92,7 +92,7 @@ class Tool
         $this->variants = new ArrayCollection($variants);
     }
 
-    public function __toString()
+    public function __toString(): string
     {
         return $this->type;
     }
@@ -113,4 +113,8 @@ class Tool
         $this->description = $description;
     }
 
+    public function getName(): string
+    {
+        return $this->type;
+    }
 }

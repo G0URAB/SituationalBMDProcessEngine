@@ -22,7 +22,7 @@ class BusinessModel
 
 
     /**
-     * @ORM\OneToMany(targetEntity="BusinessComponent", mappedBy="businessModel", cascade={"persist","remove"})
+     * @ORM\OneToMany(targetEntity="BusinessModelComponent", mappedBy="businessModel", cascade={"persist","remove"})
      */
     private $components;
 
@@ -58,7 +58,7 @@ class BusinessModel
         return $this->components;
     }
 
-    public function addComponent(BusinessComponent $component)
+    public function addComponent(BusinessModelComponent $component)
     {
         if(!$this->components->contains($component))
         {
@@ -67,7 +67,7 @@ class BusinessModel
         }
     }
 
-    public function removeComponent(BusinessComponent $component)
+    public function removeComponent(BusinessModelComponent $component)
     {
         if($this->components->contains($component))
         {

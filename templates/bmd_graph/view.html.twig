@@ -11,33 +11,38 @@
     </div>
 
     <div style="height: 500px; border:1px solid black; border-radius: 4px; display: flex; flex-direction: row;">
-            <div id="mynetwork" data-nodes="{{ graph.nodes }}"
-                 data-edges="{{ graph.edges }}" style="width: 80%; height: 100%;">
-            </div>
-            <div style="width: 30%; height: 100%; overflow: auto">
-                <div class="card h-100">
-                    <div class="card-body bg-light">
-                        <h5 class="card-title">{{ graph.name }}</h5>
-                        <p class="card-text"><b>Primary Process Type of Graph:</b> {{ graph.parentProcessKind }}</p>
-                        <div class="card-text">
-                            <b>Placeholder Process Types of Graph:</b>
-                            <ul>
-                                {% for processType in graph.childProcessKinds %}
-                                    <li> {{ processType.name }} </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
-                        <div class="card-text">
-                            <b>Situational Factors:</b>
-                            <ul>
-                                {% for factor in graph.situationalFactors %}
-                                    <li> {{ factor }} </li>
-                                {% endfor %}
-                            </ul>
-                        </div>
+        <div id="mynetwork" data-nodes="{{ graph.nodes }}"
+             data-edges="{{ graph.edges }}" style="width: 80%; height: 100%;">
+        </div>
+        <div style="width: 30%; height: 100%; overflow: auto">
+            <div class="card h-100">
+                <div class="card-body bg-light">
+                    <h5 class="card-title">{{ graph.name }}</h5>
+                    <p class="card-text"><b>Primary Process Type:</b> {{ graph.parentProcessKind }}</p>
+                    <div class="card-text">
+                        <b>Steps:</b>
+                        <ul>
+                            {% for processType in graph.childProcessKinds %}
+                                <li> {{ processType.name }} </li>
+                                {% if loop.last %}
+                                    <li>
+                                        Prepare
+                                    </li>
+                                {% endif %}
+                            {% endfor %}
+                        </ul>
+                    </div>
+                    <div class="card-text">
+                        <b>Situational Factors:</b>
+                        <ul>
+                            {% for factor in graph.situationalFactors %}
+                                <li> {{ factor }} </li>
+                            {% endfor %}
+                        </ul>
                     </div>
                 </div>
             </div>
+        </div>
     </div>
 
     {# Description #}

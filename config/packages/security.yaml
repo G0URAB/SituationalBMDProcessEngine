@@ -34,8 +34,6 @@ security:
     # Easy way to control access for large sections of your site
     # Note: Only the *first* access control that matches will be used
     access_control:
-        # - { path: ^/admin, roles: ROLE_ADMIN }
-        # - { path: ^/profile, roles: ROLE_USER }
         - { path: ^/index, roles: ROLE_USER }
         - { path: ^/situational_methods, roles: [ ROLE_METHOD_ENGINEER, ROLE_PLATFORM_OWNER ] }
         - { path: ^/situational_method/create, roles: ROLE_METHOD_ENGINEER }
