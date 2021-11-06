@@ -31,7 +31,7 @@ class Process
     /**
      * @ORM\ManyToOne(targetEntity="ProcessKind", inversedBy="processes")
      */
-    private $parentProcessKind;
+    private $processKind;
 
     /**
      * @ORM\ManyToMany(targetEntity="ProcessKind")
@@ -73,17 +73,17 @@ class Process
     /**
      * @return mixed
      */
-    public function getParentProcessKind()
+    public function getProcessKind()
     {
-        return $this->parentProcessKind;
+        return $this->processKind;
     }
 
     /**
-     * @param mixed $parentProcessKind
+     * @param mixed $processKind
      */
-    public function setParentProcessKind($parentProcessKind)
+    public function setProcessKind($processKind)
     {
-        $this->parentProcessKind = $parentProcessKind;
+        $this->processKind = $processKind;
     }
 
 

@@ -38,10 +38,10 @@
         </div>
 
         {# Picture #}
-        <div class="p-4 w-50" style="position: fixed;top: 8%; right:1%">
+        {#<div class="p-4 w-50" style="position: fixed;top: 8%; right:1%">
             <h4 style="text-align: center"><u>Recommendation of processes in any situation</u></h4>
             <img class="w-100" src="{{ asset('images/ProcessRecommendation.JPG') }}">
-        </div>
+        </div>#}
 
     </div>
 
@@ -52,19 +52,7 @@
     <script>
         let card = $(".card");
         let processes = $("#form_processes");
-        let removeProcessButton = `
-
-                                   <fieldset class="form-group">
-                                       <div id="business_model_components_0_businessTexts___name__">
-                                           <div class="form-group">
-                                                <label for="business_model_components_0_businessTexts___name___value" class="required">
-                                                    Value
-                                                </label>
-                                                <input type="text" id="business_model_components_0_businessTexts___name___value" name="business_model[components][0][businessTexts][__name__][value]" required="required" class="form-control" />
-                                           </div>
-                                       </div>
-                                   </fieldset>
-                                   <div class="d-flex flex-row justify-content-center m-1">
+        let removeProcessButton = `<div class="d-flex flex-row justify-content-center m-1">
                                        <button type="button" class="btn btn-danger">Remove Process</button>
                                    </div>`;
 

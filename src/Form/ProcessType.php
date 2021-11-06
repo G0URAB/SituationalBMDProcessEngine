@@ -30,7 +30,7 @@ class ProcessType extends AbstractType
                 ],
             ])
             ->add('description',CKEditorType::class)
-            ->add('parentProcessKind', EntityType::class, [
+            ->add('processKind', EntityType::class, [
                 'label' => "Process Type",
                 'placeholder' => 'Please select a parent process type',
                 'class' => ProcessKind::class,
