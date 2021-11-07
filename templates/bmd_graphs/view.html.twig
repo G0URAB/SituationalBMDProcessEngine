@@ -18,9 +18,9 @@
                 <div class="card h-100">
                     <div class="card-body bg-light">
                         <h5 class="card-title">{{ graph.name }}</h5>
-                        <p class="card-text"><b>Primary Process Type of Graph:</b> {{ graph.parentProcessKind }}</p>
+                        <p class="card-text"><b>Primary Process Type:</b> {{ graph.parentProcessKind }}</p>
                         <div class="card-text">
-                            <b>Placeholder Process Types of Graph:</b>
+                            <b>Children Process Types:</b>
                             <ul>
                                 {% for processType in graph.childProcessKinds %}
                                     <li> {{ processType.name }} </li>

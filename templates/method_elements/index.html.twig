@@ -39,7 +39,7 @@
                     <tr>
                         <td><a href="{{ path('edit_process',{'id':process.id}) }}">{{ loop.index }}</a></td>
                         <td>{{ process.name }}</td>
-                        <td>{{ process.parentProcessKind.name }}</td>
+                        <td>{{ process.processKind.name }}</td>
                         <td>{{ process.implodedOtherRelatedProcessKinds }}</td>
                         <td><a href="{{ path('delete_method_element',{id:process.id,type:'process'}) }}" ><i style="font-size:24px" class="fa">&#xf014;</i></a></td>
                     </tr>

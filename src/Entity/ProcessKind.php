@@ -26,7 +26,7 @@ class ProcessKind
     private $name;
 
     /**
-     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="parentProcessKind", cascade={"persist", "remove"})
+     * @ORM\OneToMany(targetEntity="App\Entity\Process", mappedBy="processKind", cascade={"persist", "remove"})
      */
     private $processes;
 
