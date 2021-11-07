@@ -35,6 +35,53 @@ class TeamManagementController extends AbstractController
     }
 
     /**
+     * @Route("/", name="root_path")
+     */
+    public function root(): Response
+    {
+        if($this->getUser())
+            return $this->redirectToRoute('dashboard');
+        else
+            return $this->redirectToRoute('app_login');
+    }
+
+
+    /**
+     * @Route("/dashboard", name="dashboard")
+     */
+    public function methodBase(): Response
+    {
+
+        $notifications = [];
+
+        foreach ($this->getUser()->getNotifications() as $notification)
+        {
+            $notificationDate = $notification->getDateTime();
+            $today = date_create("now");
+            $entityManager = $this->getDoctrine()->getManager();
+
+            if(date_diff($today,$notificationDate)->days<30)
+            {
+                $notifications[] = $notification;
+
+            }
+            else
+            {
+                $this->getUser()->removeNotification($notification);
+                $entityManager->persist($this->getUser());
+            }
+            $entityManager->flush();
+        }
+
+        return $this->render('dashboard.html.twig', [
+            'notifications' => $notifications
+        ]);
+    }
+
+
+
+
+    /**
      * @Route("/register", name="register")
      * @param Request $request
      * @return Response
@@ -88,7 +135,7 @@ class TeamManagementController extends AbstractController
             return $this->redirectToRoute('app_login');
         }
 
-        return $this->render('security/start_bmd.html.twig', [
+        return $this->render('team_management/start_bmd.html.twig', [
             'form' => $registrationForm->createView(),
         ]);
     }
@@ -114,7 +161,7 @@ class TeamManagementController extends AbstractController
             return $this->redirectToRoute('show_team_members');
         }
 
-        return $this->render('security/add_member.html.twig', [
+        return $this->render('team_management/add_member.html.twig', [
             'form' => $memberForm->createView(),
         ]);
     }
@@ -128,7 +175,7 @@ class TeamManagementController extends AbstractController
     {
         $totalUsers = $this->getDoctrine()->getRepository(User::class)->findAll();
 
-        return $this->render('security/show_members.html.twig',[
+        return $this->render('team_management/show_members.html.twig',[
             'allUsers'=>$totalUsers
         ]);
     }
@@ -157,7 +204,7 @@ class TeamManagementController extends AbstractController
             return $this->redirectToRoute('show_team_members');
         }
 
-        return $this->render('security/edit_members.html.twig', [
+        return $this->render('team_management/edit_members.html.twig', [
             'form' => $memberForm->createView(),
         ]);
     }
@@ -211,7 +258,7 @@ class TeamManagementController extends AbstractController
             }
         }
 
-        return $this->render('security/change_password.html.twig',[
+        return $this->render('team_management/change_password.html.twig',[
             'form'=> $form->createView()
         ]);
     }
