@@ -13,7 +13,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=ProcessRepository::class)
  * @UniqueEntity("name")
  */
-class Process
+class Process implements MethodElement
 {
     /**
      * @ORM\Id

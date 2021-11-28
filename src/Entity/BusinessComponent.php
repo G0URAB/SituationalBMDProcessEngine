@@ -9,7 +9,7 @@ use Doctrine\ORM\Mapping as ORM;
 /**
  * @ORM\Entity(repositoryClass=BusinessComponentRepository::class)
  */
-class BusinessComponent
+class BusinessComponent implements MethodElement
 {
     /**
      * @ORM\Id

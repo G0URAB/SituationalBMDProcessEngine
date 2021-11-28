@@ -11,7 +11,7 @@ use Symfony\Bridge\Doctrine\Validator\Constraints\UniqueEntity;
  * @ORM\Entity(repositoryClass=ArtifactRepository::class)
  * @UniqueEntity("name")
  */
-class Artifact
+class Artifact implements MethodElement
 {
     /**
      * @ORM\Id
