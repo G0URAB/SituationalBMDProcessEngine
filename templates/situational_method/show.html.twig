@@ -24,7 +24,7 @@
 
                     <div class="card-text">
                         {% for item in graphsAndSituationalFactors %}
-                            <p>{{ loop.index }}. {{ item.graphName }} has been selected for situational factors:</p>
+                            <p>{{ loop.index }}. <b>{{ item.graphName }}</b> has been selected for situational factors:</p>
                             <ul>
                                 {% for factor in item.factors %}
                                     <li>{{ factor }}</li>
@@ -33,7 +33,7 @@
                             </ul>
                         {% endfor %}
                         <div>
-                            <span><b>Business Model Type</b> : {{ situationalMethod.businessModelType }}</span>
+                            <span class="text-primary"><b>Business Model Type</b> : {{ situationalMethod.businessModelType }}</span>
                         </div>
                     </div>
                 </div>
